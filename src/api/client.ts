@@ -79,6 +79,13 @@ export const api = {
         body: JSON.stringify(data),
       }).then(r => r.ok ? r.json() : r.json().then((e: any) => Promise.reject(new Error(e.error)))),
 
+    google: (credential: string) =>
+      fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential }),
+      }).then(r => r.ok ? r.json() : r.json().then((e: any) => Promise.reject(new Error(e.error)))),
+
     register: (data: any) =>
       fetch('/api/auth/register', {
         method: 'POST',

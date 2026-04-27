@@ -269,6 +269,87 @@ router.post('/refresh', async (req, res) => {
   }
 });
 
+// POST /api/auth/google
+// Validates a Google ID token (via Google's tokeninfo endpoint) and issues our own JWTs.
+// The user must already have an account — Google sign-in is an authentication method,
+// not a self-registration path (organisation/branch context is required).
+router.post('/google', async (req, res) => {
+  try {
+    const { credential } = req.body || {};
+    if (!credential || typeof credential !== 'string') {
+      return res.status(400).json({ error: 'Google credential is required' });
+    }
+
+    // Verify the ID token with Google — this checks signature + expiry server-side
+    const tokenRes = await fetch(
+      `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`
+    );
+    if (!tokenRes.ok) {
+      return res.status(401).json({ error: 'Invalid Google token. Please try again.' });
+    }
+    const tokenInfo = await tokenRes.json();
+
+    if (!tokenInfo.email_verified || tokenInfo.email_verified === 'false') {
+      return res.status(401).json({ error: 'Google account email is not verified.' });
+    }
+    const email = (tokenInfo.email || '').toLowerCase().trim();
+    if (!email) return res.status(401).json({ error: 'Could not retrieve email from Google.' });
+
+    const pool = await getPool();
+
+    const result = await pool.request()
+      .input('email', sql.NVarChar, email)
+      .query(`
+        SELECT u.id, u.name, u.email, u.role, u.is_active,
+               u.organization_id, u.branch_id,
+               o.name AS org_name, o.code AS org_code, o.currency AS org_currency
+        FROM users u
+        LEFT JOIN organizations o ON o.id = u.organization_id
+        WHERE u.email = @email
+      `);
+
+    if (!result.recordset.length) {
+      return res.status(404).json({
+        error: `No TirePro account found for ${email}. Ask your administrator to create one.`,
+      });
+    }
+
+    const user = result.recordset[0];
+    if (!user.is_active) {
+      return res.status(403).json({ error: 'Your account has been deactivated. Contact your administrator.' });
+    }
+
+    const branchRes = await pool.request()
+      .input('org_id', sql.Int, user.organization_id || 1)
+      .query('SELECT id, name, code, address, phone FROM branches WHERE organization_id = @org_id AND is_active = 1 ORDER BY name');
+
+    const accessToken  = issueAccessToken(user);
+    const refreshToken = await createRefreshToken(pool, user.id, false);
+
+    res.json({
+      accessToken,
+      refreshToken,
+      user: {
+        id:              user.id,
+        name:            user.name,
+        email:           user.email,
+        role:            user.role,
+        organization_id: user.organization_id || 1,
+        branch_id:       user.branch_id,
+        organization: {
+          name:     user.org_name,
+          code:     user.org_code,
+          currency: user.org_currency || 'PKR',
+        },
+        branches: branchRes.recordset,
+      },
+    });
+  } catch (err) {
+    console.error('Google auth error:', err.message);
+    res.status(500).json({ error: 'Google authentication failed. Please try again.' });
+  }
+});
+
 // POST /api/auth/logout
 router.post('/logout', async (req, res) => {
   const { refreshToken } = req.body || {};

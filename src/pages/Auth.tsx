@@ -107,10 +107,17 @@ export default function Auth({ onAuth }: AuthProps) {
       if (!g || !googleBtnRef.current) return;
       g.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
-        callback: (response: { credential: string }) => {
-          const payload = decodeGoogleJwt(response.credential);
-          if (payload) {
-            onAuth({ name: payload.name ?? payload.email, email: payload.email, role: 'Administrator' });
+        callback: async (response: { credential: string }) => {
+          setLoading(true);
+          setErrors({});
+          try {
+            const raw = await api.auth.google(response.credential) as any;
+            const { accessToken, refreshToken, user: userFields } = raw;
+            onAuth({ ...userFields, accessToken, refreshToken });
+          } catch (err: any) {
+            setErrors({ _form: err.message || 'Google sign-in failed. Please try again.' });
+          } finally {
+            setLoading(false);
           }
         },
       });
