@@ -1,0 +1,408 @@
+import { useState, useEffect, useCallback, useRef } from 'react';
+import {
+  Wrench, Plus, Search, Pencil, Trash2, RefreshCw,
+  AlertCircle, CheckCircle, XCircle, Loader2,
+} from 'lucide-react';
+import { api } from '../api/client';
+import { formatCurrency } from '../lib/utils';
+import AddEditServiceModal from '../components/AddEditServiceModal';
+import ConfirmDialog from '../components/ConfirmDialog';
+import { useAutoRefresh } from '../lib/useAutoRefresh';
+
+// Common tire-shop services for the one-click seed when the list is empty
+const QUICK_SEEDS = [
+  { name: 'Tire Fitting',      sale_price: 300,   cost_price: 100, description: 'Mount and fit tyre to wheel rim',          category: 'Service', unit: 'job', is_active: true },
+  { name: 'Wheel Balancing',   sale_price: 250,   cost_price: 80,  description: 'Dynamic wheel balancing with weights',     category: 'Service', unit: 'job', is_active: true },
+  { name: 'Wheel Alignment',   sale_price: 1500,  cost_price: 500, description: '4-wheel laser alignment',                  category: 'Service', unit: 'job', is_active: true },
+  { name: 'Puncture Repair',   sale_price: 200,   cost_price: 50,  description: 'Tubeless puncture plug and patch repair',  category: 'Service', unit: 'job', is_active: true },
+  { name: 'Valve Replacement', sale_price: 100,   cost_price: 30,  description: 'Replace tyre valve stem',                 category: 'Service', unit: 'job', is_active: true },
+];
+
+export default function Services() {
+  const [services, setServices]     = useState<any[]>([]);
+  const [loading, setLoading]       = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const hasLoaded = useRef(false);
+  const [error, setError]           = useState('');
+  const [search, setSearch]         = useState('');
+
+  const [addModal, setAddModal]     = useState(false);
+  const [editSvc, setEditSvc]       = useState<any>(null);
+  const [deleteSvc, setDeleteSvc]   = useState<any>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [seeding, setSeeding]       = useState(false);
+  const [togglingId, setTogglingId] = useState<number | null>(null);
+
+  const fetchServices = useCallback(async () => {
+    if (!hasLoaded.current) setLoading(true);
+    setRefreshing(true); setError('');
+    try {
+      const all = await api.products.list();
+      setServices(all.filter((p: any) => p.category === 'Service'));
+      hasLoaded.current = true;
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setLoading(false); setRefreshing(false);
+    }
+  }, []);
+
+  useAutoRefresh(fetchServices);
+  useEffect(() => { fetchServices(); }, [fetchServices]);
+
+  const handleDelete = async () => {
+    if (!deleteSvc) return;
+    setDeleteLoading(true);
+    try {
+      await api.products.delete(deleteSvc.id);
+      setDeleteSvc(null);
+      fetchServices();
+    } catch (e: any) {
+      setDeleteSvc(null);
+      setError(e.message);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const toggleActive = async (svc: any) => {
+    setTogglingId(svc.id);
+    try {
+      await api.products.update(svc.id, { ...svc, is_active: !svc.is_active });
+      fetchServices();
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
+  const seedDefaults = async () => {
+    setSeeding(true);
+    try {
+      for (const svc of QUICK_SEEDS) {
+        await api.products.create(svc);
+      }
+      fetchServices();
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setSeeding(false);
+    }
+  };
+
+  const q        = search.toLowerCase();
+  const filtered = services.filter(s =>
+    (s.name        || '').toLowerCase().includes(q) ||
+    (s.description || '').toLowerCase().includes(q)
+  );
+
+  const activeCount   = services.filter(s => s.is_active).length;
+  const inactiveCount = services.length - activeCount;
+  const avgPrice      = services.length
+    ? services.reduce((sum, s) => sum + Number(s.sale_price), 0) / services.length
+    : 0;
+
+  return (
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-5">
+
+      {/* Summary */}
+      <div className="grid grid-cols-3 gap-3 sm:gap-4">
+        {[
+          { label: 'Active',    value: `${activeCount}`,            color: 'text-violet-600', help: 'Available on invoices' },
+          { label: 'Inactive',  value: `${inactiveCount}`,          color: inactiveCount > 0 ? 'text-amber-500' : 'text-slate-400', help: 'Hidden from invoices' },
+          { label: 'Avg Price', value: formatCurrency(avgPrice),    color: 'text-slate-900',  help: 'Average sale price' },
+        ].map(s => (
+          <div key={s.label} className="bg-white rounded-xl p-3 sm:p-4 border border-slate-100 shadow-sm">
+            <p className="text-xs text-slate-500 font-medium truncate">{s.label}</p>
+            <p className={`text-sm sm:text-xl font-bold mt-1 ${s.color} truncate`}>{s.value}</p>
+            <p className="text-xs text-slate-400 mt-0.5 hidden sm:block">{s.help}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100">
+
+        {/* Toolbar */}
+        <div className="flex flex-col gap-3 p-4 sm:p-5 border-b border-slate-100">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm sm:text-base font-bold text-slate-900">Services Catalog</h3>
+            <div className="flex items-center gap-2">
+              <button onClick={fetchServices} title="Refresh"
+                className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
+                <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} />
+              </button>
+              <button
+                onClick={() => setAddModal(true)}
+                className="flex items-center gap-1.5 bg-violet-600 text-white text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-2 rounded-lg hover:bg-violet-700 transition-colors">
+                <Plus size={14} />
+                <span className="hidden sm:inline">Add Service</span>
+                <span className="sm:hidden">Add</span>
+              </button>
+            </div>
+          </div>
+          <div className="relative">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              value={search} onChange={e => setSearch(e.target.value)}
+              placeholder="Search services…"
+              className="pl-8 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 w-full"
+            />
+          </div>
+        </div>
+
+        {error && (
+          <div className="mx-4 sm:mx-5 mt-4 flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
+            <AlertCircle size={15} className="flex-shrink-0" /><span>{error}</span>
+          </div>
+        )}
+
+        {loading && (
+          <div className="p-6 space-y-3">
+            {[1,2,3,4,5].map(i => <div key={i} className="h-14 bg-slate-100 rounded-lg animate-pulse" />)}
+          </div>
+        )}
+
+        {!loading && (
+          <>
+            {/* Empty state with quick-seed */}
+            {services.length === 0 && !error && (
+              <div className="py-12 text-center px-6">
+                <div className="w-14 h-14 bg-violet-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Wrench size={24} className="text-violet-400" />
+                </div>
+                <p className="text-sm font-semibold text-slate-700 mb-1">No services yet</p>
+                <p className="text-xs text-slate-400 mb-6">
+                  Add fitting, balancing, alignment and other services — they appear as line items on invoices.
+                </p>
+                <button
+                  onClick={seedDefaults}
+                  disabled={seeding}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-violet-600 rounded-xl hover:bg-violet-700 disabled:opacity-60 transition-colors"
+                >
+                  {seeding ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />}
+                  {seeding ? 'Adding defaults…' : 'Add default services'}
+                </button>
+                <p className="text-xs text-slate-400 mt-3">
+                  Adds: Tire Fitting · Balancing · Alignment · Puncture Repair · Valve Replacement
+                </p>
+              </div>
+            )}
+
+            {services.length > 0 && (
+              <>
+                {/* Desktop table */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-100">
+                        {['Service', 'Sale Price', 'Cost', 'Margin', 'Status', ''].map(h => (
+                          <th key={h} className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3 text-left last:w-20">
+                            {h}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                      {filtered.map(svc => {
+                        const saleP  = Number(svc.sale_price);
+                        const costP  = Number(svc.cost_price);
+                        const margin = costP > 0 ? ((saleP - costP) / costP * 100).toFixed(1) : null;
+                        const isToggling = togglingId === svc.id;
+
+                        return (
+                          <tr key={svc.id} className="hover:bg-slate-50/50 transition-colors group">
+                            {/* Service name + description */}
+                            <td className="px-4 py-3.5">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 bg-violet-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                  <Wrench size={14} className="text-violet-500" />
+                                </div>
+                                <div>
+                                  <p className="text-sm font-semibold text-slate-900 leading-tight">{svc.name}</p>
+                                  {svc.description && (
+                                    <p className="text-xs text-slate-400 mt-0.5 leading-tight max-w-xs truncate">{svc.description}</p>
+                                  )}
+                                </div>
+                              </div>
+                            </td>
+
+                            {/* Sale price */}
+                            <td className="px-4 py-3.5">
+                              <span className="text-sm font-bold text-slate-900">{formatCurrency(saleP)}</span>
+                              <span className="ml-1 text-xs text-slate-400">/ job</span>
+                            </td>
+
+                            {/* Cost */}
+                            <td className="px-4 py-3.5 text-sm text-slate-500">
+                              {costP > 0 ? formatCurrency(costP) : <span className="text-slate-300">—</span>}
+                            </td>
+
+                            {/* Margin */}
+                            <td className="px-4 py-3.5">
+                              {margin !== null ? (
+                                <span className={`text-sm font-semibold ${Number(margin) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                                  {Number(margin) >= 0 ? '+' : ''}{margin}%
+                                </span>
+                              ) : (
+                                <span className="text-slate-300 text-sm">—</span>
+                              )}
+                            </td>
+
+                            {/* Active toggle */}
+                            <td className="px-4 py-3.5">
+                              <button
+                                onClick={() => toggleActive(svc)}
+                                disabled={isToggling}
+                                title={svc.is_active ? 'Click to deactivate' : 'Click to activate'}
+                                className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full transition-colors ${
+                                  svc.is_active
+                                    ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                                    : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                                }`}
+                              >
+                                {isToggling
+                                  ? <Loader2 size={11} className="animate-spin" />
+                                  : svc.is_active
+                                    ? <CheckCircle size={11} />
+                                    : <XCircle size={11} />}
+                                {svc.is_active ? 'Active' : 'Inactive'}
+                              </button>
+                            </td>
+
+                            {/* Actions */}
+                            <td className="px-4 py-3.5">
+                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button onClick={() => setEditSvc(svc)} title="Edit"
+                                  className="p-1.5 text-slate-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors">
+                                  <Pencil size={14} />
+                                </button>
+                                <button onClick={() => setDeleteSvc(svc)} title="Delete"
+                                  className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile cards */}
+                <div className="md:hidden divide-y divide-slate-50">
+                  {filtered.map(svc => {
+                    const saleP  = Number(svc.sale_price);
+                    const costP  = Number(svc.cost_price);
+                    const margin = costP > 0 ? ((saleP - costP) / costP * 100).toFixed(1) : null;
+
+                    return (
+                      <div key={svc.id} className="p-4 flex items-start gap-3">
+                        <div className="w-10 h-10 bg-violet-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Wrench size={16} className="text-violet-500" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <p className="text-sm font-bold text-slate-900 leading-tight">{svc.name}</p>
+                              {svc.description && (
+                                <p className="text-xs text-slate-400 mt-0.5 leading-tight truncate">{svc.description}</p>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              <button onClick={() => setEditSvc(svc)} title="Edit"
+                                className="p-1.5 text-slate-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors">
+                                <Pencil size={13} />
+                              </button>
+                              <button onClick={() => setDeleteSvc(svc)} title="Delete"
+                                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3 mt-2">
+                            <div>
+                              <p className="text-xs text-slate-400">Price</p>
+                              <p className="text-sm font-bold text-slate-900">{formatCurrency(saleP)}</p>
+                            </div>
+                            {costP > 0 && (
+                              <div>
+                                <p className="text-xs text-slate-400">Cost</p>
+                                <p className="text-sm text-slate-600">{formatCurrency(costP)}</p>
+                              </div>
+                            )}
+                            {margin !== null && (
+                              <div>
+                                <p className="text-xs text-slate-400">Margin</p>
+                                <p className={`text-sm font-semibold ${Number(margin) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                                  {Number(margin) >= 0 ? '+' : ''}{margin}%
+                                </p>
+                              </div>
+                            )}
+                            <button
+                              onClick={() => toggleActive(svc)}
+                              disabled={togglingId === svc.id}
+                              className={`ml-auto flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${
+                                svc.is_active
+                                  ? 'bg-emerald-50 text-emerald-700'
+                                  : 'bg-slate-100 text-slate-500'
+                              }`}
+                            >
+                              {togglingId === svc.id
+                                ? <Loader2 size={10} className="animate-spin" />
+                                : svc.is_active ? <CheckCircle size={10} /> : <XCircle size={10} />}
+                              {svc.is_active ? 'Active' : 'Inactive'}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {filtered.length === 0 && (
+                  <div className="text-center py-10 text-slate-400">
+                    <Wrench size={28} className="mx-auto mb-2 opacity-30" />
+                    <p className="text-sm">No services match your search.</p>
+                  </div>
+                )}
+              </>
+            )}
+          </>
+        )}
+
+        <div className="px-4 sm:px-5 py-3 border-t border-slate-100 text-xs text-slate-500 flex items-center justify-between">
+          <span>
+            {services.length === 0
+              ? 'No services'
+              : `${filtered.length} of ${services.length} services`}
+          </span>
+          {inactiveCount > 0 && (
+            <span className="text-amber-600 font-medium">{inactiveCount} inactive</span>
+          )}
+        </div>
+      </div>
+
+      {(addModal || editSvc) && (
+        <AddEditServiceModal
+          service={editSvc ?? undefined}
+          onClose={() => { setAddModal(false); setEditSvc(null); }}
+          onSaved={fetchServices}
+        />
+      )}
+
+      {deleteSvc && (
+        <ConfirmDialog
+          title="Delete Service"
+          message={`Delete "${deleteSvc.name}"? This cannot be undone. Services used in existing sales or purchases cannot be deleted.`}
+          confirmLabel="Delete Service"
+          variant="danger"
+          loading={deleteLoading}
+          onConfirm={handleDelete}
+          onCancel={() => setDeleteSvc(null)}
+        />
+      )}
+    </div>
+  );
+}
