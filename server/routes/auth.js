@@ -269,6 +269,86 @@ router.post('/refresh', async (req, res) => {
   }
 });
 
+// POST /api/auth/forgot-password
+// Generates a short-lived JWT reset token. Returns it directly (internal system — no email service).
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body || {};
+    const cleanEmail = sanitize(email, 100).toLowerCase();
+    if (!isValidEmail(cleanEmail)) {
+      return res.status(400).json({ error: 'Enter a valid email address' });
+    }
+
+    const pool = await getPool();
+    const result = await pool.request()
+      .input('email', sql.NVarChar, cleanEmail)
+      .query('SELECT id, name, is_active FROM users WHERE email = @email');
+
+    if (!result.recordset.length || !result.recordset[0].is_active) {
+      return res.status(404).json({ error: `No active account found for ${cleanEmail}.` });
+    }
+
+    const user = result.recordset[0];
+    // Sign a short-lived reset token — no extra table needed
+    const resetToken = jwt.sign(
+      { userId: user.id, type: 'password-reset' },
+      JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    res.json({ resetToken });
+  } catch (err) {
+    console.error('Forgot-password error:', err.message);
+    res.status(500).json({ error: 'Failed to generate reset token. Please try again.' });
+  }
+});
+
+// POST /api/auth/reset-password
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { resetToken, newPassword } = req.body || {};
+    if (!resetToken) return res.status(400).json({ error: 'Reset token is required' });
+    if (!newPassword || newPassword.length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters' });
+    }
+
+    let payload;
+    try {
+      payload = jwt.verify(resetToken, JWT_SECRET);
+    } catch {
+      return res.status(401).json({ error: 'Reset link has expired or is invalid. Please request a new one.' });
+    }
+    if (payload.type !== 'password-reset') {
+      return res.status(401).json({ error: 'Invalid reset token' });
+    }
+
+    const pool = await getPool();
+    const userRes = await pool.request()
+      .input('id', sql.Int, payload.userId)
+      .query('SELECT id, is_active FROM users WHERE id = @id');
+
+    if (!userRes.recordset.length || !userRes.recordset[0].is_active) {
+      return res.status(404).json({ error: 'Account not found or has been deactivated.' });
+    }
+
+    const hash = await bcrypt.hash(newPassword, 12);
+    await pool.request()
+      .input('id',   sql.Int,      payload.userId)
+      .input('hash', sql.NVarChar, hash)
+      .query('UPDATE users SET password_hash = @hash WHERE id = @id');
+
+    // Invalidate all refresh tokens so every existing session is signed out
+    await pool.request()
+      .input('user_id', sql.Int, payload.userId)
+      .query('DELETE FROM refresh_tokens WHERE user_id = @user_id');
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Reset-password error:', err.message);
+    res.status(500).json({ error: 'Failed to reset password. Please try again.' });
+  }
+});
+
 // POST /api/auth/google
 // Validates a Google ID token (via Google's tokeninfo endpoint) and issues our own JWTs.
 // The user must already have an account — Google sign-in is an authentication method,

@@ -19,7 +19,7 @@ interface AuthProps {
   }) => void;
 }
 
-type View = 'login' | 'register';
+type View = 'login' | 'register' | 'forgot' | 'reset';
 
 interface FormField {
   label: string;
@@ -92,8 +92,10 @@ export default function Auth({ onAuth }: AuthProps) {
   const [showConfirmPw, setShowConfirmPw] = useState(false);
   const [loading, setLoading]             = useState(false);
   const [success, setSuccess]             = useState(false);
+  const [successMsg, setSuccessMsg]       = useState('');
   const [errors, setErrors]               = useState<Record<string, string>>({});
   const [form, setForm]                   = useState<Record<string, string>>({});
+  const [resetToken, setResetToken]       = useState('');
   const googleBtnRef                      = useRef<HTMLDivElement>(null);
 
   const pw       = form.password ?? '';
@@ -121,10 +123,11 @@ export default function Auth({ onAuth }: AuthProps) {
           }
         },
       });
+      const btnWidth = googleBtnRef.current.offsetWidth;
       g.accounts.id.renderButton(googleBtnRef.current, {
         theme: 'outline',
         size: 'large',
-        width: 400,
+        width: btnWidth > 0 ? btnWidth : 360,
         text: 'continue_with',
         shape: 'rectangular',
         logo_alignment: 'left',
@@ -203,12 +206,58 @@ export default function Auth({ onAuth }: AuthProps) {
     }
   };
 
+  const handleForgot = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const errs: Record<string, string> = {};
+    if (!form.email?.includes('@')) errs.email = 'Enter a valid email';
+    setErrors(errs);
+    if (Object.keys(errs).length) return;
+    setLoading(true);
+    try {
+      const data = await api.auth.forgotPassword(form.email) as any;
+      setResetToken(data.resetToken);
+      setForm({});
+      setErrors({});
+      setView('reset');
+    } catch (err: any) {
+      setErrors({ _form: err.message || 'Failed to generate reset link. Please try again.' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const errs: Record<string, string> = {};
+    if ((form.password ?? '').length < 8)              errs.password        = 'Password must be at least 8 characters';
+    if (form.password !== form.confirmPassword)        errs.confirmPassword = 'Passwords do not match';
+    setErrors(errs);
+    if (Object.keys(errs).length) return;
+    setLoading(true);
+    try {
+      await api.auth.resetPassword(resetToken, form.password);
+      setSuccessMsg('Password updated! Redirecting to sign in…');
+      setSuccess(true);
+      setForm({});
+      setResetToken('');
+      setTimeout(() => { setSuccess(false); setSuccessMsg(''); setView('login'); }, 2000);
+    } catch (err: any) {
+      setErrors({ _form: err.message || 'Failed to reset password. Please try again.' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const set = (name: string, val: string) => {
     setForm(f => ({ ...f, [name]: val }));
     if (errors[name]) setErrors(e => { const n = { ...e }; delete n[name]; return n; });
   };
 
-  const switchView = (v: View) => { setView(v); setErrors({}); setForm({}); };
+  const switchView = (v: View) => {
+    setView(v); setErrors({}); setForm({});
+    if (v !== 'reset') setResetToken('');
+    if (v !== 'login')  { setSuccess(false); setSuccessMsg(''); }
+  };
 
   const fields = view === 'login' ? loginFields : registerFields;
 
@@ -306,12 +355,16 @@ export default function Auth({ onAuth }: AuthProps) {
               {/* Heading */}
               <div className="mb-5">
                 <h3 className="text-xl font-bold text-slate-900">
-                  {view === 'login' ? 'Welcome back' : 'Create account'}
+                  {view === 'login'    ? 'Welcome back'       :
+                   view === 'register' ? 'Create account'     :
+                   view === 'forgot'   ? 'Forgot password?'   :
+                                        'Set new password'}
                 </h3>
                 <p className="text-sm text-slate-400 mt-1">
-                  {view === 'login'
-                    ? 'Sign in to your TirePro workspace'
-                    : 'Get started with TirePro for free'}
+                  {view === 'login'    ? 'Sign in to your TirePro workspace'          :
+                   view === 'register' ? 'Get started with TirePro for free'          :
+                   view === 'forgot'   ? 'Enter your email and we\'ll generate a reset link' :
+                                        'Choose a strong new password for your account'}
                 </p>
               </div>
 
@@ -319,35 +372,42 @@ export default function Auth({ onAuth }: AuthProps) {
               {success && (
                 <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 mb-5">
                   <CheckCircle size={17} className="text-emerald-600 flex-shrink-0" />
-                  <p className="text-sm font-medium text-emerald-700">Account created! Redirecting to sign in…</p>
+                  <p className="text-sm font-medium text-emerald-700">
+                    {successMsg || 'Account created! Redirecting to sign in…'}
+                  </p>
                 </div>
               )}
 
-              {/* Google Sign-In */}
-              <div className="mb-4 w-full overflow-hidden">
-                {GOOGLE_CLIENT_ID ? (
-                  /* GIS renders its button into this div */
-                  <div ref={googleBtnRef} className="w-full flex justify-stretch [&>div]:w-full" />
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => alert('Add VITE_GOOGLE_CLIENT_ID=<your_client_id> to your .env file to enable Google Sign-In.')}
-                    className="w-full flex items-center justify-center gap-2.5 px-4 py-2.5 border border-slate-200 rounded-xl bg-white hover:bg-slate-50 active:bg-slate-100 transition-colors text-sm font-medium text-slate-700 shadow-sm"
-                  >
-                    <GoogleIcon />
-                    Continue with Google
-                  </button>
-                )}
-              </div>
+              {/* Google Sign-In — login / register only */}
+              {(view === 'login' || view === 'register') && (
+                <div className="mb-4 w-full overflow-hidden">
+                  {GOOGLE_CLIENT_ID ? (
+                    /* GIS renders its button into this div; width is set dynamically to prevent overflow */
+                    <div ref={googleBtnRef} className="w-full" />
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => alert('Add VITE_GOOGLE_CLIENT_ID=<your_client_id> to your .env file to enable Google Sign-In.')}
+                      className="w-full flex items-center justify-center gap-2.5 px-4 py-2.5 border border-slate-200 rounded-xl bg-white hover:bg-slate-50 active:bg-slate-100 transition-colors text-sm font-medium text-slate-700 shadow-sm"
+                    >
+                      <GoogleIcon />
+                      Continue with Google
+                    </button>
+                  )}
+                </div>
+              )}
 
-              {/* Divider */}
-              <div className="flex items-center gap-3 mb-5">
-                <div className="flex-1 h-px bg-slate-200" />
-                <span className="text-xs text-slate-400 font-medium whitespace-nowrap">or continue with email</span>
-                <div className="flex-1 h-px bg-slate-200" />
-              </div>
+              {/* Divider — login / register only */}
+              {(view === 'login' || view === 'register') && (
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="flex-1 h-px bg-slate-200" />
+                  <span className="text-xs text-slate-400 font-medium whitespace-nowrap">or continue with email</span>
+                  <div className="flex-1 h-px bg-slate-200" />
+                </div>
+              )}
 
-              {/* Email / password form */}
+              {/* Email / password form — login / register only */}
+              {(view === 'login' || view === 'register') && (
               <form onSubmit={handleSubmit} noValidate className="space-y-4">
                 {fields.map(field => {
                   const Icon       = field.icon;
@@ -459,9 +519,10 @@ export default function Auth({ onAuth }: AuthProps) {
                       />
                       <span className="text-xs text-slate-500">Keep me signed in</span>
                     </label>
-                    <span className="text-xs text-teal-600 font-medium cursor-pointer hover:underline">
+                    <button type="button" onClick={() => switchView('forgot')}
+                      className="text-xs text-teal-600 font-medium hover:underline">
                       Forgot password?
-                    </span>
+                    </button>
                   </div>
                 )}
 
@@ -493,17 +554,188 @@ export default function Auth({ onAuth }: AuthProps) {
                   )}
                 </button>
               </form>
+              )}
 
-              {/* View toggle */}
-              <p className="text-center text-xs text-slate-400 mt-5">
-                {view === 'login' ? "Don't have an account? " : 'Already have an account? '}
-                <button
-                  onClick={() => switchView(view === 'login' ? 'register' : 'login')}
-                  className="text-teal-600 font-semibold hover:underline"
-                >
-                  {view === 'login' ? 'Register now' : 'Sign in'}
-                </button>
-              </p>
+              {/* ── Forgot password form ──────────────────────────────────── */}
+              {view === 'forgot' && (
+                <form onSubmit={handleForgot} noValidate className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+                      Email Address <span className="text-red-400 ml-0.5">*</span>
+                    </label>
+                    <div className="relative">
+                      <Mail size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" />
+                      <input
+                        type="email"
+                        placeholder="ahmed@company.pk"
+                        value={form.email ?? ''}
+                        onChange={e => set('email', e.target.value)}
+                        className={cn(
+                          'w-full pl-10 pr-4 py-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 transition-all bg-slate-50 focus:bg-white',
+                          errors.email
+                            ? 'border-red-300 focus:ring-red-100 focus:border-red-400'
+                            : 'border-slate-200 focus:ring-teal-100 focus:border-teal-400'
+                        )}
+                      />
+                    </div>
+                    {errors.email && (
+                      <p className="flex items-center gap-1 text-xs text-red-500 mt-1.5 font-medium">
+                        <AlertCircle size={11} /> {errors.email}
+                      </p>
+                    )}
+                  </div>
+
+                  {errors._form && (
+                    <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl px-3.5 py-3 text-sm text-red-700">
+                      <AlertCircle size={15} className="flex-shrink-0 mt-0.5" />
+                      <span>{errors._form}</span>
+                    </div>
+                  )}
+
+                  <button type="submit" disabled={loading}
+                    className={cn(
+                      'w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all mt-1',
+                      loading
+                        ? 'bg-teal-400 text-white cursor-not-allowed'
+                        : 'bg-teal-600 text-white hover:bg-teal-700 active:scale-[0.98] shadow-sm shadow-teal-200'
+                    )}
+                  >
+                    {loading
+                      ? <><Loader2 size={15} className="animate-spin" /> Generating…</>
+                      : <>Generate Reset Link <ArrowRight size={15} /></>}
+                  </button>
+
+                  <p className="text-center text-xs text-slate-400 mt-1">
+                    Remember your password?{' '}
+                    <button type="button" onClick={() => switchView('login')}
+                      className="text-teal-600 font-semibold hover:underline">
+                      Sign in
+                    </button>
+                  </p>
+                </form>
+              )}
+
+              {/* ── Reset password form ───────────────────────────────────── */}
+              {view === 'reset' && (
+                <form onSubmit={handleReset} noValidate className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+                      New Password <span className="text-red-400 ml-0.5">*</span>
+                    </label>
+                    <div className="relative">
+                      <Lock size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" />
+                      <input
+                        type={showPw ? 'text' : 'password'}
+                        placeholder="Min 8 characters"
+                        value={form.password ?? ''}
+                        onChange={e => set('password', e.target.value)}
+                        className={cn(
+                          'w-full pl-10 pr-10 py-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 transition-all bg-slate-50 focus:bg-white',
+                          errors.password
+                            ? 'border-red-300 focus:ring-red-100 focus:border-red-400'
+                            : 'border-slate-200 focus:ring-teal-100 focus:border-teal-400'
+                        )}
+                      />
+                      <button type="button" onClick={() => setShowPw(v => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                        {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                      </button>
+                    </div>
+                    {form.password && (
+                      <div className="mt-2">
+                        <div className="flex gap-1 mb-1">
+                          {[1,2,3,4].map(i => (
+                            <div key={i} className={cn('h-1 flex-1 rounded-full transition-all', i <= strength.score ? strength.color : 'bg-slate-200')} />
+                          ))}
+                        </div>
+                        <p className={cn('text-xs font-medium', {
+                          'text-red-500':     strength.label === 'Weak',
+                          'text-amber-500':   strength.label === 'Fair',
+                          'text-teal-600':    strength.label === 'Good',
+                          'text-emerald-600': strength.label === 'Strong',
+                        })}>{strength.label} password</p>
+                      </div>
+                    )}
+                    {errors.password && (
+                      <p className="flex items-center gap-1 text-xs text-red-500 mt-1.5 font-medium">
+                        <AlertCircle size={11} /> {errors.password}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+                      Confirm Password <span className="text-red-400 ml-0.5">*</span>
+                    </label>
+                    <div className="relative">
+                      <Lock size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" />
+                      <input
+                        type={showConfirmPw ? 'text' : 'password'}
+                        placeholder="Re-enter password"
+                        value={form.confirmPassword ?? ''}
+                        onChange={e => set('confirmPassword', e.target.value)}
+                        className={cn(
+                          'w-full pl-10 pr-10 py-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 transition-all bg-slate-50 focus:bg-white',
+                          errors.confirmPassword
+                            ? 'border-red-300 focus:ring-red-100 focus:border-red-400'
+                            : 'border-slate-200 focus:ring-teal-100 focus:border-teal-400'
+                        )}
+                      />
+                      <button type="button" onClick={() => setShowConfirmPw(v => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                        {showConfirmPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                      </button>
+                    </div>
+                    {errors.confirmPassword && (
+                      <p className="flex items-center gap-1 text-xs text-red-500 mt-1.5 font-medium">
+                        <AlertCircle size={11} /> {errors.confirmPassword}
+                      </p>
+                    )}
+                  </div>
+
+                  {errors._form && (
+                    <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl px-3.5 py-3 text-sm text-red-700">
+                      <AlertCircle size={15} className="flex-shrink-0 mt-0.5" />
+                      <span>{errors._form}</span>
+                    </div>
+                  )}
+
+                  <button type="submit" disabled={loading || success}
+                    className={cn(
+                      'w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all mt-1',
+                      loading || success
+                        ? 'bg-teal-400 text-white cursor-not-allowed'
+                        : 'bg-teal-600 text-white hover:bg-teal-700 active:scale-[0.98] shadow-sm shadow-teal-200'
+                    )}
+                  >
+                    {loading
+                      ? <><Loader2 size={15} className="animate-spin" /> Saving…</>
+                      : success
+                      ? <><CheckCircle size={15} /> Done!</>
+                      : <>Set New Password <ArrowRight size={15} /></>}
+                  </button>
+
+                  <p className="text-center text-xs text-slate-400 mt-1">
+                    <button type="button" onClick={() => switchView('forgot')}
+                      className="text-teal-600 font-semibold hover:underline">
+                      ← Try a different email
+                    </button>
+                  </p>
+                </form>
+              )}
+
+              {/* View toggle — login / register only */}
+              {(view === 'login' || view === 'register') && (
+                <p className="text-center text-xs text-slate-400 mt-5">
+                  {view === 'login' ? "Don't have an account? " : 'Already have an account? '}
+                  <button
+                    onClick={() => switchView(view === 'login' ? 'register' : 'login')}
+                    className="text-teal-600 font-semibold hover:underline"
+                  >
+                    {view === 'login' ? 'Register now' : 'Sign in'}
+                  </button>
+                </p>
+              )}
             </div>
           </div>
 
