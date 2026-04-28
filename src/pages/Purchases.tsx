@@ -4,6 +4,8 @@ import { api } from '../api/client';
 import { formatCurrency, formatDate } from '../lib/utils';
 import GRNModal from '../components/GRNModal';
 import { useAutoRefresh } from '../lib/useAutoRefresh';
+import { usePagination } from '../lib/usePagination';
+import Pagination from '../components/Pagination';
 import POViewModal from '../components/POViewModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import ExcelImportModal from '../components/ExcelImportModal';
@@ -103,6 +105,7 @@ export default function Purchases() {
     const matchFilter = filter === 'all' || p.status === filter;
     return matchSearch && matchFilter;
   });
+  const { paged, paginationProps } = usePagination(filtered);
 
   const totalPurchased = filtered.reduce((s, p) => s + Number(p.total), 0);
   const totalPaid      = filtered.reduce((s, p) => s + Number(p.amount_paid || 0), 0);
@@ -189,6 +192,8 @@ export default function Purchases() {
           </div>
         )}
 
+        {!loading && <Pagination {...paginationProps} position="top" />}
+
         {!loading && (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px]">
@@ -204,7 +209,7 @@ export default function Purchases() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {filtered.map(po => {
+                {paged.map(po => {
                   const paidAmt    = Number(po.amount_paid || 0);
                   const balanceDue = parseFloat((Number(po.total) - paidAmt).toFixed(2));
                   return (
@@ -296,9 +301,7 @@ export default function Purchases() {
           </div>
         )}
 
-        <div className="px-4 sm:px-5 py-3 border-t border-slate-100 text-xs text-slate-500">
-          Showing {filtered.length} of {purchases.length} records
-        </div>
+        <Pagination {...paginationProps} position="bottom" />
       </div>
 
       {showImport && (

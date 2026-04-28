@@ -3,6 +3,7 @@ import { X, Loader2, CheckCircle, Package } from 'lucide-react';
 import { api } from '../api/client';
 import { formatCurrency } from '../lib/utils';
 import { getCachedSettings } from '../lib/appSettings';
+import ComboboxInput from './ComboboxInput';
 
 interface Props {
   tire?: any;
@@ -16,11 +17,19 @@ export default function AddEditTireModal({ tire, onClose, onSaved }: Props) {
   const isEdit = !!tire;
   const currency = getCachedSettings().currency || 'PKR';
   const [tireTypes, setTireTypes] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<{
+    brands: string[];
+    models: { brand: string; model: string }[];
+    sizes:  { brand: string; model: string; size: string }[];
+    patterns:     string[];
+    load_indexes: string[];
+  }>({ brands: [], models: [], sizes: [], patterns: [], load_indexes: [] });
 
   useEffect(() => {
     api.lookups.tireTypes()
       .then(types => setTireTypes(types.map((t: any) => t.name)))
       .catch(() => setTireTypes(['Passenger', 'SUV', '4x4', 'LT', 'Performance', 'Motorcycle']));
+    api.lookups.tireSuggestions().then(setSuggestions).catch(() => {});
   }, []);
 
   const [form, setForm] = useState({
@@ -43,6 +52,42 @@ export default function AddEditTireModal({ tire, onClose, onSaved }: Props) {
 
   const set = (field: string, val: string | number) =>
     setForm(f => ({ ...f, [field]: val }));
+
+  // Cascade-aware handlers: changing brand resets model+size; changing model resets size
+  const setBrand = (val: string) => setForm(f => ({ ...f, brand: val, model: '', size: '' }));
+  const setModel = (val: string) => setForm(f => ({ ...f, model: val, size: '' }));
+
+  // Derive combobox option lists client-side — cascade filter by brand/model
+  const brandOptions = suggestions.brands;
+
+  const modelOptions = (() => {
+    const matched = suggestions.brands.find(b => b.toLowerCase() === form.brand.toLowerCase().trim());
+    if (matched) {
+      return suggestions.models
+        .filter(m => m.brand.toLowerCase() === matched.toLowerCase())
+        .map(m => m.model);
+    }
+    return [...new Set(suggestions.models.map(m => m.model))];
+  })();
+
+  const sizeOptions = (() => {
+    const matchedBrand = suggestions.brands.find(b => b.toLowerCase() === form.brand.toLowerCase().trim());
+    const matchedModel = matchedBrand
+      ? suggestions.models.find(
+          m => m.brand.toLowerCase() === matchedBrand.toLowerCase() &&
+               m.model.toLowerCase() === form.model.toLowerCase().trim()
+        )
+      : undefined;
+    if (matchedBrand && matchedModel) {
+      return suggestions.sizes
+        .filter(
+          s => s.brand.toLowerCase() === matchedBrand.toLowerCase() &&
+               s.model.toLowerCase() === matchedModel.model.toLowerCase()
+        )
+        .map(s => s.size);
+    }
+    return [...new Set(suggestions.sizes.map(s => s.size))];
+  })();
 
   const costP  = Number(form.cost_price);
   const saleP  = Number(form.sale_price);
@@ -125,33 +170,34 @@ export default function AddEditTireModal({ tire, onClose, onSaved }: Props) {
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
                     Brand <span className="text-red-500">*</span>
                   </label>
-                  <input
+                  <ComboboxInput
                     value={form.brand}
-                    onChange={e => set('brand', e.target.value)}
+                    onChange={setBrand}
+                    options={brandOptions}
                     placeholder="e.g. Bridgestone"
-                    className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
                     Model <span className="text-red-500">*</span>
                   </label>
-                  <input
+                  <ComboboxInput
                     value={form.model}
-                    onChange={e => set('model', e.target.value)}
+                    onChange={setModel}
+                    options={modelOptions}
                     placeholder="e.g. Ecopia EP150"
-                    className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
                     Size <span className="text-red-500">*</span>
                   </label>
-                  <input
+                  <ComboboxInput
                     value={form.size}
-                    onChange={e => set('size', e.target.value)}
+                    onChange={val => set('size', val)}
+                    options={sizeOptions}
                     placeholder="e.g. 205/55R16"
-                    className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 font-mono"
+                    inputClassName="font-mono"
                   />
                   <p className="text-xs text-slate-400 mt-1">Width/Aspect R Rim</p>
                 </div>
@@ -168,23 +214,24 @@ export default function AddEditTireModal({ tire, onClose, onSaved }: Props) {
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
                     Tread Pattern
                   </label>
-                  <input
+                  <ComboboxInput
                     value={form.pattern}
-                    onChange={e => set('pattern', e.target.value)}
+                    onChange={val => set('pattern', val)}
+                    options={suggestions.patterns}
                     placeholder="e.g. EfficientGrip, Alenza Sport"
-                    className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
                     Load Index
                   </label>
-                  <input
+                  <ComboboxInput
                     value={form.load_index}
-                    onChange={e => set('load_index', e.target.value)}
+                    onChange={val => set('load_index', val)}
+                    options={suggestions.load_indexes}
                     placeholder="e.g. 91"
+                    inputClassName="text-center font-mono"
                     maxLength={3}
-                    className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 text-center font-mono"
                   />
                   <p className="text-xs text-slate-400 mt-1">Max load rating</p>
                 </div>

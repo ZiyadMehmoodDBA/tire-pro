@@ -18,6 +18,18 @@ router.get('/', async (req, res) => {
   }
 });
 
+/* ── GET /inventory/catalog-brands — list all brands available in tire_catalog ── */
+router.get('/catalog-brands', async (req, res) => {
+  try {
+    const pool = await getPool();
+    const result = await pool.request()
+      .query('SELECT DISTINCT brand FROM tire_catalog ORDER BY brand');
+    res.json(result.recordset.map(r => r.brand));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get('/:id', async (req, res) => {
   try {
     const { orgId, branchId } = getContext(req);
@@ -165,6 +177,50 @@ router.delete('/:id', async (req, res) => {
       before: beforeRow, after: null,
     });
     res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ── POST /inventory/import-catalog — bulk import catalog entries into tires ── */
+router.post('/import-catalog', async (req, res) => {
+  try {
+    const { orgId, branchId } = getContext(req);
+    const { brands } = req.body; // optional string[]
+    const pool  = await getPool();
+    const dbReq = pool.request()
+      .input('orgId',    sql.Int, orgId)
+      .input('branchId', sql.Int, branchId);
+
+    let brandFilter = '';
+    if (Array.isArray(brands) && brands.length > 0) {
+      const paramList = brands.map((b, i) => {
+        dbReq.input(`br${i}`, sql.NVarChar, b);
+        return `@br${i}`;
+      });
+      brandFilter = `AND tc.brand IN (${paramList.join(',')})`;
+    }
+
+    const result = await dbReq.query(`
+      INSERT INTO tires
+        (organization_id, branch_id, brand, model, size, type, pattern, load_index, speed_index,
+         stock, cost_price, sale_price, reorder_level)
+      SELECT
+        @orgId, @branchId,
+        tc.brand, tc.model, tc.size,
+        ISNULL(tc.tire_type, 'Passenger'),
+        tc.pattern, tc.load_index, tc.speed_index,
+        0, 0, 0, 10
+      FROM tire_catalog tc
+      WHERE NOT EXISTS (
+        SELECT 1 FROM tires t
+        WHERE t.brand = tc.brand AND t.model = tc.model AND t.size = tc.size
+          AND t.organization_id = @orgId AND t.branch_id = @branchId
+      )
+      ${brandFilter}
+    `);
+
+    res.json({ inserted: result.rowsAffected[0] });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

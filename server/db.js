@@ -1,6 +1,7 @@
 const sql    = require('mssql');
 const bcrypt = require('bcryptjs');
 require('dotenv').config({ path: require('path').join(__dirname, '.env') });
+const { seedTireCatalog, seedInventoryFromCatalog } = require('./seeds/tireCatalog');
 
 const baseConfig = {
   server:   process.env.DB_SERVER || 'localhost',
@@ -256,6 +257,22 @@ async function setupDatabase() {
     )
   `);
 
+  // Global tire catalog — brand/model/size reference data (no org scope)
+  await r.query(`
+    IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='tire_catalog' AND xtype='U')
+    CREATE TABLE tire_catalog (
+      id          INT IDENTITY(1,1) PRIMARY KEY,
+      brand       NVARCHAR(100) NOT NULL,
+      model       NVARCHAR(100) NOT NULL,
+      size        NVARCHAR(50)  NOT NULL,
+      pattern     NVARCHAR(100) NULL,
+      load_index  NVARCHAR(10)  NULL,
+      speed_index NVARCHAR(5)   NULL,
+      tire_type   NVARCHAR(50)  NULL,
+      CONSTRAINT UQ_tire_catalog_bms UNIQUE (brand, model, size)
+    )
+  `);
+
   // ── Multi-org / multi-branch ───────────────────────────────────────────────
   await r.query(`
     IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='organizations' AND xtype='U')
@@ -384,6 +401,24 @@ async function setupDatabase() {
     IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('users') AND name = 'branch_id')
       ALTER TABLE users ADD branch_id INT NULL
   `);
+
+  // Users: extended profile columns
+  for (const [col, def] of [
+    ['first_name',                 'NVARCHAR(100)  NULL'],
+    ['last_name',                  'NVARCHAR(100)  NULL'],
+    ['address',                    'NVARCHAR(500)  NULL'],
+    ['job_title',                  'NVARCHAR(100)  NULL'],
+    ['department',                 'NVARCHAR(100)  NULL'],
+    ['date_of_birth',              'DATE           NULL'],
+    ['emergency_contact_name',     'NVARCHAR(100)  NULL'],
+    ['emergency_contact_phone',    'NVARCHAR(50)   NULL'],
+    ['emergency_contact_relation', 'NVARCHAR(50)   NULL'],
+  ]) {
+    await dbPool.request().query(`
+      IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('users') AND name = '${col}')
+        ALTER TABLE users ADD ${col} ${def}
+    `);
+  }
 
   // ── POS / GRN additions ───────────────────────────────────────────────────
   // Stock audit trail: every stock change is logged here
@@ -619,6 +654,12 @@ async function setupDatabase() {
         WHERE email = @email AND organization_id = 0
       `);
   }
+
+  // Seed global tire catalog (merges new brands/models on every restart)
+  await seedTireCatalog(dbPool, sql);
+
+  // Populate inventory tires table from catalog for every org/branch (skips existing SKUs)
+  await seedInventoryFromCatalog(dbPool, sql);
 
   await dbPool.close();
 

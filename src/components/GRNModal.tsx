@@ -2,35 +2,62 @@ import { useState, useEffect, useRef } from 'react';
 import { X, Plus, Trash2, Loader2, CheckCircle, Package, Search } from 'lucide-react';
 import { api } from '../api/client';
 import { formatCurrency } from '../lib/utils';
+import ComboboxInput from './ComboboxInput';
 
 interface Props {
   onClose: () => void;
   onCreated: () => void;
 }
 
+interface Suggestions {
+  brands:       string[];
+  models:       { brand: string; model: string }[];
+  sizes:        { brand: string; model: string; size: string }[];
+  patterns:     string[];
+  load_indexes: string[];
+}
+
 interface LineItem {
-  item_key: string;   // 'p:id' | 't:id'
-  item_name: string;
-  qty: number;
-  unit_price: number;
-  stock?: number;     // current stock (tires only) — for display
+  mode:            'product' | 'tire';
+  // product mode
+  item_key:        string;   // 'p:id' | 't:id' | ''
+  item_name:       string;
+  // tire mode
+  tire_brand:      string;
+  tire_model:      string;
+  tire_size:       string;
+  tire_pattern:    string;
+  tire_load_index: string;
+  // common
+  qty:             number;
+  unit_price:      number;
+  stock?:          number;   // current inventory stock (for display)
 }
 
 interface CatalogItem {
-  key: string;
-  name: string;
-  subtitle: string;
-  costPrice: number;
-  stock?: number;
-  tireId?: number;
+  key:        string;
+  name:       string;
+  subtitle:   string;
+  costPrice:  number;
+  stock?:     number;
+  tireId?:    number;
   productId?: number;
 }
 
-const EMPTY_ITEM: LineItem = { item_key: '', item_name: '', qty: 1, unit_price: 0 };
+const EMPTY_ITEM: LineItem = {
+  mode: 'product',
+  item_key: '', item_name: '',
+  tire_brand: '', tire_model: '', tire_size: '', tire_pattern: '', tire_load_index: '',
+  qty: 1, unit_price: 0,
+};
+
+const EMPTY_SUGGESTIONS: Suggestions = { brands: [], models: [], sizes: [], patterns: [], load_indexes: [] };
 
 export default function GRNModal({ onClose, onCreated }: Props) {
   const [suppliers,   setSuppliers]   = useState<any[]>([]);
   const [catalog,     setCatalog]     = useState<CatalogItem[]>([]);
+  const [tiresRaw,    setTiresRaw]    = useState<any[]>([]);
+  const [suggestions, setSuggestions] = useState<Suggestions>(EMPTY_SUGGESTIONS);
   const [supplierId,  setSupplierId]  = useState('');
   const [date,        setDate]        = useState(new Date().toISOString().split('T')[0]);
   const [refNo,       setRefNo]       = useState('');
@@ -40,68 +67,95 @@ export default function GRNModal({ onClose, onCreated }: Props) {
   const [error,       setError]       = useState('');
   const [success,     setSuccess]     = useState(false);
 
-  // Per-row search
-  const [rowSearch, setRowSearch]     = useState<Record<number, string>>({});
-  const [rowOpen,   setRowOpen]       = useState<Record<number, boolean>>({});
+  // Per-row search state (product mode only)
+  const [rowSearch, setRowSearch] = useState<Record<number, string>>({});
+  const [rowOpen,   setRowOpen]   = useState<Record<number, boolean>>({});
   const searchRefs = useRef<Record<number, HTMLInputElement | null>>({});
 
   useEffect(() => {
     api.suppliers.list().then(setSuppliers).catch(() => {});
+    api.lookups.tireSuggestions().then(setSuggestions).catch(() => {});
     Promise.all([api.inventory.list(), api.products.list()]).then(([tires, products]) => {
-      const items: CatalogItem[] = [];
-      tires.forEach((t: any) => items.push({
-        key: `t:${t.id}`,
-        name: `${t.brand} ${t.model} ${t.size}`,
-        subtitle: `${t.type || 'Tire'} · Stock: ${t.stock}`,
+      setTiresRaw(tires);
+      const built: CatalogItem[] = [];
+      tires.forEach((t: any) => built.push({
+        key:       `t:${t.id}`,
+        name:      `${t.brand} ${t.model} ${t.size}`,
+        subtitle:  `${t.type || 'Tire'} · Stock: ${t.stock}`,
         costPrice: Number(t.cost_price || 0),
-        stock: Number(t.stock || 0),
-        tireId: t.id,
+        stock:     Number(t.stock || 0),
+        tireId:    t.id,
       }));
-      products.filter((p: any) => p.is_active && p.category !== 'Service').forEach((p: any) => items.push({
-        key: `p:${p.id}`,
-        name: p.name,
-        subtitle: p.category || 'Product',
+      products.filter((p: any) => p.is_active && p.category !== 'Service').forEach((p: any) => built.push({
+        key:       `p:${p.id}`,
+        name:      p.name,
+        subtitle:  p.category || 'Product',
         costPrice: Number(p.cost_price || 0),
         productId: p.id,
       }));
-      setCatalog(items);
+      setCatalog(built);
     }).catch(() => {});
   }, []);
 
-  // Click-outside to close dropdowns
+  // Click-outside to close product-search dropdowns
   useEffect(() => {
     const handler = () => setRowOpen({});
     document.addEventListener('click', handler);
     return () => document.removeEventListener('click', handler);
   }, []);
 
-  const addItem    = () => setItems(p => [...p, { ...EMPTY_ITEM }]);
-  const removeItem = (i: number) => {
-    setItems(p => p.filter((_, idx) => idx !== i));
-    setRowSearch(p => { const n = { ...p }; delete n[i]; return n; });
-    setRowOpen(p => { const n = { ...p }; delete n[i]; return n; });
+  // ── Cascade option derivations ─────────────────────────────────────────────
+  const brandOptions = suggestions.brands;
+
+  const getModelOptions = (brand: string): string[] => {
+    const b = brand.trim().toLowerCase();
+    if (!b) return [...new Set(suggestions.models.map(m => m.model))];
+    const matched = suggestions.brands.find(sb => sb.toLowerCase() === b);
+    if (matched)
+      return suggestions.models
+        .filter(m => m.brand.toLowerCase() === matched.toLowerCase())
+        .map(m => m.model);
+    return [...new Set(suggestions.models.map(m => m.model))];
   };
 
+  const getSizeOptions = (brand: string, model: string): string[] => {
+    const b  = brand.trim().toLowerCase();
+    const mo = model.trim().toLowerCase();
+    if (!b) return [...new Set(suggestions.sizes.map(s => s.size))];
+    let filtered = suggestions.sizes.filter(s => s.brand.toLowerCase() === b);
+    if (mo) filtered = filtered.filter(s => s.model.toLowerCase() === mo);
+    return [...new Set(filtered.map(s => s.size))];
+  };
+
+  // ── Mode toggle per row ────────────────────────────────────────────────────
+  const setItemMode = (i: number, mode: 'product' | 'tire') => {
+    setItems(prev => {
+      const n = [...prev];
+      n[i] = { ...EMPTY_ITEM, qty: n[i].qty, unit_price: n[i].unit_price, mode };
+      return n;
+    });
+    setRowSearch(p => ({ ...p, [i]: '' }));
+    setRowOpen(p => ({ ...p, [i]: false }));
+  };
+
+  // ── Product mode: catalog search selection ────────────────────────────────
   const selectCatalogItem = (rowIdx: number, cat: CatalogItem) => {
     setItems(prev => {
       const next = [...prev];
       next[rowIdx] = {
+        ...next[rowIdx],
         item_key:   cat.key,
         item_name:  cat.name,
-        qty:        next[rowIdx].qty || 1,
         unit_price: cat.costPrice,
         stock:      cat.stock,
+        // clear tire fields
+        tire_brand: '', tire_model: '', tire_size: '', tire_pattern: '', tire_load_index: '',
       };
       return next;
     });
     setRowSearch(p => ({ ...p, [rowIdx]: cat.name }));
     setRowOpen(p => ({ ...p, [rowIdx]: false }));
   };
-
-  const updateQty   = (i: number, v: number) =>
-    setItems(p => p.map((it, idx) => idx === i ? { ...it, qty: Math.max(1, v) } : it));
-  const updatePrice = (i: number, v: number) =>
-    setItems(p => p.map((it, idx) => idx === i ? { ...it, unit_price: Math.max(0, v) } : it));
 
   const getRowResults = (i: number) => {
     const q = (rowSearch[i] || '').toLowerCase().trim();
@@ -111,26 +165,92 @@ export default function GRNModal({ onClose, onCreated }: Props) {
     ).slice(0, 8);
   };
 
+  // ── Tire mode: spec update + auto-match ───────────────────────────────────
+  const updateTireSpec = (i: number, field: string, val: string) => {
+    setItems(prev => {
+      const n    = [...prev];
+      const item = { ...n[i] };
+
+      if      (field === 'brand')      { item.tire_brand = val; item.tire_model = ''; item.tire_size = ''; }
+      else if (field === 'model')      { item.tire_model = val; item.tire_size = ''; }
+      else if (field === 'size')       { item.tire_size = val; }
+      else if (field === 'pattern')    { item.tire_pattern = val; }
+      else if (field === 'load_index') { item.tire_load_index = val; }
+
+      // Auto-match against raw inventory tires (brand + size required; model optional filter)
+      const match = tiresRaw.find(t =>
+        t.brand?.toLowerCase() === item.tire_brand.toLowerCase().trim() &&
+        t.size?.toLowerCase()  === item.tire_size.toLowerCase().trim()  &&
+        (!item.tire_model.trim() || t.model?.toLowerCase() === item.tire_model.toLowerCase().trim())
+      );
+
+      if (match) {
+        item.item_key   = `t:${match.id}`;
+        item.item_name  = `${match.brand} ${match.model ?? ''} ${match.size}`.trim();
+        item.unit_price = Number(match.cost_price ?? 0);
+        item.stock      = Number(match.stock ?? 0);
+      } else {
+        item.item_key  = 'free';
+        item.item_name = [item.tire_brand, item.tire_model, item.tire_size].filter(Boolean).join(' ');
+        item.stock     = undefined;
+      }
+
+      n[i] = item;
+      return n;
+    });
+  };
+
+  // ── Common row operations ──────────────────────────────────────────────────
+  const addItem = () => setItems(p => [...p, { ...EMPTY_ITEM }]);
+
+  const removeItem = (i: number) => {
+    setItems(p => p.filter((_, idx) => idx !== i));
+    setRowSearch(p => { const n = { ...p }; delete n[i]; return n; });
+    setRowOpen(p => { const n = { ...p }; delete n[i]; return n; });
+  };
+
+  const updateQty   = (i: number, v: number) =>
+    setItems(p => p.map((it, idx) => idx === i ? { ...it, qty: Math.max(1, v) } : it));
+  const updatePrice = (i: number, v: number) =>
+    setItems(p => p.map((it, idx) => idx === i ? { ...it, unit_price: Math.max(0, v) } : it));
+
   const subtotal = items.reduce((s, it) => s + it.qty * it.unit_price, 0);
 
+  // ── Submit ─────────────────────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!supplierId) return setError('Please select a supplier.');
-    if (items.some(it => !it.item_key || it.qty < 1)) return setError('Fill in all line items.');
+    const invalid = items.some(it =>
+      it.mode === 'product'
+        ? !it.item_key || it.qty < 1
+        : !it.tire_brand.trim() || !it.tire_size.trim() || it.qty < 1
+    );
+    if (invalid) return setError('Fill in all items. Tire rows require at least Brand and Size.');
     setError(''); setLoading(true);
     try {
       await api.purchases.create({
         supplier_id: Number(supplierId),
         date,
-        status: 'received',  // GRN always receives immediately
+        status: 'received',
         notes: [refNo ? `Ref: ${refNo}` : '', notes].filter(Boolean).join(' — '),
         reference_no: refNo || undefined,
         items: items.map(it => {
-          const isProd = it.item_key.startsWith('p:');
+          if (it.mode === 'product') {
+            const isProd = it.item_key.startsWith('p:');
+            return {
+              ...(isProd ? { product_id: Number(it.item_key.slice(2)) }
+                         : { tire_id:    Number(it.item_key.slice(2)) }),
+              tire_name:  it.item_name,
+              qty:        it.qty,
+              unit_price: it.unit_price,
+            };
+          }
+          const tireId = it.item_key.startsWith('t:') ? Number(it.item_key.slice(2)) : null;
+          const tireName = [it.tire_brand, it.tire_model, it.tire_size, it.tire_pattern, it.tire_load_index]
+            .filter(Boolean).join(' ');
           return {
-            ...(isProd ? { product_id: Number(it.item_key.slice(2)) }
-                       : { tire_id:    Number(it.item_key.slice(2)) }),
-            tire_name:  it.item_name,
+            ...(tireId ? { tire_id: tireId } : {}),
+            tire_name:  tireName,
             qty:        it.qty,
             unit_price: it.unit_price,
           };
@@ -213,90 +333,174 @@ export default function GRNModal({ onClose, onCreated }: Props) {
                 </button>
               </div>
 
-              {/* Column headers */}
-              <div className="hidden sm:grid grid-cols-12 gap-2 mb-1 px-1 text-xs text-slate-400 font-medium">
-                <span className="col-span-6">Product / Tire</span>
-                <span className="col-span-2 text-center">Qty</span>
-                <span className="col-span-3 text-right">Cost Price</span>
-                <span className="col-span-1"></span>
-              </div>
-
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {items.map((item, i) => (
-                  <div key={i} className="grid grid-cols-12 gap-2 items-start">
+                  <div key={i} className="rounded-xl border border-slate-200 bg-slate-50/40 p-3 space-y-2.5">
 
-                    {/* Item search */}
-                    <div className="col-span-12 sm:col-span-6 relative"
-                      onClick={e => e.stopPropagation()}>
-                      <div className="relative">
-                        <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                        <input
-                          ref={el => { searchRefs.current[i] = el; }}
-                          value={rowSearch[i] ?? item.item_name}
-                          onChange={e => {
-                            setRowSearch(p => ({ ...p, [i]: e.target.value }));
-                            setRowOpen(p => ({ ...p, [i]: true }));
-                            if (!e.target.value) {
-                              setItems(p => p.map((it, idx) => idx === i ? { ...it, item_key: '', item_name: '' } : it));
-                            }
-                          }}
-                          onFocus={() => setRowOpen(p => ({ ...p, [i]: true }))}
-                          placeholder="Search tire or product..."
-                          className="w-full text-sm border border-slate-200 rounded-lg pl-7 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-slate-50"
-                        />
-                      </div>
-                      {rowOpen[i] && (
-                        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-30 max-h-52 overflow-y-auto">
-                          {getRowResults(i).length === 0 ? (
-                            <p className="text-xs text-slate-400 px-3 py-2">No results</p>
-                          ) : getRowResults(i).map(cat => (
-                            <button
-                              key={cat.key}
-                              type="button"
-                              onMouseDown={e => { e.preventDefault(); selectCatalogItem(i, cat); }}
-                              className="w-full text-left px-3 py-2 hover:bg-violet-50 transition-colors"
-                            >
-                              <div className="text-sm font-medium text-slate-800">{cat.name}</div>
-                              <div className="text-xs text-slate-400">{cat.subtitle} · {formatCurrency(cat.costPrice)}</div>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Qty */}
-                    <div className="col-span-4 sm:col-span-2">
-                      <input type="number" min={1}
-                        value={item.qty}
-                        onChange={e => updateQty(i, Number(e.target.value))}
-                        className="w-full text-sm border border-slate-200 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500 text-center bg-slate-50"
-                        placeholder="Qty" />
-                    </div>
-
-                    {/* Cost */}
-                    <div className="col-span-7 sm:col-span-3">
-                      <input type="number" min={0} step="0.01"
-                        value={item.unit_price}
-                        onChange={e => updatePrice(i, Number(e.target.value))}
-                        className="w-full text-sm border border-slate-200 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500 text-right bg-slate-50"
-                        placeholder="Cost" />
-                    </div>
-
-                    {/* Remove */}
-                    <div className="col-span-1 flex items-center justify-end pt-1">
-                      {items.length > 1 && (
-                        <button type="button" onClick={() => removeItem(i)}
-                          className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                          <Trash2 size={13} />
+                    {/* Top row: mode toggle + qty + price + delete */}
+                    <div className="flex items-center gap-2">
+                      {/* Mode toggle */}
+                      <div className="flex rounded-lg border border-slate-200 overflow-hidden text-xs font-semibold shrink-0 bg-white">
+                        <button type="button" onClick={() => setItemMode(i, 'product')}
+                          className={`px-2.5 py-1.5 transition-colors ${item.mode === 'product' ? 'bg-violet-600 text-white' : 'text-slate-500 hover:bg-slate-50'}`}>
+                          Product
                         </button>
-                      )}
+                        <button type="button" onClick={() => setItemMode(i, 'tire')}
+                          className={`px-2.5 py-1.5 transition-colors ${item.mode === 'tire' ? 'bg-violet-600 text-white' : 'text-slate-500 hover:bg-slate-50'}`}>
+                          Tire
+                        </button>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 flex-1">
+                        <span className="text-xs text-slate-400 shrink-0">Qty</span>
+                        <input type="number" min={1}
+                          value={item.qty}
+                          onChange={e => updateQty(i, Number(e.target.value))}
+                          className="w-16 text-sm border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500 text-center bg-white"
+                          placeholder="1" />
+                        <span className="text-xs text-slate-400 shrink-0">Cost</span>
+                        <input type="number" min={0} step="0.01"
+                          value={item.unit_price}
+                          onChange={e => updatePrice(i, Number(e.target.value))}
+                          className="flex-1 min-w-0 text-sm border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500 text-right bg-white"
+                          placeholder="0.00" />
+                      </div>
+
+                      <div className="shrink-0">
+                        {items.length > 1 && (
+                          <button type="button" onClick={() => removeItem(i)}
+                            className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                            <Trash2 size={13} />
+                          </button>
+                        )}
+                      </div>
                     </div>
 
-                    {/* Stock warning */}
-                    {item.stock !== undefined && item.stock >= 0 && (
-                      <div className="col-span-12 -mt-1 ml-1 text-[11px] text-slate-400">
-                        Current stock: {item.stock} → will become {item.stock + item.qty}
+                    {/* ── Product mode: catalog search box ── */}
+                    {item.mode === 'product' && (
+                      <div className="relative" onClick={e => e.stopPropagation()}>
+                        <div className="relative">
+                          <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                          <input
+                            ref={el => { searchRefs.current[i] = el; }}
+                            value={rowSearch[i] ?? item.item_name}
+                            onChange={e => {
+                              setRowSearch(p => ({ ...p, [i]: e.target.value }));
+                              setRowOpen(p => ({ ...p, [i]: true }));
+                              if (!e.target.value) {
+                                setItems(p => p.map((it, idx) => idx === i ? { ...it, item_key: '', item_name: '' } : it));
+                              }
+                            }}
+                            onFocus={() => setRowOpen(p => ({ ...p, [i]: true }))}
+                            placeholder="Search tire or product..."
+                            className="w-full text-sm border border-slate-200 rounded-lg pl-7 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                          />
+                        </div>
+                        {rowOpen[i] && (
+                          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-30 max-h-52 overflow-y-auto">
+                            {getRowResults(i).length === 0 ? (
+                              <p className="text-xs text-slate-400 px-3 py-2">No results</p>
+                            ) : getRowResults(i).map(cat => (
+                              <button
+                                key={cat.key}
+                                type="button"
+                                onMouseDown={e => { e.preventDefault(); selectCatalogItem(i, cat); }}
+                                className="w-full text-left px-3 py-2 hover:bg-violet-50 transition-colors"
+                              >
+                                <div className="text-sm font-medium text-slate-800">{cat.name}</div>
+                                <div className="text-xs text-slate-400">{cat.subtitle} · {formatCurrency(cat.costPrice)}</div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        {/* Stock preview for matched product-mode tire */}
+                        {item.stock !== undefined && item.item_key.startsWith('t:') && (
+                          <p className="text-[11px] text-slate-400 mt-1 ml-1">
+                            Current stock: {item.stock} → will become {item.stock + item.qty}
+                          </p>
+                        )}
                       </div>
+                    )}
+
+                    {/* ── Tire mode: cascading combobox fields ── */}
+                    {item.mode === 'tire' && (
+                      <>
+                        <div className="grid grid-cols-3 gap-2">
+                          <div>
+                            <label className="block text-xs text-slate-500 mb-1">
+                              Brand <span className="text-red-500">*</span>
+                            </label>
+                            <ComboboxInput
+                              value={item.tire_brand}
+                              onChange={v => updateTireSpec(i, 'brand', v)}
+                              options={brandOptions}
+                              placeholder="e.g. Michelin"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-slate-500 mb-1">
+                              Model <span className="text-slate-400">(opt)</span>
+                            </label>
+                            <ComboboxInput
+                              value={item.tire_model}
+                              onChange={v => updateTireSpec(i, 'model', v)}
+                              options={getModelOptions(item.tire_brand)}
+                              placeholder="e.g. Pilot Sport"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-slate-500 mb-1">
+                              Size <span className="text-red-500">*</span>
+                            </label>
+                            <ComboboxInput
+                              value={item.tire_size}
+                              onChange={v => updateTireSpec(i, 'size', v)}
+                              options={getSizeOptions(item.tire_brand, item.tire_model)}
+                              placeholder="e.g. 215/45R17"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="block text-xs text-slate-500 mb-1">
+                              Tread Pattern <span className="text-slate-400">(opt)</span>
+                            </label>
+                            <ComboboxInput
+                              value={item.tire_pattern}
+                              onChange={v => updateTireSpec(i, 'pattern', v)}
+                              options={suggestions.patterns}
+                              placeholder="e.g. Energy Saver"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-slate-500 mb-1">
+                              Load Index <span className="text-slate-400">(opt)</span>
+                            </label>
+                            <ComboboxInput
+                              value={item.tire_load_index}
+                              onChange={v => updateTireSpec(i, 'load_index', v)}
+                              options={suggestions.load_indexes}
+                              placeholder="e.g. 91W"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Match / stock indicator */}
+                        {(item.tire_brand || item.tire_size) && (
+                          <div className={`flex items-center gap-1.5 text-xs font-medium ${
+                            item.item_key.startsWith('t:') ? 'text-emerald-600' : 'text-amber-600'
+                          }`}>
+                            <span className={`inline-block w-1.5 h-1.5 rounded-full shrink-0 ${
+                              item.item_key.startsWith('t:') ? 'bg-emerald-500' : 'bg-amber-400'
+                            }`} />
+                            {item.item_key.startsWith('t:')
+                              ? `Matched: ${item.item_name} — stock ${item.stock} → ${(item.stock ?? 0) + item.qty}`
+                              : 'No inventory match — stock will not be updated. Add this SKU in Inventory first.'
+                            }
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 ))}
@@ -314,7 +518,7 @@ export default function GRNModal({ onClose, onCreated }: Props) {
             <div className="bg-violet-50 border border-violet-100 rounded-xl px-4 py-3 flex items-center justify-between">
               <div>
                 <p className="text-xs text-violet-600 font-medium">Total Goods Value</p>
-                <p className="text-xs text-emerald-600 mt-0.5">✓ Stock will be added to inventory on save</p>
+                <p className="text-xs text-emerald-600 mt-0.5">✓ Matched tire stock will be added to inventory on save</p>
               </div>
               <p className="text-xl font-bold text-violet-700">{formatCurrency(subtotal)}</p>
             </div>

@@ -17,6 +17,8 @@ import Organizations from './pages/Organizations';
 import Services from './pages/Services';
 import BottomNav from './components/BottomNav';
 import NewsBanner from './components/NewsBanner';
+import Profile from './pages/Profile';
+import ChangePasswordModal from './components/ChangePasswordModal';
 import { api, registerLogoutCallback } from './api/client';
 import { setTokens, setAccessToken, clearTokens } from './lib/auth';
 import { getCachedSettings } from './lib/appSettings';
@@ -131,9 +133,11 @@ export default function App() {
       .catch(() => {});
   }, [user]);
 
-  const [sidebarCollapsed, setSidebarCollapsed]   = useState(false);
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [isMobile, setIsMobile]                   = useState(window.innerWidth < 1024);
+  const [showProfile,        setShowProfile]        = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [sidebarCollapsed,   setSidebarCollapsed]   = useState(false);
+  const [mobileSidebarOpen,  setMobileSidebarOpen]  = useState(false);
+  const [isMobile,           setIsMobile]           = useState(window.innerWidth < 1024);
 
   useEffect(() => {
     const handler = () => {
@@ -211,20 +215,33 @@ export default function App() {
       >
         <NewsBanner message={getCachedSettings().announcement} />
         <Header
-          title={title}
-          subtitle={page.subtitle}
+          title={showProfile ? 'My Profile' : title}
+          subtitle={showProfile ? 'Manage your personal information and security' : page.subtitle}
           user={user}
           onLogout={handleLogout}
           onMenuToggle={() => setMobileSidebarOpen(v => !v)}
+          onProfile={() => setShowProfile(true)}
+          onChangePassword={() => setShowChangePassword(true)}
           notifications={notifications}
           onNavigate={handleNavigate}
         />
         <main className="flex-1 overflow-y-auto pb-14 lg:pb-0">
-          <PageComponent />
+          {showProfile ? (
+            <Profile
+              onBack={() => setShowProfile(false)}
+              onUpdated={name => setUser(u => u ? { ...u, name } : u)}
+            />
+          ) : (
+            <PageComponent />
+          )}
         </main>
       </div>
 
       <BottomNav activePage={activePage} onNavigate={handleNavigate} onLogout={handleLogout} counts={counts} />
+
+      {showChangePassword && (
+        <ChangePasswordModal onClose={() => setShowChangePassword(false)} />
+      )}
     </div>
   );
 }

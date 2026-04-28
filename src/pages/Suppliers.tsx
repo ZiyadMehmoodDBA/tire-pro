@@ -8,6 +8,8 @@ import { api } from '../api/client';
 import { formatCurrency } from '../lib/utils';
 import ConfirmDialog from '../components/ConfirmDialog';
 import ExcelImportModal from '../components/ExcelImportModal';
+import { usePagination } from '../lib/usePagination';
+import Pagination from '../components/Pagination';
 import { useAutoRefresh } from '../lib/useAutoRefresh';
 
 export default function Suppliers() {
@@ -45,6 +47,7 @@ export default function Suppliers() {
     (s.phone || '').includes(search) ||
     (s.code  || '').toLowerCase().includes(search.toLowerCase())
   );
+  const { paged, paginationProps } = usePagination(filtered, 24);
 
   const totalInvoiced = suppliers.reduce((s, c) => s + Number(c.total_invoiced || 0), 0);
   const totalPaid     = suppliers.reduce((s, c) => s + Number(c.total_paid     || 0), 0);
@@ -216,6 +219,8 @@ export default function Suppliers() {
           </div>
         )}
 
+        {!loading && <Pagination {...paginationProps} position="top" />}
+
         {/* Grid */}
         {loading && !error ? (
           <div className="p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -223,7 +228,7 @@ export default function Suppliers() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 p-4 sm:p-5">
-            {filtered.map(s => {
+            {paged.map(s => {
               const invoiced  = Number(s.total_invoiced || 0);
               const paid      = Number(s.total_paid     || 0);
               const balance   = Number(s.balance_due    || 0);
@@ -318,9 +323,7 @@ export default function Suppliers() {
           </div>
         )}
 
-        <div className="px-4 sm:px-5 py-2.5 border-t border-slate-50 text-[11px] text-slate-400">
-          Showing {filtered.length} of {suppliers.length} suppliers
-        </div>
+        <Pagination {...paginationProps} position="bottom" />
       </div>
 
       {/* Edit modal */}

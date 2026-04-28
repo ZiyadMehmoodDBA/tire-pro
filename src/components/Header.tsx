@@ -1,4 +1,4 @@
-import { Bell, Search, LogOut, ChevronDown, Menu, AlertCircle, Clock, ChevronRight, X } from 'lucide-react';
+import { Bell, Search, LogOut, ChevronDown, Menu, AlertCircle, Clock, ChevronRight, X, User, KeyRound } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '../lib/utils';
 
@@ -16,12 +16,21 @@ interface HeaderProps {
   user: { name: string; email: string; role: string };
   onLogout: () => void;
   onMenuToggle: () => void;
+  onProfile?: () => void;
+  onChangePassword?: () => void;
   notifications?: AppNotification[];
   onNavigate?: (page: string) => void;
 }
 
+const ROLE_LABELS: Record<string, string> = {
+  org_admin:      'Organization Admin',
+  branch_manager: 'Branch Manager',
+  staff:          'Staff',
+};
+
 export default function Header({
   title, subtitle, user, onLogout, onMenuToggle,
+  onProfile, onChangePassword,
   notifications = [], onNavigate,
 }: HeaderProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -165,10 +174,25 @@ export default function Header({
                   <p className="text-sm font-bold text-slate-900">{user.name}</p>
                   <p className="text-xs text-slate-400 mt-0.5 truncate">{user.email}</p>
                   <span className="inline-block mt-1.5 text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-100 px-2 py-0.5 rounded-full">
-                    {user.role}
+                    {ROLE_LABELS[user.role] ?? user.role}
                   </span>
                 </div>
-                <div className="p-1.5">
+                <div className="p-1.5 space-y-0.5">
+                  <button
+                    onClick={() => { setDropdownOpen(false); onProfile?.(); }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg transition-colors font-medium"
+                  >
+                    <User size={15} className="text-slate-400" />
+                    Profile
+                  </button>
+                  <button
+                    onClick={() => { setDropdownOpen(false); onChangePassword?.(); }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg transition-colors font-medium"
+                  >
+                    <KeyRound size={15} className="text-slate-400" />
+                    Change Password
+                  </button>
+                  <div className="h-px bg-slate-100 my-1" />
                   <button
                     onClick={() => { setDropdownOpen(false); onLogout(); }}
                     className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium"

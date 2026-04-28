@@ -10,6 +10,8 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import PaymentModal from '../components/PaymentModal';
 import { printInvoice, downloadInvoice } from '../lib/invoicePdf';
 import { useAutoRefresh } from '../lib/useAutoRefresh';
+import { usePagination } from '../lib/usePagination';
+import Pagination from '../components/Pagination';
 
 const statusColor: Record<string, string> = {
   paid:    'bg-emerald-50 text-emerald-700 border border-emerald-100',
@@ -149,6 +151,7 @@ export default function Sales() {
     const matchFilter = filter === 'all' || s.status === filter;
     return matchSearch && matchFilter;
   });
+  const { paged, paginationProps } = usePagination(filtered);
 
   const activeSales = filtered.filter(s => s.status !== 'voided');
   const total     = activeSales.reduce((sum, s) => sum + Number(s.total), 0);
@@ -254,6 +257,8 @@ export default function Sales() {
           </div>
         )}
 
+        {!loading && <Pagination {...paginationProps} position="top" />}
+
         {!loading && (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px]">
@@ -267,7 +272,7 @@ export default function Sales() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {filtered.map(sale => {
+                {paged.map(sale => {
                   const isVoided = sale.status === 'voided';
                   return (
                     <tr key={sale.id} className={`hover:bg-slate-50/50 transition-colors ${isVoided ? 'opacity-60' : ''}`}>
@@ -392,9 +397,7 @@ export default function Sales() {
           </div>
         )}
 
-        <div className="px-4 sm:px-5 py-3 border-t border-slate-100 text-xs text-slate-500">
-          Showing {filtered.length} of {sales.length} records
-        </div>
+        <Pagination {...paginationProps} position="bottom" />
       </div>
 
       {showImport && (

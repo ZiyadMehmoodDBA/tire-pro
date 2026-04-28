@@ -2,43 +2,100 @@ import { useState, useEffect } from 'react';
 import { X, Plus, Trash2, Loader2, CheckCircle } from 'lucide-react';
 import { api } from '../api/client';
 import { formatCurrency } from '../lib/utils';
+import ComboboxInput from './ComboboxInput';
 
 interface NewPurchaseModalProps {
   onClose: () => void;
   onCreated: () => void;
 }
 
-interface LineItem {
-  item_key: string;   // 'p:id' for product, 't:id' for tire
-  item_name: string;
-  qty: number;
-  unit_price: number;
+interface Suggestions {
+  brands:       string[];
+  models:       { brand: string; model: string }[];
+  sizes:        { brand: string; model: string; size: string }[];
+  patterns:     string[];
+  load_indexes: string[];
 }
 
-const EMPTY_ITEM: LineItem = { item_key: '', item_name: '', qty: 1, unit_price: 0 };
+interface LineItem {
+  mode:           'product' | 'tire';
+  // product mode
+  item_key:       string;   // 'p:id' | 't:id' | ''
+  item_name:      string;
+  // tire mode
+  tire_brand:     string;
+  tire_model:     string;
+  tire_size:      string;
+  tire_pattern:   string;
+  tire_load_index: string;
+  // common
+  qty:            number;
+  unit_price:     number;
+}
+
+const EMPTY_ITEM: LineItem = {
+  mode: 'product',
+  item_key: '', item_name: '',
+  tire_brand: '', tire_model: '', tire_size: '', tire_pattern: '', tire_load_index: '',
+  qty: 1, unit_price: 0,
+};
+
+const EMPTY_SUGGESTIONS: Suggestions = { brands: [], models: [], sizes: [], patterns: [], load_indexes: [] };
 
 export default function NewPurchaseModal({ onClose, onCreated }: NewPurchaseModalProps) {
-  const [suppliers, setSuppliers] = useState<any[]>([]);
-  const [products,  setProducts]  = useState<any[]>([]);
-  const [tires,     setTires]     = useState<any[]>([]);
-  const [supplierId, setSupplierId] = useState('');
-  const [date,   setDate]   = useState(new Date().toISOString().split('T')[0]);
-  const [status, setStatus] = useState('pending');
-  const [notes,  setNotes]  = useState('');
-  const [items,  setItems]  = useState<LineItem[]>([{ ...EMPTY_ITEM }]);
-  const [loading, setLoading] = useState(false);
-  const [error,   setError]   = useState('');
-  const [success, setSuccess] = useState(false);
+  const [suppliers,    setSuppliers]    = useState<any[]>([]);
+  const [products,     setProducts]     = useState<any[]>([]);
+  const [tires,        setTires]        = useState<any[]>([]);
+  const [suggestions,  setSuggestions]  = useState<Suggestions>(EMPTY_SUGGESTIONS);
+  const [supplierId,   setSupplierId]   = useState('');
+  const [date,         setDate]         = useState(new Date().toISOString().split('T')[0]);
+  const [status,       setStatus]       = useState('pending');
+  const [notes,        setNotes]        = useState('');
+  const [items,        setItems]        = useState<LineItem[]>([{ ...EMPTY_ITEM }]);
+  const [loading,      setLoading]      = useState(false);
+  const [error,        setError]        = useState('');
+  const [success,      setSuccess]      = useState(false);
 
   useEffect(() => {
     api.suppliers.list().then(setSuppliers).catch(() => {});
     api.products.list().then(d => setProducts(d.filter((p: any) => p.is_active))).catch(() => {});
     api.inventory.list().then(setTires).catch(() => {});
+    api.lookups.tireSuggestions().then(setSuggestions).catch(() => {});
   }, []);
 
-  const addItem    = () => setItems(p => [...p, { ...EMPTY_ITEM }]);
-  const removeItem = (i: number) => setItems(p => p.filter((_, idx) => idx !== i));
+  // ── Cascade option derivations ─────────────────────────────────────────────
+  const brandOptions = suggestions.brands;
 
+  const getModelOptions = (brand: string): string[] => {
+    const b = brand.trim().toLowerCase();
+    if (!b) return [...new Set(suggestions.models.map(m => m.model))];
+    const matched = suggestions.brands.find(sb => sb.toLowerCase() === b);
+    if (matched)
+      return suggestions.models
+        .filter(m => m.brand.toLowerCase() === matched.toLowerCase())
+        .map(m => m.model);
+    return [...new Set(suggestions.models.map(m => m.model))];
+  };
+
+  const getSizeOptions = (brand: string, model: string): string[] => {
+    const b  = brand.trim().toLowerCase();
+    const mo = model.trim().toLowerCase();
+    if (!b) return [...new Set(suggestions.sizes.map(s => s.size))];
+    let filtered = suggestions.sizes.filter(s => s.brand.toLowerCase() === b);
+    if (mo) filtered = filtered.filter(s => s.model.toLowerCase() === mo);
+    return [...new Set(filtered.map(s => s.size))];
+  };
+
+  // ── Item mode toggle ───────────────────────────────────────────────────────
+  const setItemMode = (i: number, mode: 'product' | 'tire') => {
+    setItems(prev => {
+      const n = [...prev];
+      n[i] = { ...EMPTY_ITEM, qty: n[i].qty, unit_price: n[i].unit_price, mode };
+      return n;
+    });
+  };
+
+  // ── Product mode item selection ────────────────────────────────────────────
   const updateItem = (i: number, field: keyof LineItem, value: string | number) => {
     setItems(prev => {
       const next = [...prev];
@@ -46,12 +103,12 @@ export default function NewPurchaseModal({ onClose, onCreated }: NewPurchaseModa
         const v = value as string;
         if (v.startsWith('p:')) {
           const prod = products.find(p => String(p.id) === v.slice(2));
-          next[i] = { item_key: v, item_name: prod?.name ?? '', qty: next[i].qty, unit_price: Number(prod?.cost_price ?? 0) };
+          next[i] = { ...next[i], item_key: v, item_name: prod?.name ?? '', unit_price: Number(prod?.cost_price ?? 0) };
         } else if (v.startsWith('t:')) {
           const tire = tires.find(t => String(t.id) === v.slice(2));
-          next[i] = { item_key: v, item_name: tire ? `${tire.brand} ${tire.model} ${tire.size}` : '', qty: next[i].qty, unit_price: Number(tire?.cost_price ?? 0) };
+          next[i] = { ...next[i], item_key: v, item_name: tire ? `${tire.brand} ${tire.model} ${tire.size}` : '', unit_price: Number(tire?.cost_price ?? 0) };
         } else {
-          next[i] = { ...EMPTY_ITEM };
+          next[i] = { ...next[i], item_key: '', item_name: '', unit_price: 0 };
         }
       } else {
         next[i] = { ...next[i], [field]: field === 'qty' || field === 'unit_price' ? Number(value) : value };
@@ -60,12 +117,53 @@ export default function NewPurchaseModal({ onClose, onCreated }: NewPurchaseModa
     });
   };
 
+  // ── Tire spec update + auto-match ──────────────────────────────────────────
+  const updateTireSpec = (i: number, field: string, val: string) => {
+    setItems(prev => {
+      const n    = [...prev];
+      const item = { ...n[i] };
+
+      if      (field === 'brand')      { item.tire_brand = val; item.tire_model = ''; item.tire_size = ''; }
+      else if (field === 'model')      { item.tire_model = val; item.tire_size = ''; }
+      else if (field === 'size')       { item.tire_size = val; }
+      else if (field === 'pattern')    { item.tire_pattern = val; }
+      else if (field === 'load_index') { item.tire_load_index = val; }
+
+      // Auto-match against inventory (brand + size required; model optional filter)
+      const match = tires.find(t =>
+        t.brand?.toLowerCase() === item.tire_brand.toLowerCase().trim() &&
+        t.size?.toLowerCase()  === item.tire_size.toLowerCase().trim()  &&
+        (!item.tire_model.trim() || t.model?.toLowerCase() === item.tire_model.toLowerCase().trim())
+      );
+
+      if (match) {
+        item.item_key   = `t:${match.id}`;
+        item.item_name  = `${match.brand} ${match.model ?? ''} ${match.size}`.trim();
+        item.unit_price = Number(match.cost_price ?? 0);
+      } else {
+        item.item_key  = 'free';
+        item.item_name = [item.tire_brand, item.tire_model, item.tire_size].filter(Boolean).join(' ');
+      }
+
+      n[i] = item;
+      return n;
+    });
+  };
+
+  const addItem    = () => setItems(p => [...p, { ...EMPTY_ITEM }]);
+  const removeItem = (i: number) => setItems(p => p.filter((_, idx) => idx !== i));
+
   const subtotal = items.reduce((s, it) => s + it.qty * it.unit_price, 0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!supplierId) return setError('Please select a supplier.');
-    if (items.some(it => !it.item_key || it.qty < 1)) return setError('Fill in all line items correctly.');
+    const invalid = items.some(it =>
+      it.mode === 'product'
+        ? !it.item_key || it.qty < 1
+        : !it.tire_brand.trim() || !it.tire_size.trim() || it.qty < 1
+    );
+    if (invalid) return setError('Fill in all line items. Tire items require at least Brand and Size.');
     setError('');
     setLoading(true);
     try {
@@ -75,12 +173,21 @@ export default function NewPurchaseModal({ onClose, onCreated }: NewPurchaseModa
         status,
         notes,
         items: items.map(it => {
-          const isProd = it.item_key.startsWith('p:');
+          if (it.mode === 'product') {
+            const isProd = it.item_key.startsWith('p:');
+            return {
+              ...(isProd ? { product_id: Number(it.item_key.slice(2)) } : { tire_id: Number(it.item_key.slice(2)) }),
+              tire_name:  it.item_name,
+              qty:        it.qty,
+              unit_price: it.unit_price,
+            };
+          }
+          const tireId = it.item_key.startsWith('t:') ? Number(it.item_key.slice(2)) : null;
+          const tireName = [it.tire_brand, it.tire_model, it.tire_size, it.tire_pattern, it.tire_load_index]
+            .filter(Boolean).join(' ');
           return {
-            ...(isProd
-              ? { product_id: Number(it.item_key.slice(2)) }
-              : { tire_id:    Number(it.item_key.slice(2)) }),
-            tire_name:  it.item_name,
+            ...(tireId ? { tire_id: tireId } : {}),
+            tire_name:  tireName,
             qty:        it.qty,
             unit_price: it.unit_price,
           };
@@ -143,24 +250,57 @@ export default function NewPurchaseModal({ onClose, onCreated }: NewPurchaseModa
                 </button>
               </div>
 
-              <div className="hidden sm:grid grid-cols-12 gap-2 mb-1 px-1">
-                <span className="col-span-6 text-xs text-slate-400 font-medium">Product / Tire</span>
-                <span className="col-span-2 text-xs text-slate-400 font-medium text-center">Qty</span>
-                <span className="col-span-3 text-xs text-slate-400 font-medium text-right">Cost Price</span>
-                <span className="col-span-1"></span>
-              </div>
-
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {items.map((item, i) => (
-                  <div key={i} className="grid grid-cols-12 gap-2 items-center">
-                    <div className="col-span-12 sm:col-span-6">
+                  <div key={i} className="rounded-xl border border-slate-200 bg-slate-50/40 p-3 space-y-2.5">
+
+                    {/* Top row: mode toggle + qty + price + delete */}
+                    <div className="flex items-center gap-2">
+                      {/* Mode toggle */}
+                      <div className="flex rounded-lg border border-slate-200 overflow-hidden text-xs font-semibold shrink-0 bg-white">
+                        <button type="button" onClick={() => setItemMode(i, 'product')}
+                          className={`px-2.5 py-1.5 transition-colors ${item.mode === 'product' ? 'bg-violet-600 text-white' : 'text-slate-500 hover:bg-slate-50'}`}>
+                          Product
+                        </button>
+                        <button type="button" onClick={() => setItemMode(i, 'tire')}
+                          className={`px-2.5 py-1.5 transition-colors ${item.mode === 'tire' ? 'bg-violet-600 text-white' : 'text-slate-500 hover:bg-slate-50'}`}>
+                          Tire
+                        </button>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 flex-1">
+                        <span className="text-xs text-slate-400 shrink-0">Qty</span>
+                        <input type="number" min={1}
+                          value={item.qty}
+                          onChange={e => updateItem(i, 'qty', e.target.value)}
+                          className="w-16 text-sm border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500 text-center bg-white"
+                          placeholder="1" />
+                        <span className="text-xs text-slate-400 shrink-0">Cost</span>
+                        <input type="number" min={0} step="0.01"
+                          value={item.unit_price}
+                          onChange={e => updateItem(i, 'unit_price', e.target.value)}
+                          className="flex-1 min-w-0 text-sm border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500 text-right bg-white"
+                          placeholder="0.00" />
+                      </div>
+
+                      <div className="shrink-0">
+                        {items.length > 1 && (
+                          <button type="button" onClick={() => removeItem(i)}
+                            className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                            <Trash2 size={13} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Product mode: dropdown */}
+                    {item.mode === 'product' && (
                       <select
                         value={item.item_key}
                         onChange={e => updateItem(i, 'item_key', e.target.value)}
-                        className="w-full text-sm border border-slate-200 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-slate-50"
-                        required
-                      >
-                        <option value="">Select item...</option>
+                        className="w-full text-sm border border-slate-200 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                        required>
+                        <option value="">Select product or tire...</option>
                         {products.length > 0 && (
                           <optgroup label="── Products & Services ──">
                             {products.map(p => (
@@ -180,29 +320,89 @@ export default function NewPurchaseModal({ onClose, onCreated }: NewPurchaseModa
                           </optgroup>
                         )}
                       </select>
-                    </div>
-                    <div className="col-span-4 sm:col-span-2">
-                      <input type="number" min={1}
-                        value={item.qty}
-                        onChange={e => updateItem(i, 'qty', e.target.value)}
-                        className="w-full text-sm border border-slate-200 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500 text-center bg-slate-50"
-                        placeholder="Qty" />
-                    </div>
-                    <div className="col-span-7 sm:col-span-3">
-                      <input type="number" min={0} step="0.01"
-                        value={item.unit_price}
-                        onChange={e => updateItem(i, 'unit_price', e.target.value)}
-                        className="w-full text-sm border border-slate-200 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500 text-right bg-slate-50"
-                        placeholder="Cost" />
-                    </div>
-                    <div className="col-span-1 text-right">
-                      {items.length > 1 && (
-                        <button type="button" onClick={() => removeItem(i)}
-                          className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                          <Trash2 size={13} />
-                        </button>
-                      )}
-                    </div>
+                    )}
+
+                    {/* Tire mode: cascading combobox fields */}
+                    {item.mode === 'tire' && (
+                      <>
+                        <div className="grid grid-cols-3 gap-2">
+                          <div>
+                            <label className="block text-xs text-slate-500 mb-1">
+                              Brand <span className="text-red-500">*</span>
+                            </label>
+                            <ComboboxInput
+                              value={item.tire_brand}
+                              onChange={v => updateTireSpec(i, 'brand', v)}
+                              options={brandOptions}
+                              placeholder="e.g. Michelin"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-slate-500 mb-1">
+                              Model <span className="text-slate-400">(opt)</span>
+                            </label>
+                            <ComboboxInput
+                              value={item.tire_model}
+                              onChange={v => updateTireSpec(i, 'model', v)}
+                              options={getModelOptions(item.tire_brand)}
+                              placeholder="e.g. Pilot Sport"
+                              disabled={false}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-slate-500 mb-1">
+                              Size <span className="text-red-500">*</span>
+                            </label>
+                            <ComboboxInput
+                              value={item.tire_size}
+                              onChange={v => updateTireSpec(i, 'size', v)}
+                              options={getSizeOptions(item.tire_brand, item.tire_model)}
+                              placeholder="e.g. 215/45R17"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="block text-xs text-slate-500 mb-1">
+                              Tread Pattern <span className="text-slate-400">(opt)</span>
+                            </label>
+                            <ComboboxInput
+                              value={item.tire_pattern}
+                              onChange={v => updateTireSpec(i, 'pattern', v)}
+                              options={suggestions.patterns}
+                              placeholder="e.g. Energy Saver"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-slate-500 mb-1">
+                              Load Index <span className="text-slate-400">(opt)</span>
+                            </label>
+                            <ComboboxInput
+                              value={item.tire_load_index}
+                              onChange={v => updateTireSpec(i, 'load_index', v)}
+                              options={suggestions.load_indexes}
+                              placeholder="e.g. 91W"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Match status indicator */}
+                        {(item.tire_brand || item.tire_size) && (
+                          <div className={`flex items-center gap-1.5 text-xs font-medium ${
+                            item.item_key.startsWith('t:') ? 'text-emerald-600' : 'text-amber-600'
+                          }`}>
+                            <span className={`inline-block w-1.5 h-1.5 rounded-full shrink-0 ${
+                              item.item_key.startsWith('t:') ? 'bg-emerald-500' : 'bg-amber-400'
+                            }`} />
+                            {item.item_key.startsWith('t:')
+                              ? `Matched inventory: ${item.item_name}`
+                              : 'No inventory match — will save without stock link'
+                            }
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
                 ))}
               </div>
@@ -232,7 +432,7 @@ export default function NewPurchaseModal({ onClose, onCreated }: NewPurchaseModa
               </div>
               {status === 'received' && (
                 <p className="text-xs text-emerald-600 font-medium mt-1.5">
-                  ✓ Tire stock will be updated upon saving
+                  ✓ Matched tire stock will be updated upon saving
                 </p>
               )}
             </div>

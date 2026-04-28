@@ -1,27 +1,41 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { getCachedSettings } from './appSettings';
 
 /**
  * Calls `callback` on a repeating interval based on the `refresh_interval`
- * setting (in seconds). The latest callback reference is always used so
- * the caller never needs to worry about stale closures.
+ * setting (in seconds). Ticks every second so callers can show a countdown.
  *
- * Pass 0 (or leave unset) in settings to disable auto-refresh.
+ * Returns `secondsLeft` — the number of seconds until the next refresh.
+ * Returns 0 when auto-refresh is disabled.
  */
-export function useAutoRefresh(callback: () => void) {
+export function useAutoRefresh(callback: () => void): { secondsLeft: number } {
   const callbackRef = useRef(callback);
   callbackRef.current = callback;
 
+  const [secondsLeft, setSecondsLeft] = useState(0);
+  const counterRef = useRef(0);
+
   useEffect(() => {
-    const seconds = getCachedSettings().refresh_interval;
-    if (!seconds || seconds <= 0) return;
+    const interval = Number(getCachedSettings().refresh_interval) || 0;
+    if (interval <= 0) return;
+
+    counterRef.current = interval;
+    setSecondsLeft(interval);
 
     const id = setInterval(() => {
-      callbackRef.current();
-    }, seconds * 1000);
+      counterRef.current -= 1;
+      setSecondsLeft(counterRef.current);
+
+      if (counterRef.current <= 0) {
+        callbackRef.current();
+        counterRef.current = interval;
+        setSecondsLeft(interval);
+      }
+    }, 1000);
 
     return () => clearInterval(id);
-  // Re-read interval if settings cache changes (e.g. after saving Settings page).
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  return { secondsLeft };
 }

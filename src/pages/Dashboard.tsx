@@ -72,7 +72,7 @@ export default function Dashboard() {
     hasLoaded.current = true;
   };
 
-  useAutoRefresh(fetchAll);
+  const { secondsLeft } = useAutoRefresh(fetchAll);
   useEffect(() => { fetchAll(); }, []);
 
   const activeSales      = sales.filter(s => s.status !== 'voided');
@@ -146,13 +146,20 @@ export default function Dashboard() {
               <p className="text-lg sm:text-xl font-bold leading-none">{loading ? '—' : lowStock.length}</p>
               <p className="text-xs text-teal-100 mt-0.5">Low Stock</p>
             </div>
-            <button
-              onClick={fetchAll}
-              className="p-2.5 bg-white/15 hover:bg-white/25 rounded-xl transition-colors flex-shrink-0"
-              title="Refresh"
-            >
-              <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
-            </button>
+            <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
+              {secondsLeft > 0 && secondsLeft <= 5 ? (
+                <span className="text-xs font-bold tabular-nums text-white leading-none">{secondsLeft}s</span>
+              ) : (
+                <span className="text-xs leading-none opacity-0 select-none">0s</span>
+              )}
+              <button
+                onClick={fetchAll}
+                className="p-2.5 bg-white/15 hover:bg-white/25 rounded-xl transition-colors"
+                title="Refresh"
+              >
+                <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
+              </button>
+            </div>
           </div>
         </div>
       </div>

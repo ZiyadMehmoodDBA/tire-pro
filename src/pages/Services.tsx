@@ -8,6 +8,8 @@ import { formatCurrency } from '../lib/utils';
 import AddEditServiceModal from '../components/AddEditServiceModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { useAutoRefresh } from '../lib/useAutoRefresh';
+import { usePagination } from '../lib/usePagination';
+import Pagination from '../components/Pagination';
 
 // Common tire-shop services for the one-click seed when the list is empty
 const QUICK_SEEDS = [
@@ -96,6 +98,7 @@ export default function Services() {
     (s.name        || '').toLowerCase().includes(q) ||
     (s.description || '').toLowerCase().includes(q)
   );
+  const { paged, paginationProps } = usePagination(filtered);
 
   const activeCount   = services.filter(s => s.is_active).length;
   const inactiveCount = services.length - activeCount;
@@ -163,6 +166,8 @@ export default function Services() {
           </div>
         )}
 
+        {!loading && <Pagination {...paginationProps} position="top" />}
+
         {!loading && (
           <>
             {/* Empty state with quick-seed */}
@@ -204,7 +209,7 @@ export default function Services() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50">
-                      {filtered.map(svc => {
+                      {paged.map(svc => {
                         const saleP  = Number(svc.sale_price);
                         const costP  = Number(svc.cost_price);
                         const margin = costP > 0 ? ((saleP - costP) / costP * 100).toFixed(1) : null;
@@ -292,7 +297,7 @@ export default function Services() {
 
                 {/* Mobile cards */}
                 <div className="md:hidden divide-y divide-slate-50">
-                  {filtered.map(svc => {
+                  {paged.map(svc => {
                     const saleP  = Number(svc.sale_price);
                     const costP  = Number(svc.cost_price);
                     const margin = costP > 0 ? ((saleP - costP) / costP * 100).toFixed(1) : null;
@@ -372,16 +377,10 @@ export default function Services() {
           </>
         )}
 
-        <div className="px-4 sm:px-5 py-3 border-t border-slate-100 text-xs text-slate-500 flex items-center justify-between">
-          <span>
-            {services.length === 0
-              ? 'No services'
-              : `${filtered.length} of ${services.length} services`}
-          </span>
-          {inactiveCount > 0 && (
-            <span className="text-amber-600 font-medium">{inactiveCount} inactive</span>
-          )}
-        </div>
+        <Pagination {...paginationProps} position="bottom" />
+        {inactiveCount > 0 && (
+          <span className="px-4 pb-3 text-xs text-amber-600 font-medium">{inactiveCount} inactive</span>
+        )}
       </div>
 
       {(addModal || editSvc) && (

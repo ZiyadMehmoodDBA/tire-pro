@@ -5,6 +5,8 @@ import { formatCurrency, formatDate } from '../lib/utils';
 import { printInvoice, downloadInvoice } from '../lib/invoicePdf';
 import NewSaleModal from '../components/NewSaleModal';
 import { useAutoRefresh } from '../lib/useAutoRefresh';
+import { usePagination } from '../lib/usePagination';
+import Pagination from '../components/Pagination';
 import ExcelImportModal from '../components/ExcelImportModal';
 
 const statusColor: Record<string, string> = {
@@ -67,6 +69,7 @@ export default function Invoices() {
     (s.customer_name || '').toLowerCase().includes(search.toLowerCase()) ||
     (s.invoice_no    || '').toLowerCase().includes(search.toLowerCase())
   );
+  const { paged, paginationProps } = usePagination(filtered, 25);
 
   return (
     <div className="p-4 sm:p-6 h-full">
@@ -113,12 +116,14 @@ export default function Invoices() {
             </div>
           )}
 
+          {!loading && <Pagination {...paginationProps} position="top" />}
+
           <div className="overflow-y-auto flex-1">
             {loading ? (
               <div className="p-3 space-y-2">{[1,2,3,4,5].map(i => <div key={i} className="h-14 bg-slate-100 rounded-lg animate-pulse" />)}</div>
             ) : (
               <>
-                {filtered.map(inv => (
+                {paged.map(inv => (
                   <button
                     key={inv.id}
                     onClick={() => handleSelect(inv.id)}
@@ -141,6 +146,7 @@ export default function Invoices() {
               </>
             )}
           </div>
+          <Pagination {...paginationProps} position="bottom" />
         </div>
 
         {/* Invoice Preview */}

@@ -1,13 +1,16 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Search, Plus, AlertTriangle, CheckCircle, Package,
-  RefreshCw, AlertCircle, Pencil, Trash2, FileSpreadsheet,
+  RefreshCw, AlertCircle, Pencil, Trash2, FileSpreadsheet, Download,
 } from 'lucide-react';
 import { api } from '../api/client';
 import { formatCurrency } from '../lib/utils';
 import AddEditTireModal from '../components/AddEditTireModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import ExcelImportModal from '../components/ExcelImportModal';
+import CatalogImportModal from '../components/CatalogImportModal';
+import { usePagination } from '../lib/usePagination';
+import Pagination from '../components/Pagination';
 import { useAutoRefresh } from '../lib/useAutoRefresh';
 
 export default function Inventory() {
@@ -23,7 +26,8 @@ export default function Inventory() {
   const [editTire, setEditTire]     = useState<any>(null);
   const [deleteTire, setDeleteTire] = useState<any>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [showImport, setShowImport] = useState(false);
+  const [showImport, setShowImport]             = useState(false);
+  const [showCatalogImport, setShowCatalogImport] = useState(false);
 
   const fetchTires = useCallback(async () => {
     if (!hasLoaded.current) setLoading(true);
@@ -62,6 +66,7 @@ export default function Inventory() {
     const matchType = filterType === 'all' || t.type === filterType;
     return matchSearch && matchType;
   });
+  const { paged, paginationProps } = usePagination(filtered, 25);
 
   const totalValue = tires.reduce((s: number, t: any) => s + (Number(t.stock) * Number(t.cost_price)), 0);
   const totalItems = tires.reduce((s: number, t: any) => s + Number(t.stock), 0);
@@ -100,6 +105,14 @@ export default function Inventory() {
                 className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
               >
                 <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} />
+              </button>
+              <button
+                onClick={() => setShowCatalogImport(true)}
+                title="Import from Tire Catalog"
+                className="flex items-center gap-1.5 bg-emerald-50 text-emerald-700 text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-2 rounded-lg hover:bg-emerald-100 transition-colors border border-emerald-200"
+              >
+                <Download size={14} />
+                <span className="hidden sm:inline">Catalog Import</span>
               </button>
               <button
                 onClick={() => setShowImport(true)}
@@ -151,6 +164,8 @@ export default function Inventory() {
           </div>
         )}
 
+        {!loading && <Pagination {...paginationProps} position="top" />}
+
         {!loading && (
           <>
             {/* Desktop table */}
@@ -166,7 +181,7 @@ export default function Inventory() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
-                  {filtered.map((tire: any) => {
+                  {paged.map((tire: any) => {
                     const isLow  = Number(tire.stock) <= Number(tire.reorder_level);
                     const costP  = Number(tire.cost_price);
                     const saleP  = Number(tire.sale_price);
@@ -272,7 +287,7 @@ export default function Inventory() {
 
             {/* Mobile cards */}
             <div className="md:hidden divide-y divide-slate-50">
-              {filtered.map((tire: any) => {
+              {paged.map((tire: any) => {
                 const isLow  = Number(tire.stock) <= Number(tire.reorder_level);
                 const costP  = Number(tire.cost_price);
                 const saleP  = Number(tire.sale_price);
@@ -350,20 +365,25 @@ export default function Inventory() {
           </>
         )}
 
-        <div className="px-4 sm:px-5 py-3 border-t border-slate-100 text-xs text-slate-500 flex items-center justify-between">
-          <span>Showing {filtered.length} of {tires.length} SKUs</span>
-          {lowStock > 0 && (
-            <span className="flex items-center gap-1 text-red-600 font-semibold">
-              <AlertTriangle size={11} /> {lowStock} need reorder
-            </span>
-          )}
-        </div>
+        <Pagination {...paginationProps} position="bottom" />
+        {lowStock > 0 && (
+          <span className="px-4 pb-3 flex items-center gap-1 text-xs text-red-600 font-semibold">
+            <AlertTriangle size={11} /> {lowStock} need reorder
+          </span>
+        )}
       </div>
 
       {showImport && (
         <ExcelImportModal
           entity="inventory"
           onClose={() => setShowImport(false)}
+          onImported={fetchTires}
+        />
+      )}
+
+      {showCatalogImport && (
+        <CatalogImportModal
+          onClose={() => setShowCatalogImport(false)}
           onImported={fetchTires}
         />
       )}

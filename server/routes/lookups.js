@@ -110,4 +110,69 @@ router.delete('/tire-types/:id', async (req, res) => {
   }
 });
 
+router.get('/tire-suggestions', async (req, res) => {
+  try {
+    const { orgId, branchId } = getContext(req);
+    const pool = await getPool();
+
+    const [brands, models, sizes, patterns, load_indexes] = await Promise.all([
+      pool.request()
+        .input('orgId', sql.Int, orgId).input('branchId', sql.Int, branchId)
+        .query(`
+          SELECT brand FROM tires
+            WHERE organization_id=@orgId AND branch_id=@branchId AND brand IS NOT NULL AND brand<>''
+          UNION
+          SELECT brand FROM tire_catalog WHERE brand IS NOT NULL AND brand<>''
+          ORDER BY brand
+        `),
+      pool.request()
+        .input('orgId', sql.Int, orgId).input('branchId', sql.Int, branchId)
+        .query(`
+          SELECT brand, model FROM tires
+            WHERE organization_id=@orgId AND branch_id=@branchId AND model IS NOT NULL AND model<>''
+          UNION
+          SELECT brand, model FROM tire_catalog WHERE model IS NOT NULL AND model<>''
+          ORDER BY brand, model
+        `),
+      pool.request()
+        .input('orgId', sql.Int, orgId).input('branchId', sql.Int, branchId)
+        .query(`
+          SELECT brand, model, size FROM tires
+            WHERE organization_id=@orgId AND branch_id=@branchId AND size IS NOT NULL AND size<>''
+          UNION
+          SELECT brand, model, size FROM tire_catalog WHERE size IS NOT NULL AND size<>''
+          ORDER BY brand, model, size
+        `),
+      pool.request()
+        .input('orgId', sql.Int, orgId).input('branchId', sql.Int, branchId)
+        .query(`
+          SELECT pattern FROM tires
+            WHERE organization_id=@orgId AND branch_id=@branchId AND pattern IS NOT NULL AND pattern<>''
+          UNION
+          SELECT pattern FROM tire_catalog WHERE pattern IS NOT NULL AND pattern<>''
+          ORDER BY pattern
+        `),
+      pool.request()
+        .input('orgId', sql.Int, orgId).input('branchId', sql.Int, branchId)
+        .query(`
+          SELECT load_index FROM tires
+            WHERE organization_id=@orgId AND branch_id=@branchId AND load_index IS NOT NULL AND load_index<>''
+          UNION
+          SELECT load_index FROM tire_catalog WHERE load_index IS NOT NULL AND load_index<>''
+          ORDER BY load_index
+        `),
+    ]);
+
+    res.json({
+      brands:       brands.recordset.map(r => r.brand),
+      models:       models.recordset.map(r => ({ brand: r.brand, model: r.model })),
+      sizes:        sizes.recordset.map(r => ({ brand: r.brand, model: r.model, size: r.size })),
+      patterns:     patterns.recordset.map(r => r.pattern),
+      load_indexes: load_indexes.recordset.map(r => r.load_index),
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

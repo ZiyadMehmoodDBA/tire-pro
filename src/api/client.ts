@@ -160,7 +160,12 @@ export const api = {
     create: (data: any)             => request<any>('/inventory', { method: 'POST', body: JSON.stringify(data) }),
     update: (id: number, data: any) => request<any>(`/inventory/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id: number)            => request<any>(`/inventory/${id}`, { method: 'DELETE' }),
-    bulk:   (data: any)             => request<any>('/inventory/bulk', { method: 'POST', body: JSON.stringify(data) }),
+    bulk:           (data: any)             => request<any>('/inventory/bulk', { method: 'POST', body: JSON.stringify(data) }),
+    catalogBrands:  ()                      => request<string[]>('/inventory/catalog-brands'),
+    importFromCatalog: (brands?: string[])  => request<{ inserted: number }>('/inventory/import-catalog', {
+      method: 'POST',
+      body: JSON.stringify({ brands }),
+    }),
   },
   sales: {
     list:         ()             => request<any[]>('/sales'),
@@ -204,6 +209,33 @@ export const api = {
       cacheSettingsMap(result);
       return result;
     },
+    systemInfo: () => request<{
+      server: {
+        uptime_seconds: number;
+        node_version:   string;
+        platform:       string;
+        memory_used_mb: number;
+        memory_heap_mb: number;
+        timestamp:      string;
+      };
+      database: {
+        data_mb:  number;
+        log_mb:   number;
+        total_mb: number;
+        counts: {
+          tire_skus:        number;
+          total_sales:      number;
+          total_purchases:  number;
+          customers:        number;
+          users_count:      number;
+          catalog_entries:  number;
+        };
+      };
+      sessions: {
+        active_count: number;
+        users: { name: string; email: string; role: string; last_active: string }[];
+      };
+    }>('/settings/system-info'),
   },
   products: {
     list:   ()                      => request<any[]>('/products'),
@@ -216,6 +248,13 @@ export const api = {
     addTireType:    (name: string)          => request<any>('/lookups/tire-types', { method: 'POST', body: JSON.stringify({ name }) }),
     updateTireType: (id: number, data: any) => request<any>(`/lookups/tire-types/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     deleteTireType: (id: number)            => request<any>(`/lookups/tire-types/${id}`, { method: 'DELETE' }),
+    tireSuggestions: () => request<{
+      brands:       string[];
+      models:       { brand: string; model: string }[];
+      sizes:        { brand: string; model: string; size: string }[];
+      patterns:     string[];
+      load_indexes: string[];
+    }>('/lookups/tire-suggestions'),
   },
   payments: {
     recordSalePayment:      (data: any)          => request<any>('/payments/sale', { method: 'POST', body: JSON.stringify(data) }),
@@ -233,6 +272,18 @@ export const api = {
       request<any>(`/users/${id}/status`, { method: 'PATCH', body: JSON.stringify({ is_active: active }) }),
     resetPassword: (id: number, password: string) =>
       request<any>(`/users/${id}/password`, { method: 'PATCH', body: JSON.stringify({ password }) }),
+  },
+  profile: {
+    get: () => request<any>('/profile'),
+    update: (data: {
+      name: string; first_name?: string; last_name?: string; phone?: string;
+      address?: string; job_title?: string; department?: string; date_of_birth?: string;
+      emergency_contact_name?: string; emergency_contact_phone?: string; emergency_contact_relation?: string;
+    }) => request<any>('/profile', { method: 'PUT', body: JSON.stringify(data) }),
+    changePassword: (data: { currentPassword: string; newPassword: string }) =>
+      request<{ success: boolean; refreshToken: string }>('/profile/change-password', {
+        method: 'POST', body: JSON.stringify(data),
+      }),
   },
   audit: {
     list: (params?: { entity?: string; action?: string; from?: string; to?: string; page?: number; limit?: number }) => {
