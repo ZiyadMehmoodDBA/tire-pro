@@ -298,23 +298,565 @@ const BRANDS = [
   },
 
   /* ── PAKISTAN LOCAL MANUFACTURERS ── */
+
+  /* ─ General Tyre & Rubber Company Pakistan (GTR) ───────────────────────────
+     Source: Final-Catalogue-GTR-Master (74 products, all categories)
+     Data extracted from gtr.com.pk sitemap + market size data.
+     Sizes represent the standard Pakistan-market range for each model.
+     ─────────────────────────────────────────────────────────────────────────── */
   {
     brand: 'General Tyre (Pakistan)',
     models: [
-      // Passenger — locally manufactured for compact/sedan segment
-      { model: 'ALTIMAX RT43',   pattern: 'ALTIMAX',   type: 'Passenger',
-        sizes: sz('155/65R13','165/65R13','165/70R13','175/65R14','175/70R14','185/65R14','185/70R14','185/65R15','195/65R15','205/65R15','205/55R16','215/60R16') },
-      { model: 'ALTIMAX HP',     pattern: 'ALTIMAX',   type: 'Passenger',
-        sizes: sz('185/65R15','195/65R15','205/65R15','205/55R16','215/55R17','225/45R17','225/50R17') },
-      { model: 'ALTIMAX ONE S',  pattern: 'ALTIMAX',   type: 'Passenger',
-        sizes: sz('185/65R15','195/65R15','205/55R16','215/55R17','225/45R17') },
-      // SUV / 4x4 — popular for local SUVs and double-cabs
-      { model: 'Grabber HTS60',  pattern: 'Grabber',   type: 'SUV',
-        sizes: sz('215/65R16','225/65R17','235/55R17','235/65R17','265/65R17','265/60R18','275/55R20') },
-      { model: 'Grabber HP',     pattern: 'Grabber',   type: 'SUV',
-        sizes: sz('215/65R16','225/60R17','235/60R17','265/65R17','265/60R18') },
-      { model: 'Grabber AT2',    pattern: 'Grabber',   type: '4x4',
-        sizes: sz('215/65R16','225/70R16','235/75R15','265/65R17','265/70R17','285/65R17','285/75R16') },
+
+      /* ── BG SERIES — PASSENGER (ECONOMY) ─────────────────────────────────── */
+      { model: 'BG ECONO', pattern: 'BG ECONO', type: 'Passenger',
+        sizes: sz('145/70R12','155/65R13','155/70R13','165/60R13','165/65R13','165/70R13','175/65R13','175/70R13','185/70R13','165/65R14','175/65R14','185/65R14','185/60R14','195/65R14','195/60R14','185/60R15','195/60R15','195/65R15') },
+
+      { model: 'BG ALRO PLUS', pattern: 'BG ALRO PLUS', type: 'Passenger',
+        sizes: sz('145/70R12','155/65R13','165/65R13','165/70R13','175/65R13','175/70R13','185/70R13','175/65R14','185/65R14','195/65R14','185/65R15','195/65R15','205/65R15') },
+
+      { model: 'EURO GLIDE', pattern: 'EURO GLIDE', type: 'Passenger',
+        sizes: sz('175/70R13','185/70R13','185/65R14','195/65R14','195/65R15','205/65R15','205/60R16','215/60R16') },
+
+      { model: 'EURO KOMPACT', pattern: 'EURO KOMPACT', type: 'Passenger',
+        sizes: sz('145/70R12','155/65R13','155/70R13','165/65R13','165/70R13','175/65R14','185/65R14') },
+
+      /* ── BG SERIES — PASSENGER (MID-RANGE) ───────────────────────────────── */
+      { model: 'BG FALCON', pattern: 'BG FALCON', type: 'Passenger',
+        sizes: sz('165/70R13','175/70R13','185/70R13','175/65R14','185/65R14','195/65R14','185/60R15','195/60R15','195/65R15','205/60R15','205/65R15','205/55R16','205/60R16','215/60R16','225/60R16','225/55R17') },
+
+      { model: 'BG TEMPO PLUS', pattern: 'BG TEMPO PLUS', type: 'Passenger',
+        sizes: sz('175/65R14','185/65R14','195/65R14','185/60R15','195/65R15','205/60R15','205/65R15','215/60R16','225/60R16') },
+
+      { model: 'AQUA GRIP', pattern: 'AQUA GRIP', type: 'Passenger',
+        sizes: sz('185/65R14','195/65R14','195/65R15','205/65R15','205/55R16','215/60R16','215/55R17','225/45R17','225/50R17') },
+
+      /* ── BG SERIES — PASSENGER (PREMIUM) ─────────────────────────────────── */
+      { model: 'BG LUXO PLUS', pattern: 'BG LUXO PLUS', type: 'Passenger',
+        sizes: sz('185/65R14','195/65R14','185/60R15','195/60R15','195/65R15','205/60R15','205/65R15','205/55R16','215/55R16','215/60R16','225/60R16','215/55R17','225/55R17','235/55R17') },
+
+      { model: 'BG THUNDER MAX', pattern: 'BG THUNDER MAX', type: 'Passenger',
+        sizes: sz('175/70R13','185/65R14','195/65R14','185/60R15','195/60R15','195/65R15','205/60R15','205/65R15','205/55R16','215/55R16','215/60R16','215/45R17','225/45R17','235/45R17') },
+
+      { model: 'BG PERFORMA', pattern: 'BG PERFORMA', type: 'Passenger',
+        sizes: sz('195/65R15','205/65R15','205/60R16','215/60R16','215/55R17','225/55R17','225/50R17','235/50R17') },
+
+      /* ── BG SERIES — PERFORMANCE / UHP ───────────────────────────────────── */
+      { model: 'BG MAX SPORT', pattern: 'BG MAX SPORT', type: 'Performance',
+        sizes: sz('195/50R15','195/55R15','205/50R16','215/55R16','205/45R17','215/45R17','225/45R17','235/45R17','225/40R18','235/40R18','245/40R18') },
+
+      { model: 'HYPER SONIC R', pattern: 'HYPER SONIC R', type: 'Performance',
+        sizes: sz('195/55R15','205/50R16','205/55R16','215/55R16','215/45R17','225/45R17','225/40R18','245/40R18') },
+
+      { model: 'HYPER SONIC F', pattern: 'HYPER SONIC F', type: 'Performance',
+        sizes: sz('195/55R15','205/50R16','215/45R17','225/45R17') },
+
+      /* ── BG SERIES — SUV / 4x4 ───────────────────────────────────────────── */
+      { model: 'BG ALVO PLUS', pattern: 'BG ALVO PLUS', type: 'SUV',
+        sizes: sz('205/65R15','215/65R15','225/65R16','215/65R16','225/65R17','235/65R17','265/65R17','255/60R18','265/60R18','275/55R20') },
+
+      { model: 'BG POWER TERRAIN', pattern: 'BG POWER TERRAIN', type: '4x4',
+        sizes: sz('215/65R16','225/70R16','235/75R15','235/60R17','235/65R17','265/65R17','265/70R17','285/65R17','265/60R18','275/65R17','275/55R20') },
+
+      { model: 'BG RAPTOR', pattern: 'BG RAPTOR', type: '4x4',
+        sizes: sz('215/65R16','225/70R16','235/70R16','235/75R15','265/65R17','265/70R17','285/65R17','285/75R16') },
+
+      /* ── BG SERIES — VAN / LIGHT COMMERCIAL ──────────────────────────────── */
+      { model: 'BG VANO PLUS', pattern: 'BG VANO PLUS', type: 'Van',
+        sizes: [
+          { size: '175/75R14C', load_index: '99',  speed_index: 'R' },
+          { size: '185R14C',    load_index: '102', speed_index: 'R' },
+          { size: '185/75R14C', load_index: '102', speed_index: 'R' },
+          { size: '195R14C',    load_index: '106', speed_index: 'R' },
+          { size: '195/75R14C', load_index: '106', speed_index: 'R' },
+          { size: '195R15C',    load_index: '106', speed_index: 'R' },
+          { size: '205/70R15C', load_index: '106', speed_index: 'R' },
+          { size: '215/70R15C', load_index: '109', speed_index: 'R' },
+          { size: '225/70R15C', load_index: '112', speed_index: 'R' },
+        ] },
+
+      { model: 'BG CARGO', pattern: 'BG CARGO', type: 'Van',
+        sizes: [
+          { size: '185R14C',    load_index: '102', speed_index: 'R' },
+          { size: '195R14C',    load_index: '106', speed_index: 'R' },
+          { size: '195R15C',    load_index: '106', speed_index: 'R' },
+          { size: '205/70R15C', load_index: '106', speed_index: 'R' },
+          { size: '215/70R15C', load_index: '109', speed_index: 'R' },
+        ] },
+
+      /* ── LIGHT TRUCK — RADIAL ─────────────────────────────────────────────── */
+      { model: 'BG TRAKO PLUS', pattern: 'BG TRAKO PLUS', type: 'LT',
+        sizes: [
+          { size: '7.50R16',  load_index: '122', speed_index: 'J' },
+          { size: '8.25R16',  load_index: '128', speed_index: 'J' },
+          { size: '9.00R16',  load_index: '133', speed_index: 'J' },
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+          { size: '11.00R20', load_index: '152', speed_index: 'J' },
+        ] },
+
+      { model: 'RADIAL ST', pattern: 'RADIAL ST', type: 'LT',
+        sizes: [
+          { size: '7.50R16',  load_index: '122', speed_index: 'J' },
+          { size: '8.25R16',  load_index: '128', speed_index: 'J' },
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+          { size: '11.00R20', load_index: '152', speed_index: 'J' },
+          { size: '12.00R20', load_index: '154', speed_index: 'J' },
+        ] },
+
+      { model: 'BG TRAKER', pattern: 'BG TRAKER', type: 'Truck',
+        sizes: [
+          { size: '9.00R20',     load_index: '144', speed_index: 'J' },
+          { size: '10.00R20',    load_index: '149', speed_index: 'J' },
+          { size: '11.00R20',    load_index: '152', speed_index: 'J' },
+          { size: '12.00R20',    load_index: '154', speed_index: 'J' },
+          { size: '315/80R22.5', load_index: '156', speed_index: 'J' },
+        ] },
+
+      { model: 'BG RHINO POWER', pattern: 'BG RHINO POWER', type: 'Truck',
+        sizes: [
+          { size: '10.00R20',    load_index: '149', speed_index: 'J' },
+          { size: '11.00R20',    load_index: '152', speed_index: 'J' },
+          { size: '12.00R20',    load_index: '154', speed_index: 'J' },
+          { size: '315/80R22.5', load_index: '156', speed_index: 'J' },
+        ] },
+
+      /* ── EURO SERIES — TRUCK & BUS ───────────────────────────────────────── */
+      { model: 'EURO TYCOON', pattern: 'EURO TYCOON', type: 'Truck',
+        sizes: [
+          { size: '10.00R20',    load_index: '149', speed_index: 'J' },
+          { size: '11.00R20',    load_index: '152', speed_index: 'J' },
+          { size: '12.00R20',    load_index: '154', speed_index: 'J' },
+          { size: '315/80R22.5', load_index: '156', speed_index: 'J' },
+        ] },
+
+      { model: 'EURO STAR', pattern: 'EURO STAR', type: 'Truck',
+        sizes: [
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+          { size: '11.00R20', load_index: '152', speed_index: 'J' },
+          { size: '12.00R20', load_index: '154', speed_index: 'J' },
+        ] },
+
+      { model: 'EURO KRUZE', pattern: 'EURO KRUZE', type: 'Truck',
+        sizes: [
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+          { size: '11.00R20', load_index: '152', speed_index: 'J' },
+          { size: '12.00R20', load_index: '154', speed_index: 'J' },
+        ] },
+
+      { model: 'EURO LOAD', pattern: 'EURO LOAD', type: 'Truck',
+        sizes: [
+          { size: '7.50R16',  load_index: '122', speed_index: 'J' },
+          { size: '8.25R16',  load_index: '128', speed_index: 'J' },
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+          { size: '11.00R20', load_index: '152', speed_index: 'J' },
+        ] },
+
+      /* ── BIAS TRUCK / BUS — GENERAL PURPOSE ─────────────────────────────── */
+      { model: 'STAR SPRINTER (SS)', pattern: 'STAR SPRINTER', type: 'Truck',
+        sizes: [
+          { size: '7.50R16',  load_index: '122', speed_index: 'J' },
+          { size: '8.25R16',  load_index: '128', speed_index: 'J' },
+          { size: '9.00R16',  load_index: '133', speed_index: 'J' },
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+          { size: '11.00R20', load_index: '152', speed_index: 'J' },
+        ] },
+
+      { model: 'NIAGARA XP', pattern: 'NIAGARA XP', type: 'Truck',
+        sizes: [
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+          { size: '11.00R20', load_index: '152', speed_index: 'J' },
+          { size: '12.00R20', load_index: '154', speed_index: 'J' },
+        ] },
+
+      { model: 'GQT', pattern: 'GQT', type: 'Truck',
+        sizes: [
+          { size: '7.50R16',  load_index: '122', speed_index: 'J' },
+          { size: '8.25R16',  load_index: '128', speed_index: 'J' },
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+        ] },
+
+      { model: 'GLT II', pattern: 'GLT II', type: 'Truck',
+        sizes: [
+          { size: '7.50R16',  load_index: '122', speed_index: 'J' },
+          { size: '8.25R16',  load_index: '128', speed_index: 'J' },
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+          { size: '11.00R20', load_index: '152', speed_index: 'J' },
+        ] },
+
+      { model: 'HARFUN XP', pattern: 'HARFUN XP', type: 'Truck',
+        sizes: [
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+          { size: '11.00R20', load_index: '152', speed_index: 'J' },
+        ] },
+
+      { model: 'TUFF RIDER', pattern: 'TUFF RIDER', type: 'Truck',
+        sizes: [
+          { size: '7.50R16',  load_index: '122', speed_index: 'J' },
+          { size: '8.25R16',  load_index: '128', speed_index: 'J' },
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+        ] },
+
+      { model: 'DURO GRIP R', pattern: 'DURO GRIP R', type: 'Truck',
+        sizes: [
+          { size: '8.25R16',  load_index: '128', speed_index: 'J' },
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+          { size: '11.00R20', load_index: '152', speed_index: 'J' },
+        ] },
+
+      { model: 'DURO GRIP F', pattern: 'DURO GRIP F', type: 'Truck',
+        sizes: [
+          { size: '8.25R16',  load_index: '128', speed_index: 'J' },
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+          { size: '11.00R20', load_index: '152', speed_index: 'J' },
+        ] },
+
+      { model: 'GOTO GRIP', pattern: 'GOTO GRIP', type: 'Truck',
+        sizes: [
+          { size: '7.50R16',  load_index: '122', speed_index: 'J' },
+          { size: '8.25R16',  load_index: '128', speed_index: 'J' },
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+        ] },
+
+      { model: 'GOTO GOLD', pattern: 'GOTO GOLD', type: 'Truck',
+        sizes: [
+          { size: '7.50R16',  load_index: '122', speed_index: 'J' },
+          { size: '8.25R16',  load_index: '128', speed_index: 'J' },
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+        ] },
+
+      { model: 'JANNAN', pattern: 'JANNAN', type: 'Truck',
+        sizes: [
+          { size: '7.50R16',  load_index: '122', speed_index: 'J' },
+          { size: '8.25R16',  load_index: '128', speed_index: 'J' },
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+        ] },
+
+      { model: 'LOAD STAR', pattern: 'LOAD STAR', type: 'Truck',
+        sizes: [
+          { size: '7.50R16',  load_index: '122', speed_index: 'J' },
+          { size: '8.25R16',  load_index: '128', speed_index: 'J' },
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+          { size: '11.00R20', load_index: '152', speed_index: 'J' },
+        ] },
+
+      { model: 'SUPER LOADER', pattern: 'SUPER LOADER', type: 'Truck',
+        sizes: [
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+          { size: '11.00R20', load_index: '152', speed_index: 'J' },
+        ] },
+
+      { model: 'MUSTANG', pattern: 'MUSTANG', type: 'Truck',
+        sizes: [
+          { size: '7.50R16',  load_index: '122', speed_index: 'J' },
+          { size: '8.25R16',  load_index: '128', speed_index: 'J' },
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+        ] },
+
+      { model: 'CLIFF RIDE', pattern: 'CLIFF RIDE', type: 'Truck',
+        sizes: [
+          { size: '7.50R16',  load_index: '122', speed_index: 'J' },
+          { size: '8.25R16',  load_index: '128', speed_index: 'J' },
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+        ] },
+
+      { model: 'CHALLENGER', pattern: 'CHALLENGER', type: 'Truck',
+        sizes: [
+          { size: '8.25R16',  load_index: '128', speed_index: 'J' },
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+          { size: '11.00R20', load_index: '152', speed_index: 'J' },
+          { size: '12.00R20', load_index: '154', speed_index: 'J' },
+        ] },
+
+      { model: 'XP-2000 II', pattern: 'XP-2000 II', type: 'Truck',
+        sizes: [
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+          { size: '11.00R20', load_index: '152', speed_index: 'J' },
+        ] },
+
+      { model: 'POWER JET COMMERCIAL (PJC)', pattern: 'POWER JET COMMERCIAL', type: 'Truck',
+        sizes: [
+          { size: '7.50R16',  load_index: '122', speed_index: 'J' },
+          { size: '8.25R16',  load_index: '128', speed_index: 'J' },
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+        ] },
+
+      { model: 'NON-DIRECTIONAL (ND)', pattern: 'NON-DIRECTIONAL', type: 'Truck',
+        sizes: [
+          { size: '7.50R16',  load_index: '122', speed_index: 'J' },
+          { size: '8.25R16',  load_index: '128', speed_index: 'J' },
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+        ] },
+
+      { model: 'TRACTION RIB (TR)', pattern: 'TRACTION RIB', type: 'Truck',
+        sizes: [
+          { size: '7.50R16',  load_index: '122', speed_index: 'J' },
+          { size: '8.25R16',  load_index: '128', speed_index: 'J' },
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+          { size: '11.00R20', load_index: '152', speed_index: 'J' },
+        ] },
+
+      { model: 'POWER LUG (PL)', pattern: 'POWER LUG', type: 'Truck',
+        sizes: [
+          { size: '7.50R16',  load_index: '122', speed_index: 'J' },
+          { size: '8.25R16',  load_index: '128', speed_index: 'J' },
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+        ] },
+
+      { model: 'SUPER POWER LUG (SPL)', pattern: 'SUPER POWER LUG', type: 'Truck',
+        sizes: [
+          { size: '7.50R16',  load_index: '122', speed_index: 'J' },
+          { size: '8.25R16',  load_index: '128', speed_index: 'J' },
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+          { size: '11.00R20', load_index: '152', speed_index: 'J' },
+        ] },
+
+      { model: 'POWER LUG PLUS (PLP)', pattern: 'POWER LUG PLUS', type: 'Truck',
+        sizes: [
+          { size: '7.50R16',  load_index: '122', speed_index: 'J' },
+          { size: '8.25R16',  load_index: '128', speed_index: 'J' },
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+        ] },
+
+      { model: 'DOUBLE BULL POWER (DBP)', pattern: 'DOUBLE BULL POWER', type: 'Truck',
+        sizes: [
+          { size: '7.50R16',  load_index: '122', speed_index: 'J' },
+          { size: '8.25R16',  load_index: '128', speed_index: 'J' },
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+        ] },
+
+      { model: 'SUPER ALL GRIP (SAG)', pattern: 'SUPER ALL GRIP', type: 'Truck',
+        sizes: [
+          { size: '7.50R16',  load_index: '122', speed_index: 'J' },
+          { size: '8.25R16',  load_index: '128', speed_index: 'J' },
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+        ] },
+
+      { model: 'SUPER ALL GRIP TRACTION (SAGT)', pattern: 'SUPER ALL GRIP TRACTION', type: 'Truck',
+        sizes: [
+          { size: '7.50R16',  load_index: '122', speed_index: 'J' },
+          { size: '8.25R16',  load_index: '128', speed_index: 'J' },
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+        ] },
+
+      { model: 'POWER RIB', pattern: 'POWER RIB', type: 'Truck',
+        sizes: [
+          { size: '7.50R16',  load_index: '122', speed_index: 'J' },
+          { size: '8.25R16',  load_index: '128', speed_index: 'J' },
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+        ] },
+
+      { model: 'SUPER TIGER (STGR)', pattern: 'SUPER TIGER', type: 'Truck',
+        sizes: [
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+          { size: '11.00R20', load_index: '152', speed_index: 'J' },
+        ] },
+
+      { model: 'JUNGLE JIM', pattern: 'JUNGLE JIM', type: 'Truck',
+        sizes: [
+          { size: '9.00R20',  load_index: '144', speed_index: 'J' },
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+        ] },
+
+      { model: 'HEAVY CONTRACT TRANSPORT (HCT)', pattern: 'HEAVY CONTRACT TRANSPORT', type: 'Truck',
+        sizes: [
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+          { size: '11.00R20', load_index: '152', speed_index: 'J' },
+          { size: '12.00R20', load_index: '154', speed_index: 'J' },
+        ] },
+
+      { model: 'SUPER HEAVY CONTRACT TRANSPORT (SHCT)', pattern: 'SUPER HEAVY CONTRACT TRANSPORT', type: 'Truck',
+        sizes: [
+          { size: '10.00R20', load_index: '149', speed_index: 'J' },
+          { size: '11.00R20', load_index: '152', speed_index: 'J' },
+          { size: '12.00R20', load_index: '154', speed_index: 'J' },
+        ] },
+
+      /* ── CHIEF SERIES — LIGHT / MEDIUM TRUCK ─────────────────────────────── */
+      { model: 'CHIEF F', pattern: 'CHIEF F', type: 'Truck',
+        sizes: [
+          { size: '6.50R16', load_index: '108', speed_index: 'J' },
+          { size: '7.00R16', load_index: '113', speed_index: 'J' },
+          { size: '7.50R16', load_index: '122', speed_index: 'J' },
+          { size: '8.25R16', load_index: '128', speed_index: 'J' },
+          { size: '9.00R20', load_index: '144', speed_index: 'J' },
+        ] },
+
+      { model: 'CHIEF R', pattern: 'CHIEF R', type: 'Truck',
+        sizes: [
+          { size: '6.50R16', load_index: '108', speed_index: 'J' },
+          { size: '7.00R16', load_index: '113', speed_index: 'J' },
+          { size: '7.50R16', load_index: '122', speed_index: 'J' },
+          { size: '8.25R16', load_index: '128', speed_index: 'J' },
+          { size: '9.00R20', load_index: '144', speed_index: 'J' },
+        ] },
+
+      { model: 'CHIEF CNG', pattern: 'CHIEF CNG', type: 'Truck',
+        sizes: [
+          { size: '7.50R16', load_index: '122', speed_index: 'J' },
+          { size: '8.25R16', load_index: '128', speed_index: 'J' },
+        ] },
+
+      { model: 'CHIEF LIGHT TRUCK BIAS TYRES', pattern: 'CHIEF LIGHT TRUCK', type: 'LT',
+        sizes: [
+          { size: '6.00R14', load_index: '96',  speed_index: 'J' },
+          { size: '6.50R14', load_index: '99',  speed_index: 'J' },
+          { size: '6.50R16', load_index: '108', speed_index: 'J' },
+          { size: '7.00R16', load_index: '113', speed_index: 'J' },
+        ] },
+
+      /* ── OTR / CONSTRUCTION ───────────────────────────────────────────────── */
+      { model: 'BG SUPER EXCAVE', pattern: 'BG SUPER EXCAVE', type: 'OTR',
+        sizes: [
+          { size: '17.5R25', load_index: '', speed_index: '' },
+          { size: '20.5R25', load_index: '', speed_index: '' },
+          { size: '23.5R25', load_index: '', speed_index: '' },
+          { size: '26.5R25', load_index: '', speed_index: '' },
+        ] },
+
+      { model: 'BG VELOTRAK PLUS', pattern: 'BG VELOTRAK PLUS', type: 'OTR',
+        sizes: [
+          { size: '17.5R25', load_index: '', speed_index: '' },
+          { size: '20.5R25', load_index: '', speed_index: '' },
+        ] },
+
+      /* ── AGRICULTURAL ─────────────────────────────────────────────────────── */
+      { model: 'AGRI POWER (AP)', pattern: 'AGRI POWER', type: 'Agricultural',
+        sizes: [
+          { size: '6.00-16',  load_index: '', speed_index: '' },
+          { size: '6.50-16',  load_index: '', speed_index: '' },
+          { size: '7.50-16',  load_index: '', speed_index: '' },
+          { size: '8.3-24',   load_index: '', speed_index: '' },
+          { size: '9.5-24',   load_index: '', speed_index: '' },
+          { size: '11.2-24',  load_index: '', speed_index: '' },
+          { size: '12.4-24',  load_index: '', speed_index: '' },
+          { size: '13.6-24',  load_index: '', speed_index: '' },
+          { size: '16.9-24',  load_index: '', speed_index: '' },
+          { size: '18.4-30',  load_index: '', speed_index: '' },
+        ] },
+
+      { model: 'AGRI GOLD (AG)', pattern: 'AGRI GOLD', type: 'Agricultural',
+        sizes: [
+          { size: '8.3-24',  load_index: '', speed_index: '' },
+          { size: '9.5-24',  load_index: '', speed_index: '' },
+          { size: '11.2-24', load_index: '', speed_index: '' },
+          { size: '12.4-24', load_index: '', speed_index: '' },
+          { size: '13.6-24', load_index: '', speed_index: '' },
+        ] },
+
+      { model: 'AGRI TRAC (AT)', pattern: 'AGRI TRAC', type: 'Agricultural',
+        sizes: [
+          { size: '6.00-16', load_index: '', speed_index: '' },
+          { size: '7.50-16', load_index: '', speed_index: '' },
+          { size: '8.3-24',  load_index: '', speed_index: '' },
+          { size: '9.5-24',  load_index: '', speed_index: '' },
+          { size: '11.2-24', load_index: '', speed_index: '' },
+        ] },
+
+      { model: 'AGRI RIB (AR)', pattern: 'AGRI RIB', type: 'Agricultural',
+        sizes: [
+          { size: '5.00-16', load_index: '', speed_index: '' },
+          { size: '6.00-16', load_index: '', speed_index: '' },
+          { size: '7.50-16', load_index: '', speed_index: '' },
+        ] },
+
+      { model: 'AGRI LUG', pattern: 'AGRI LUG', type: 'Agricultural',
+        sizes: [
+          { size: '8.3-24',  load_index: '', speed_index: '' },
+          { size: '9.5-24',  load_index: '', speed_index: '' },
+          { size: '11.2-24', load_index: '', speed_index: '' },
+          { size: '12.4-28', load_index: '', speed_index: '' },
+        ] },
+
+      /* ── MOTORCYCLE / RICKSHAW ────────────────────────────────────────────── */
+      { model: 'SANGEE', pattern: 'SANGEE', type: 'Motorcycle',
+        sizes: [
+          { size: '2.25-16', load_index: '', speed_index: '' },
+          { size: '2.50-16', load_index: '', speed_index: '' },
+          { size: '2.75-16', load_index: '', speed_index: '' },
+          { size: '2.75-17', load_index: '', speed_index: '' },
+          { size: '2.75-18', load_index: '', speed_index: '' },
+          { size: '3.00-17', load_index: '', speed_index: '' },
+          { size: '3.00-18', load_index: '', speed_index: '' },
+        ] },
+
+      { model: 'SPIDER WEB', pattern: 'SPIDER WEB', type: 'Motorcycle',
+        sizes: [
+          { size: '2.50-16', load_index: '', speed_index: '' },
+          { size: '2.75-16', load_index: '', speed_index: '' },
+          { size: '2.75-17', load_index: '', speed_index: '' },
+          { size: '3.00-17', load_index: '', speed_index: '' },
+          { size: '3.00-18', load_index: '', speed_index: '' },
+        ] },
+
+      { model: 'SNAKE EYES', pattern: 'SNAKE EYES', type: 'Motorcycle',
+        sizes: [
+          { size: '2.50-16', load_index: '', speed_index: '' },
+          { size: '2.75-16', load_index: '', speed_index: '' },
+          { size: '2.75-17', load_index: '', speed_index: '' },
+          { size: '3.00-17', load_index: '', speed_index: '' },
+        ] },
+
+      { model: 'MAGNETO', pattern: 'MAGNETO', type: 'Motorcycle',
+        sizes: [
+          { size: '2.75-17',   load_index: '',   speed_index: '' },
+          { size: '3.00-17',   load_index: '',   speed_index: '' },
+          { size: '3.00-18',   load_index: '',   speed_index: '' },
+          { size: '100/80R17', load_index: '52', speed_index: 'H' },
+          { size: '110/80R17', load_index: '57', speed_index: 'H' },
+          { size: '130/70R17', load_index: '62', speed_index: 'H' },
+        ] },
+
+      { model: 'BLACK COBRA', pattern: 'BLACK COBRA', type: 'Motorcycle',
+        sizes: [
+          { size: '2.75-17', load_index: '', speed_index: '' },
+          { size: '3.00-17', load_index: '', speed_index: '' },
+          { size: '3.00-18', load_index: '', speed_index: '' },
+        ] },
+
+      { model: 'BLACK BULL', pattern: 'BLACK BULL', type: 'Motorcycle',
+        sizes: [
+          { size: '2.75-17', load_index: '', speed_index: '' },
+          { size: '3.00-17', load_index: '', speed_index: '' },
+          { size: '3.25-18', load_index: '', speed_index: '' },
+        ] },
+
+      { model: 'TRACTION RIB (TR) LIGHT TYRE', pattern: 'TRACTION RIB LIGHT', type: 'Rickshaw',
+        sizes: [
+          { size: '4.00-8',  load_index: '', speed_index: '' },
+          { size: '4.50-10', load_index: '', speed_index: '' },
+          { size: '5.00-10', load_index: '', speed_index: '' },
+        ] },
     ],
   },
   {
