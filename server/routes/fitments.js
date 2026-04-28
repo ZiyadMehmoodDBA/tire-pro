@@ -2,21 +2,38 @@
 /**
  * Vehicle fitment routes — Pakistan-market OEM tyre lookup.
  * Mounted at: /api/fitments
+ *
+ * Cascade flow:  Category → Make → Model → Search
+ * Results cross-reference tire_catalog by normalised size (space-insensitive).
  */
 
 const express = require('express');
 const router  = express.Router();
 const { getPool, sql } = require('../db');
 
+/** Strip spaces before R/C so "195/65 R15" matches "195/65R15" in both tables. */
+const SIZE_NORM_SQL = `REPLACE(REPLACE(%COL%, ' R', 'R'), ' C', 'C')`;
+function normCol(col) { return SIZE_NORM_SQL.replace('%COL%', col); }
+
 /* ─────────────────────────────────────────────────────────────────────────────
    GET /api/fitments/categories
-   Returns all distinct categories in sorted order.
+   Distinct categories in catalogue order.
 ───────────────────────────────────────────────────────────────────────────── */
 router.get('/categories', async (req, res) => {
   try {
     const pool   = await getPool();
     const result = await pool.request().query(`
-      SELECT DISTINCT category FROM vehicle_fitments ORDER BY category
+      SELECT DISTINCT category FROM vehicle_fitments
+      ORDER BY
+        CASE category
+          WHEN 'Passenger Car Tyres'     THEN 1
+          WHEN 'SUV/Crossovers Tyres'    THEN 2
+          WHEN 'Light Truck Tyres'       THEN 3
+          WHEN 'Truck & Bus/OTR Tyres'   THEN 4
+          WHEN 'Tractor Tyres'           THEN 5
+          WHEN 'Motorcycle/Rickshaw Tyres' THEN 6
+          ELSE 7
+        END
     `);
     res.json(result.recordset.map(r => r.category));
   } catch (err) {
@@ -25,31 +42,29 @@ router.get('/categories', async (req, res) => {
 });
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   GET /api/fitments/makes?category=SUV
-   Returns distinct makes, optionally filtered by category.
+   GET /api/fitments/makes?category=Passenger+Car+Tyres
 ───────────────────────────────────────────────────────────────────────────── */
 router.get('/makes', async (req, res) => {
   try {
     const pool = await getPool();
     const { category } = req.query;
-    const req2 = pool.request();
+    const r = pool.request();
     let where = '';
     if (category) {
-      req2.input('cat', sql.NVarChar(50), category);
+      r.input('cat', sql.NVarChar(100), category);
       where = 'WHERE category = @cat';
     }
-    const result = await req2.query(
+    const result = await r.query(
       `SELECT DISTINCT make FROM vehicle_fitments ${where} ORDER BY make`
     );
-    res.json(result.recordset.map(r => r.make));
+    res.json(result.recordset.map(row => row.make));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   GET /api/fitments/models?make=Toyota&category=SUV
-   Returns distinct models, filtered by make (required) and optional category.
+   GET /api/fitments/models?make=Toyota&category=Passenger+Car+Tyres
 ───────────────────────────────────────────────────────────────────────────── */
 router.get('/models', async (req, res) => {
   try {
@@ -57,25 +72,24 @@ router.get('/models', async (req, res) => {
     const { make, category } = req.query;
     if (!make) return res.status(400).json({ error: 'make is required' });
 
-    const req2 = pool.request().input('make', sql.NVarChar(50), make);
-    const conditions = ['make = @make'];
-    if (category) {
-      req2.input('cat', sql.NVarChar(50), category);
-      conditions.push('category = @cat');
-    }
-    const result = await req2.query(`
+    const r    = pool.request().input('make', sql.NVarChar(50), make);
+    const cond = ['make = @make'];
+    if (category) { r.input('cat', sql.NVarChar(100), category); cond.push('category = @cat'); }
+
+    const result = await r.query(`
       SELECT DISTINCT model FROM vehicle_fitments
-      WHERE ${conditions.join(' AND ')} ORDER BY model
+      WHERE ${cond.join(' AND ')}
+      ORDER BY model
     `);
-    res.json(result.recordset.map(r => r.model));
+    res.json(result.recordset.map(row => row.model));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   GET /api/fitments/search?make=Toyota&model=Corolla&category=Passenger
-   Returns fitment rows + matching tire_catalog entries for each size.
+   GET /api/fitments/search?make=Toyota&model=Corolla+XLi%2FGLi+%282014-2024%29&category=...
+   Returns fitment rows + matching tire_catalog entries per normalised size.
 ───────────────────────────────────────────────────────────────────────────── */
 router.get('/search', async (req, res) => {
   try {
@@ -86,37 +100,40 @@ router.get('/search', async (req, res) => {
       return res.status(400).json({ error: 'At least make or model is required' });
     }
 
-    const req2 = pool.request();
-    const conditions = [];
-    if (make)     { req2.input('make', sql.NVarChar(50),  make);     conditions.push('vf.make = @make'); }
-    if (model)    { req2.input('model', sql.NVarChar(100), model);   conditions.push('vf.model = @model'); }
-    if (category) { req2.input('cat',  sql.NVarChar(50),  category); conditions.push('vf.category = @cat'); }
+    const r    = pool.request();
+    const cond = [];
+    if (category) { r.input('cat',   sql.NVarChar(100), category); cond.push('vf.category = @cat'); }
+    if (make)     { r.input('make',  sql.NVarChar(50),  make);     cond.push('vf.make = @make');     }
+    if (model)    { r.input('model', sql.NVarChar(200), model);    cond.push('vf.model = @model');   }
 
-    const where = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
+    const where = cond.length ? 'WHERE ' + cond.join(' AND ') : '';
 
-    // Fetch fitment rows
-    const fitRes = await req2.query(`
-      SELECT id, make, model, variant, year_from, year_to, category, tire_size
+    // 1. Fetch fitment rows
+    const fitRes = await r.query(`
+      SELECT id, category, make, model, year_from, year_to,
+             tire_size, gtr_pattern, position
       FROM vehicle_fitments vf
       ${where}
-      ORDER BY make, model, year_from, variant
+      ORDER BY make, model, ISNULL(year_from, 0), ISNULL(position, 'Z')
     `);
 
     if (fitRes.recordset.length === 0) {
       return res.json({ fitments: [], catalogMatches: {} });
     }
 
-    // Collect all distinct sizes from the results
-    const sizes = [...new Set(fitRes.recordset.map(r => r.tire_size))];
+    // 2. Distinct normalised sizes for batch catalogue lookup
+    const sizes = [...new Set(fitRes.recordset.map(f => f.tire_size))];
 
-    // For each size, find matching catalog entries
+    // 3. Lookup catalog entries for each unique size (normalise both sides)
     const catalogMatches = {};
     for (const size of sizes) {
-      const catReq = pool.request().input('size', sql.NVarChar(50), size);
+      const normSize = size.replace(/ R(\d)/g, 'R$1').replace(/ C$/, 'C');
+      const catReq = pool.request().input('size', sql.NVarChar(50), normSize);
       const catRes = await catReq.query(`
-        SELECT id, brand, model AS tire_model, size, pattern, load_index, speed_index, tire_type
+        SELECT id, brand, model AS tire_model, size,
+               pattern, load_index, speed_index, tire_type
         FROM tire_catalog
-        WHERE size = @size
+        WHERE ${normCol('size')} = ${normCol('@size')}
         ORDER BY brand, model
       `);
       catalogMatches[size] = catRes.recordset;

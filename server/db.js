@@ -660,15 +660,33 @@ async function setupDatabase() {
   await dbPool.request().query(`
     IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='vehicle_fitments' AND xtype='U')
     CREATE TABLE vehicle_fitments (
-      id         INT IDENTITY(1,1) PRIMARY KEY,
-      make       NVARCHAR(50)  NOT NULL,
-      model      NVARCHAR(100) NOT NULL,
-      variant    NVARCHAR(100) NULL,
-      year_from  SMALLINT      NOT NULL,
-      year_to    SMALLINT      NULL,
-      category   NVARCHAR(50)  NOT NULL,
-      tire_size  NVARCHAR(50)  NOT NULL
+      id          INT IDENTITY(1,1) PRIMARY KEY,
+      category    NVARCHAR(100) NOT NULL,
+      make        NVARCHAR(50)  NOT NULL,
+      model       NVARCHAR(200) NOT NULL,
+      year_from   SMALLINT      NULL,
+      year_to     SMALLINT      NULL,
+      tire_size   NVARCHAR(50)  NOT NULL,
+      gtr_pattern NVARCHAR(100) NULL,
+      position    NVARCHAR(10)  NULL
     )
+  `);
+  // Migrate existing installs: add gtr_pattern, position columns + fix old schema
+  await dbPool.request().query(`
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('vehicle_fitments') AND name = 'gtr_pattern')
+      ALTER TABLE vehicle_fitments ADD gtr_pattern NVARCHAR(100) NULL
+  `);
+  await dbPool.request().query(`
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('vehicle_fitments') AND name = 'position')
+      ALTER TABLE vehicle_fitments ADD position NVARCHAR(10) NULL
+  `);
+  // Make year_from nullable (was NOT NULL in first version)
+  await dbPool.request().query(`
+    IF EXISTS (
+      SELECT * FROM sys.columns
+      WHERE object_id = OBJECT_ID('vehicle_fitments') AND name = 'year_from' AND is_nullable = 0
+    )
+      ALTER TABLE vehicle_fitments ALTER COLUMN year_from SMALLINT NULL
   `);
 
   // Catalog scraper run logs

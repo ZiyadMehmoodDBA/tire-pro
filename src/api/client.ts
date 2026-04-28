@@ -338,9 +338,15 @@ export const api = {
       if (params.category) qs.set('category', params.category);
       return request<{
         fitments: {
-          id: number; make: string; model: string; variant: string;
-          year_from: number; year_to: number | null;
-          category: string; tire_size: string;
+          id: number;
+          category: string;
+          make: string;
+          model: string;
+          year_from: number | null;
+          year_to: number | null;
+          tire_size: string;
+          gtr_pattern: string | null;
+          position: 'Front' | 'Rear' | null;
         }[];
         catalogMatches: Record<string, {
           id: number; brand: string; tire_model: string; size: string;
