@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
   Car, Search, ChevronDown, CheckCircle2, XCircle,
-  Loader2, AlertCircle, Award, TriangleAlert,
+  Loader2, AlertCircle, Award, TriangleAlert, RefreshCw,
 } from 'lucide-react';
 import { api } from '../api/client';
 
@@ -133,9 +133,11 @@ function CatalogBadges({ entries }: { entries: CatalogEntry[] }) {
 
 /* ── Main component ───────────────────────────────────────────────────────── */
 export function FitmentSearch() {
-  const [categories, setCategories] = useState<string[]>([]);
-  const [makes,      setMakes]      = useState<string[]>([]);
-  const [models,     setModels]     = useState<string[]>([]);
+  const [categories,    setCategories]    = useState<string[]>([]);
+  const [catsLoading,   setCatsLoading]   = useState(true);
+  const [catsError,     setCatsError]     = useState('');
+  const [makes,         setMakes]         = useState<string[]>([]);
+  const [models,        setModels]        = useState<string[]>([]);
 
   const [selCategory, setSelCategory] = useState('');
   const [selMake,     setSelMake]     = useState('');
@@ -148,9 +150,19 @@ export function FitmentSearch() {
   const [matches,  setMatches]  = useState<Record<string, CatalogEntry[]>>({});
 
   // Boot: load categories
-  useEffect(() => {
-    api.fitments.categories().then(setCategories).catch(() => {});
-  }, []);
+  const loadCategories = () => {
+    setCatsLoading(true);
+    setCatsError('');
+    api.fitments.categories()
+      .then(data => {
+        setCategories(data);
+        if (data.length === 0) setCatsError('no_data');
+      })
+      .catch(() => setCatsError('api_error'))
+      .finally(() => setCatsLoading(false));
+  };
+
+  useEffect(() => { loadCategories(); }, []);
 
   // Category change → reload makes
   useEffect(() => {
@@ -422,30 +434,71 @@ export function FitmentSearch() {
         )
       )}
 
-      {/* ── Empty state (before first search) ─────────────────────────── */}
+      {/* ── Empty / error state (before first search) ──────────────── */}
       {!searched && !loading && (
         <div className="text-center py-14 select-none">
-          <Car size={44} className="mx-auto mb-4 text-slate-200" />
-          <p className="text-slate-400 text-sm font-medium">Select a vehicle category, make, and model above</p>
-          <p className="text-slate-300 text-xs mt-1">
-            Get OEM tyre size and see which GTR products fit
-          </p>
+          {/* Server not started or API error */}
+          {catsError && (
+            <div className="mb-6 inline-block text-left bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 max-w-md">
+              <div className="flex items-start gap-3">
+                <AlertCircle size={18} className="text-amber-500 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-bold text-amber-800">
+                    {catsError === 'api_error'
+                      ? 'Fitment API unavailable'
+                      : 'No fitment data found'}
+                  </p>
+                  <p className="text-xs text-amber-700 mt-1">
+                    {catsError === 'api_error'
+                      ? 'The backend server may need to be restarted. Run the server once to create the vehicle_fitments table and seed Pakistan-market data.'
+                      : 'The vehicle_fitments table is empty. Restart the backend server to trigger the seed.'}
+                  </p>
+                  <button
+                    onClick={loadCategories}
+                    disabled={catsLoading}
+                    className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-amber-800 hover:text-amber-900 transition-colors"
+                  >
+                    {catsLoading
+                      ? <Loader2 size={12} className="animate-spin" />
+                      : <RefreshCw size={12} />}
+                    Retry
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
-          {/* Category quick-pick pills */}
-          <div className="flex flex-wrap justify-center gap-2 mt-5">
-            {categories.map(cat => {
-              const m = CATEGORY_META[cat] ?? { color: 'bg-slate-400', abbr: '' };
-              return (
-                <button
-                  key={cat}
-                  onClick={() => setSelCategory(cat)}
-                  className={`${m.color} text-white text-xs font-semibold px-3 py-1.5 rounded-xl opacity-70 hover:opacity-100 transition-opacity`}
-                >
-                  {cat}
-                </button>
-              );
-            })}
-          </div>
+          {/* Loading state */}
+          {catsLoading && (
+            <Loader2 size={28} className="mx-auto mb-3 text-slate-300 animate-spin" />
+          )}
+
+          {/* Normal idle state */}
+          {!catsError && !catsLoading && (
+            <>
+              <Car size={44} className="mx-auto mb-4 text-slate-200" />
+              <p className="text-slate-400 text-sm font-medium">Select a vehicle category, make, and model above</p>
+              <p className="text-slate-300 text-xs mt-1">
+                Get OEM tyre size and see which GTR products fit
+              </p>
+
+              {/* Category quick-pick pills */}
+              <div className="flex flex-wrap justify-center gap-2 mt-5">
+                {categories.map(cat => {
+                  const m = CATEGORY_META[cat] ?? { color: 'bg-slate-400', abbr: '' };
+                  return (
+                    <button
+                      key={cat}
+                      onClick={() => setSelCategory(cat)}
+                      className={`${m.color} text-white text-xs font-semibold px-3 py-1.5 rounded-xl opacity-70 hover:opacity-100 transition-opacity`}
+                    >
+                      {cat}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   X, Search, Plus, Minus, Trash2, Tag, ShoppingCart,
   Loader2, CheckCircle, Printer, Banknote, CreditCard, Shuffle,
-  AlertCircle, ChevronDown, ChevronUp,
+  AlertCircle, ChevronDown, ChevronUp, Car, Award, ChevronRight,
 } from 'lucide-react';
 import { api } from '../api/client';
 import { formatCurrency } from '../lib/utils';
@@ -65,6 +65,18 @@ export default function POSTerminal({ onClose, onCreated }: Props) {
   const [cashAmount,  setCashAmount]  = useState('');
   const [cardAmount,  setCardAmount]  = useState('');
 
+  // Vehicle lookup
+  const [showVehicle,  setShowVehicle]  = useState(false);
+  const [vehCats,      setVehCats]      = useState<string[]>([]);
+  const [vehMakes,     setVehMakes]     = useState<string[]>([]);
+  const [vehModels,    setVehModels]    = useState<string[]>([]);
+  const [vehCat,       setVehCat]       = useState('');
+  const [vehMake,      setVehMake]      = useState('');
+  const [vehModel,     setVehModel]     = useState('');
+  const [vehSearching, setVehSearching] = useState(false);
+  const [vehResult,    setVehResult]    = useState<{ size: string; gtr: string | null } | null>(null);
+  const [vehError,     setVehError]     = useState('');
+
   // State
   const [loading,       setLoading]       = useState(false);
   const [error,         setError]         = useState('');
@@ -103,6 +115,48 @@ export default function POSTerminal({ onClose, onCreated }: Props) {
     document.addEventListener('mousedown', h);
     return () => document.removeEventListener('mousedown', h);
   }, []);
+
+  // Vehicle lookup: load categories when panel opens
+  useEffect(() => {
+    if (!showVehicle || vehCats.length > 0) return;
+    api.fitments.categories().then(setVehCats).catch(() => {});
+  }, [showVehicle, vehCats.length]);
+
+  // Vehicle lookup: cascade makes
+  useEffect(() => {
+    setVehMake(''); setVehModel(''); setVehMakes([]); setVehModels([]); setVehResult(null);
+    if (!showVehicle) return;
+    api.fitments.makes(vehCat || undefined).then(setVehMakes).catch(() => {});
+  }, [vehCat, showVehicle]);
+
+  // Vehicle lookup: cascade models
+  useEffect(() => {
+    setVehModel(''); setVehModels([]); setVehResult(null);
+    if (!vehMake) return;
+    api.fitments.models(vehMake, vehCat || undefined).then(setVehModels).catch(() => {});
+  }, [vehMake, vehCat]);
+
+  const handleVehicleSearch = async () => {
+    if (!vehMake) { setVehError('Select at least a make.'); return; }
+    setVehError(''); setVehSearching(true); setVehResult(null);
+    try {
+      const res = await api.fitments.search({ make: vehMake, model: vehModel || undefined, category: vehCat || undefined });
+      if (res.fitments.length === 0) { setVehError('No fitment found for this vehicle.'); return; }
+      const first = res.fitments[0];
+      setVehResult({ size: first.tire_size, gtr: first.gtr_pattern });
+    } catch {
+      setVehError('Lookup failed.');
+    } finally {
+      setVehSearching(false);
+    }
+  };
+
+  const applyVehicleSize = (size: string) => {
+    setSearchQuery(size);
+    setSearchOpen(true);
+    setShowVehicle(false);
+    searchRef.current?.focus();
+  };
 
   // ── Calculations ────────────────────────────────────────────────────────────
   const cartSubtotal = cart.reduce((s, c) => s + c.qty * c.unitPrice * (1 - c.discount / 100), 0);
@@ -312,43 +366,134 @@ export default function POSTerminal({ onClose, onCreated }: Props) {
 
             {/* Search box */}
             <div className="px-4 py-3 border-b border-slate-100 flex-shrink-0" ref={searchBoxRef}>
-              <div className="relative">
-                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  ref={searchRef}
-                  value={searchQuery}
-                  onChange={e => { setSearchQuery(e.target.value); setSearchOpen(true); }}
-                  onFocus={() => setSearchOpen(true)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' && searchResults.length > 0) { addToCart(searchResults[0]); }
-                    if (e.key === 'Escape') setSearchOpen(false);
-                  }}
-                  placeholder="Search tires & services... (F2)"
-                  className="w-full text-sm border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50"
-                />
-              {searchOpen && (
-                <div className="absolute top-full left-0 right-0 z-20 mt-1 bg-white border border-slate-200 rounded-xl shadow-2xl max-h-72 overflow-y-auto">
-                  {searchResults.length === 0 ? (
-                    <p className="text-sm text-slate-400 px-4 py-3">No results for "{searchQuery}"</p>
-                  ) : searchResults.map(item => (
-                    <button
-                      key={item.key}
-                      type="button"
-                      onMouseDown={e => { e.preventDefault(); addToCart(item); }}
-                      className="w-full text-left px-4 py-2.5 hover:bg-blue-50 transition-colors border-b border-slate-50 last:border-0 flex items-center justify-between gap-2"
-                    >
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-slate-900 truncate">{item.name}</p>
-                        <p className="text-xs text-slate-400">{item.subtitle}</p>
-                      </div>
-                      <span className="text-sm font-bold text-blue-600 whitespace-nowrap flex-shrink-0">
-                        {formatCurrency(item.price)}
-                      </span>
+
+              {/* Row 1: search input + "By Vehicle" button */}
+              <div className="flex gap-2 items-center">
+                <div className="relative flex-1">
+                  <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    ref={searchRef}
+                    value={searchQuery}
+                    onChange={e => { setSearchQuery(e.target.value); setSearchOpen(true); }}
+                    onFocus={() => setSearchOpen(true)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && searchResults.length > 0) { addToCart(searchResults[0]); }
+                      if (e.key === 'Escape') setSearchOpen(false);
+                    }}
+                    placeholder="Search tires & services... (F2)"
+                    className="w-full text-sm border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50"
+                  />
+                  {/* Search dropdown — positioned relative to the input wrapper */}
+                  {searchOpen && (
+                    <div className="absolute top-full left-0 right-0 z-20 mt-1 bg-white border border-slate-200 rounded-xl shadow-2xl max-h-72 overflow-y-auto">
+                      {searchResults.length === 0 ? (
+                        <p className="text-sm text-slate-400 px-4 py-3">No results for "{searchQuery}"</p>
+                      ) : searchResults.map(item => (
+                        <button
+                          key={item.key}
+                          type="button"
+                          onMouseDown={e => { e.preventDefault(); addToCart(item); }}
+                          className="w-full text-left px-4 py-2.5 hover:bg-blue-50 transition-colors border-b border-slate-50 last:border-0 flex items-center justify-between gap-2"
+                        >
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-slate-900 truncate">{item.name}</p>
+                            <p className="text-xs text-slate-400">{item.subtitle}</p>
+                          </div>
+                          <span className="text-sm font-bold text-blue-600 whitespace-nowrap flex-shrink-0">
+                            {formatCurrency(item.price)}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Find by Vehicle toggle */}
+                <button
+                  type="button"
+                  onClick={() => { setShowVehicle(v => !v); setVehResult(null); setVehError(''); }}
+                  title="Find tyre by vehicle make/model"
+                  className={`flex items-center gap-1.5 px-3 py-2.5 rounded-xl border text-xs font-semibold transition-all flex-shrink-0 ${
+                    showVehicle
+                      ? 'bg-red-600 border-red-600 text-white shadow-sm'
+                      : 'bg-white border-slate-200 text-slate-600 hover:border-red-300 hover:text-red-600'
+                  }`}
+                >
+                  <Car size={14} />
+                  <span className="hidden sm:inline">By Vehicle</span>
+                </button>
+              </div>
+
+              {/* Row 2 (conditional): Vehicle Lookup Panel */}
+              {showVehicle && (
+                <div className="mt-2 bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2.5">
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Find Tyre by Vehicle</p>
+
+                  <div className="grid grid-cols-3 gap-2">
+                    {/* Category */}
+                    <div className="relative">
+                      <select value={vehCat} onChange={e => setVehCat(e.target.value)}
+                        className="w-full appearance-none text-xs border border-slate-200 rounded-lg py-2 pl-2.5 pr-6 bg-white focus:outline-none focus:ring-1 focus:ring-red-500">
+                        <option value="">All Categories</option>
+                        {vehCats.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                      <ChevronDown size={11} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    </div>
+                    {/* Make */}
+                    <div className="relative">
+                      <select value={vehMake} onChange={e => setVehMake(e.target.value)}
+                        disabled={vehMakes.length === 0}
+                        className="w-full appearance-none text-xs border border-slate-200 rounded-lg py-2 pl-2.5 pr-6 bg-white focus:outline-none focus:ring-1 focus:ring-red-500 disabled:opacity-40">
+                        <option value="">Select Make</option>
+                        {vehMakes.map(m => <option key={m} value={m}>{m}</option>)}
+                      </select>
+                      <ChevronDown size={11} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    </div>
+                    {/* Model */}
+                    <div className="relative">
+                      <select value={vehModel} onChange={e => setVehModel(e.target.value)}
+                        disabled={vehModels.length === 0}
+                        className="w-full appearance-none text-xs border border-slate-200 rounded-lg py-2 pl-2.5 pr-6 bg-white focus:outline-none focus:ring-1 focus:ring-red-500 disabled:opacity-40">
+                        <option value="">Any Model</option>
+                        {vehModels.map(m => <option key={m} value={m}>{m}</option>)}
+                      </select>
+                      <ChevronDown size={11} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button type="button" onClick={handleVehicleSearch}
+                      disabled={vehSearching || !vehMake}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                      {vehSearching ? <Loader2 size={11} className="animate-spin" /> : <Search size={11} />}
+                      Look Up
                     </button>
-                  ))}
+
+                    {vehError && (
+                      <span className="text-xs text-red-500 flex items-center gap-1">
+                        <AlertCircle size={11} /> {vehError}
+                      </span>
+                    )}
+
+                    {vehResult && (
+                      <>
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-teal-50 border border-teal-200 text-teal-700 text-xs font-bold whitespace-nowrap">
+                          {vehResult.size}
+                        </span>
+                        {vehResult.gtr && (
+                          <span className="inline-flex items-center gap-1 text-xs text-red-700 font-semibold whitespace-nowrap">
+                            <Award size={10} /> {vehResult.gtr}
+                          </span>
+                        )}
+                        <button type="button" onClick={() => applyVehicleSize(vehResult!.size)}
+                          className="ml-auto flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-colors">
+                          Filter Inventory <ChevronRight size={10} />
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               )}
-              </div>
             </div>
 
             {/* Cart table */}
