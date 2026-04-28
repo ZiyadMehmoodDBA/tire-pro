@@ -4,12 +4,13 @@ import {
   Plus, Pencil, Trash2, GripVertical, X, AlertCircle, Package,
   Wrench, Users, EyeOff, Eye, ShieldCheck, UserCheck, UserX,
   Server, Database, Activity, HardDrive, RefreshCw, Monitor, Cpu,
-  Globe, Play, Clock, Search, ChevronLeft, ChevronRight, CheckCircle2, XCircle,
+  Globe, Play, Clock, Search, ChevronLeft, ChevronRight, CheckCircle2, XCircle, Car,
 } from 'lucide-react';
 import { api } from '../api/client';
 import { formatCurrency } from '../lib/utils';
+import { FitmentSearch } from '../components/FitmentSearch';
 
-type Tab = 'company' | 'defaults' | 'products' | 'lookups' | 'services' | 'users' | 'system' | 'catalog';
+type Tab = 'company' | 'defaults' | 'products' | 'lookups' | 'services' | 'users' | 'system' | 'catalog' | 'fitments';
 
 const ALL_TABS: { id: Tab; label: string; icon: React.ElementType; adminOnly?: boolean }[] = [
   { id: 'company',  label: 'Company Profile',      icon: Building2 },
@@ -18,6 +19,7 @@ const ALL_TABS: { id: Tab; label: string; icon: React.ElementType; adminOnly?: b
   { id: 'lookups',  label: 'Lookup Tables',         icon: Tag      },
   { id: 'services', label: 'Services',              icon: Wrench   },
   { id: 'users',    label: 'Users',                 icon: Users    },
+  { id: 'fitments', label: 'Tyre Fitment',          icon: Car      },
   { id: 'catalog',  label: 'Catalog Scraper',       icon: Globe,   adminOnly: true },
   { id: 'system',   label: 'System',                icon: Server,  adminOnly: true },
 ];
@@ -1949,7 +1951,7 @@ export default function Settings() {
     );
   }
 
-  const isAutoSaveTab = tab === 'lookups' || tab === 'products' || tab === 'services' || tab === 'users' || tab === 'system' || tab === 'catalog';
+  const isAutoSaveTab = tab === 'lookups' || tab === 'products' || tab === 'services' || tab === 'users' || tab === 'system' || tab === 'catalog' || tab === 'fitments';
 
   return (
     <div className="p-4 sm:p-6 max-w-4xl mx-auto">
@@ -1991,6 +1993,7 @@ export default function Settings() {
           {tab === 'lookups'  && <LookupsTab />}
           {tab === 'services' && <ServicesTab />}
           {tab === 'users'    && <UsersTab />}
+          {tab === 'fitments' && <FitmentSearch />}
           {tab === 'catalog'  && isAdmin && <CatalogScraperTab />}
           {tab === 'system'   && isAdmin && <SystemInfoTab />}
         </div>

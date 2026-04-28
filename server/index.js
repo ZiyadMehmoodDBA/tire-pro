@@ -59,6 +59,7 @@ app.use('/api/users',         require('./routes/users'));
 app.use('/api/audit',         require('./routes/audit'));
 app.use('/api/profile',       require('./routes/profile'));
 app.use('/api/catalog',       require('./routes/catalog'));
+app.use('/api/fitments',      require('./routes/fitments'));
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }));
 

@@ -1,7 +1,8 @@
 const sql    = require('mssql');
 const bcrypt = require('bcryptjs');
 require('dotenv').config({ path: require('path').join(__dirname, '.env') });
-const { seedTireCatalog } = require('./seeds/tireCatalog');
+const { seedTireCatalog }      = require('./seeds/tireCatalog');
+const { seedVehicleFitments }  = require('./seeds/vehicleFitments');
 
 const baseConfig = {
   server:   process.env.DB_SERVER || 'localhost',
@@ -655,6 +656,21 @@ async function setupDatabase() {
       `);
   }
 
+  // Vehicle fitments — Pakistan-market OEM tyre size reference (global, no org scope)
+  await dbPool.request().query(`
+    IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='vehicle_fitments' AND xtype='U')
+    CREATE TABLE vehicle_fitments (
+      id         INT IDENTITY(1,1) PRIMARY KEY,
+      make       NVARCHAR(50)  NOT NULL,
+      model      NVARCHAR(100) NOT NULL,
+      variant    NVARCHAR(100) NULL,
+      year_from  SMALLINT      NOT NULL,
+      year_to    SMALLINT      NULL,
+      category   NVARCHAR(50)  NOT NULL,
+      tire_size  NVARCHAR(50)  NOT NULL
+    )
+  `);
+
   // Catalog scraper run logs
   await dbPool.request().query(`
     IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='catalog_scraper_logs' AND xtype='U')
@@ -679,6 +695,9 @@ async function setupDatabase() {
 
   // Seed global tire catalog (merges new brands/models on every restart)
   await seedTireCatalog(dbPool, sql);
+
+  // Seed Pakistan-market vehicle fitment reference data
+  await seedVehicleFitments(dbPool, sql);
 
   await dbPool.close();
 

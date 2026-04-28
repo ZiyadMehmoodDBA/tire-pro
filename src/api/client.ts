@@ -320,6 +320,36 @@ export const api = {
     },
     deleteEntry: (id: number) => request<{ success: boolean }>(`/catalog/entries/${id}`, { method: 'DELETE' }),
   },
+  fitments: {
+    categories: () => request<string[]>('/fitments/categories'),
+    makes:  (category?: string) => {
+      const qs = category ? `?category=${encodeURIComponent(category)}` : '';
+      return request<string[]>(`/fitments/makes${qs}`);
+    },
+    models: (make: string, category?: string) => {
+      const qs = new URLSearchParams({ make });
+      if (category) qs.set('category', category);
+      return request<string[]>(`/fitments/models?${qs}`);
+    },
+    search: (params: { make?: string; model?: string; category?: string }) => {
+      const qs = new URLSearchParams();
+      if (params.make)     qs.set('make',     params.make);
+      if (params.model)    qs.set('model',    params.model);
+      if (params.category) qs.set('category', params.category);
+      return request<{
+        fitments: {
+          id: number; make: string; model: string; variant: string;
+          year_from: number; year_to: number | null;
+          category: string; tire_size: string;
+        }[];
+        catalogMatches: Record<string, {
+          id: number; brand: string; tire_model: string; size: string;
+          pattern: string | null; load_index: string | null;
+          speed_index: string | null; tire_type: string | null;
+        }[]>;
+      }>(`/fitments/search?${qs}`);
+    },
+  },
   audit: {
     list: (params?: { entity?: string; action?: string; from?: string; to?: string; page?: number; limit?: number }) => {
       const qs = new URLSearchParams();
