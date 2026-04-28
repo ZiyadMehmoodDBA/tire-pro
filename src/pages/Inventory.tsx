@@ -66,7 +66,7 @@ export default function Inventory() {
     const matchType = filterType === 'all' || t.type === filterType;
     return matchSearch && matchType;
   });
-  const { paged, paginationProps } = usePagination(filtered, 25);
+  const { paged, paginationProps } = usePagination(filtered);
 
   const totalValue = tires.reduce((s: number, t: any) => s + (Number(t.stock) * Number(t.cost_price)), 0);
   const totalItems = tires.reduce((s: number, t: any) => s + Number(t.stock), 0);

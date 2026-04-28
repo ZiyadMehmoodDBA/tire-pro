@@ -12,6 +12,8 @@ import {
   exportStockReportPDF, exportStockReportExcel,
   exportLowStockReportPDF, exportLowStockReportExcel,
 } from '../lib/reportExport';
+import { usePagination } from '../lib/usePagination';
+import Pagination from '../components/Pagination';
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 type TabId = 'pnl' | 'sales' | 'stock' | 'lowstock';
@@ -30,8 +32,12 @@ export default function Reports() {
   const [tires,     setTires]       = useState<any[]>([]);
   const [loading,   setLoading]     = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const hasLoaded = useRef(false);
-  const [error,     setError]       = useState('');
+  const hasLoaded      = useRef(false);
+  const stockTopRef    = useRef<HTMLDivElement>(null);
+  const salesTopRef    = useRef<HTMLDivElement>(null);
+  const lowstockTopRef = useRef<HTMLDivElement>(null);
+  const brandTopRef    = useRef<HTMLDivElement>(null);
+  const [error, setError] = useState('');
 
   // Sales report state
   const [salesFrom,    setSalesFrom]    = useState('');
@@ -123,6 +129,18 @@ export default function Reports() {
     ? `${salesFrom || 'All'} to ${salesTo || 'All'}`
     : 'All Dates';
 
+  // ── Pagination hooks ────────────────────────────────────────────────────────
+  const stockPag    = usePagination(tires);
+  const salesPag    = usePagination(salesReport);
+  const lowstockPag = usePagination(lowStockTires);
+  const brandPag    = usePagination(brandData);
+
+  // Wrap onPage to also scroll to card top
+  const goStockPage    = (p: number) => { stockPag.paginationProps.onPage(p);    stockTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+  const goSalesPage    = (p: number) => { salesPag.paginationProps.onPage(p);    salesTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+  const goLowstockPage = (p: number) => { lowstockPag.paginationProps.onPage(p); lowstockTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+  const goBrandPage    = (p: number) => { brandPag.paginationProps.onPage(p);    brandTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+
   return (
     <div className="p-4 sm:p-6 space-y-4 sm:space-y-5">
 
@@ -204,15 +222,19 @@ export default function Reports() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100">
-            <h3 className="text-sm sm:text-base font-bold text-slate-900 mb-1">Inventory by Brand</h3>
-            <p className="text-xs text-slate-500 mb-4">Current stock units and value per brand</p>
+          {/* Inventory by Brand */}
+          <div ref={brandTopRef} className="bg-white rounded-2xl shadow-sm border border-slate-100">
+            <div className="px-4 sm:px-5 pt-4 sm:pt-5 pb-3 border-b border-slate-100">
+              <h3 className="text-sm sm:text-base font-bold text-slate-900">Inventory by Brand</h3>
+              <p className="text-xs text-slate-500 mt-0.5">Current stock units and value per brand</p>
+            </div>
             {loading ? (
-              <div className="space-y-3">{[1,2,3,4].map(i => <div key={i} className="h-10 bg-slate-100 rounded-lg animate-pulse" />)}</div>
+              <div className="p-4 sm:p-5 space-y-3">{[1,2,3,4].map(i => <div key={i} className="h-10 bg-slate-100 rounded-lg animate-pulse" />)}</div>
             ) : brandData.length === 0 ? (
               <p className="text-sm text-slate-400 text-center py-8">No inventory data</p>
             ) : (
               <>
+                <Pagination {...brandPag.paginationProps} onPage={goBrandPage} position="top" />
                 <div className="hidden sm:block overflow-x-auto">
                   <table className="w-full">
                     <thead>
@@ -223,8 +245,8 @@ export default function Reports() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50">
-                      {brandData.map(b => {
-                        const share = totalBrandRev > 0 ? ((b.revenue / totalBrandRev) * 100).toFixed(1) : '0.0';
+                      {brandPag.paged.map(b => {
+                        const share    = totalBrandRev > 0 ? ((b.revenue / totalBrandRev) * 100).toFixed(1) : '0.0';
                         const avgPrice = b.units > 0 ? b.revenue / b.units : 0;
                         return (
                           <tr key={b.brand} className="hover:bg-slate-50/50 transition-colors">
@@ -246,11 +268,11 @@ export default function Reports() {
                     </tbody>
                   </table>
                 </div>
-                <div className="sm:hidden space-y-3">
-                  {brandData.map(b => {
+                <div className="sm:hidden divide-y divide-slate-50">
+                  {brandPag.paged.map(b => {
                     const share = totalBrandRev > 0 ? ((b.revenue / totalBrandRev) * 100).toFixed(1) : '0.0';
                     return (
-                      <div key={b.brand} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50">
+                      <div key={b.brand} className="flex items-center gap-3 p-4">
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-bold text-slate-900">{b.brand}</p>
                           <p className="text-xs text-slate-500 mt-0.5">{b.units} units · {formatCurrency(b.revenue)}</p>
@@ -265,6 +287,7 @@ export default function Reports() {
                     );
                   })}
                 </div>
+                <Pagination {...brandPag.paginationProps} onPage={goBrandPage} position="bottom" />
               </>
             )}
           </div>
@@ -273,7 +296,7 @@ export default function Reports() {
 
       {/* ── Sales Report tab ─────────────────────────────────────────────────── */}
       {activeTab === 'sales' && (
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100">
+        <div ref={salesTopRef} className="bg-white rounded-2xl shadow-sm border border-slate-100">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:p-5 border-b border-slate-100">
             <div>
               <h3 className="text-sm font-bold text-slate-900">Sales Report</h3>
@@ -327,9 +350,9 @@ export default function Reports() {
               {/* Summary row */}
               <div className="grid grid-cols-3 gap-3 p-4 sm:p-5 border-b border-slate-50">
                 {[
-                  { label: 'Total Revenue', value: formatCurrency(salesReport.reduce((s, r) => s + Number(r.total), 0)), color: 'text-slate-900' },
-                  { label: 'Total Collected', value: formatCurrency(salesReport.reduce((s, r) => s + Number(r.amount_paid || 0), 0)), color: 'text-emerald-600' },
-                  { label: 'Outstanding', value: formatCurrency(salesReport.reduce((s, r) => s + Math.max(0, Number(r.total) - Number(r.amount_paid || 0)), 0)), color: 'text-amber-600' },
+                  { label: 'Total Revenue',   value: formatCurrency(salesReport.reduce((s, r) => s + Number(r.total), 0)),                                               color: 'text-slate-900'   },
+                  { label: 'Total Collected', value: formatCurrency(salesReport.reduce((s, r) => s + Number(r.amount_paid || 0), 0)),                                    color: 'text-emerald-600' },
+                  { label: 'Outstanding',     value: formatCurrency(salesReport.reduce((s, r) => s + Math.max(0, Number(r.total) - Number(r.amount_paid || 0)), 0)),     color: 'text-amber-600'   },
                 ].map(k => (
                   <div key={k.label} className="bg-slate-50 rounded-xl p-3 text-center">
                     <p className="text-xs text-slate-500">{k.label}</p>
@@ -337,6 +360,7 @@ export default function Reports() {
                   </div>
                 ))}
               </div>
+              <Pagination {...salesPag.paginationProps} onPage={goSalesPage} position="top" />
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[640px]">
                   <thead>
@@ -347,7 +371,7 @@ export default function Reports() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
-                    {salesReport.map(s => {
+                    {salesPag.paged.map(s => {
                       const bal = Math.max(0, Number(s.total) - Number(s.amount_paid || 0));
                       return (
                         <tr key={s.id} className="hover:bg-slate-50/50 transition-colors">
@@ -363,9 +387,9 @@ export default function Reports() {
                           </td>
                           <td className="px-4 py-3">
                             <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${
-                              s.status === 'paid' ? 'bg-emerald-50 text-emerald-700' :
-                              s.status === 'partial' ? 'bg-blue-50 text-blue-700' :
-                              s.status === 'overdue' ? 'bg-red-50 text-red-700' :
+                              s.status === 'paid'    ? 'bg-emerald-50 text-emerald-700' :
+                              s.status === 'partial' ? 'bg-blue-50 text-blue-700'      :
+                              s.status === 'overdue' ? 'bg-red-50 text-red-700'        :
                               'bg-amber-50 text-amber-700'
                             }`}>{s.status}</span>
                           </td>
@@ -375,9 +399,7 @@ export default function Reports() {
                   </tbody>
                 </table>
               </div>
-              <div className="px-4 sm:px-5 py-3 border-t border-slate-100 text-xs text-slate-500">
-                {salesReport.length} records · {salesDateLabel}
-              </div>
+              <Pagination {...salesPag.paginationProps} onPage={goSalesPage} position="bottom" />
             </>
           )}
         </div>
@@ -385,7 +407,7 @@ export default function Reports() {
 
       {/* ── Stock Report tab ─────────────────────────────────────────────────── */}
       {activeTab === 'stock' && (
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100">
+        <div ref={stockTopRef} className="bg-white rounded-2xl shadow-sm border border-slate-100">
           <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-100">
             <div>
               <h3 className="text-sm font-bold text-slate-900">Stock Report</h3>
@@ -413,47 +435,48 @@ export default function Reports() {
           ) : tires.length === 0 ? (
             <p className="text-center text-sm text-slate-400 py-12">No inventory data.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[700px]">
-                <thead>
-                  <tr className="bg-slate-50 border-b border-slate-100">
-                    {['Brand', 'Model', 'Size', 'Type', 'Stock', 'Reorder Lvl', 'Cost Price', 'Sale Price', 'Stock Value'].map(h => (
-                      <th key={h} className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3 text-left">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                  {tires.map((t: any) => {
-                    const isLow = Number(t.stock) <= Number(t.reorder_level);
-                    return (
-                      <tr key={t.id} className={`hover:bg-slate-50/50 transition-colors ${isLow ? 'bg-red-50/30' : ''}`}>
-                        <td className="px-4 py-3 text-xs font-semibold text-slate-900">{t.brand}</td>
-                        <td className="px-4 py-3 text-xs text-slate-700">{t.model}</td>
-                        <td className="px-4 py-3 text-xs text-slate-600">{t.size}</td>
-                        <td className="px-4 py-3 text-xs text-slate-500">{t.type || '—'}</td>
-                        <td className="px-4 py-3">
-                          <span className={`text-xs font-bold ${isLow ? 'text-red-600' : 'text-slate-900'}`}>{t.stock}</span>
-                        </td>
-                        <td className="px-4 py-3 text-xs text-slate-500">{t.reorder_level}</td>
-                        <td className="px-4 py-3 text-xs text-slate-600">{formatCurrency(t.cost_price)}</td>
-                        <td className="px-4 py-3 text-xs font-semibold text-slate-900">{formatCurrency(t.sale_price)}</td>
-                        <td className="px-4 py-3 text-xs font-bold text-slate-900">{formatCurrency(Number(t.stock) * Number(t.sale_price))}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+            <>
+              <Pagination {...stockPag.paginationProps} onPage={goStockPage} position="top" />
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[700px]">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-100">
+                      {['Brand', 'Model', 'Size', 'Type', 'Stock', 'Reorder Lvl', 'Cost Price', 'Sale Price', 'Stock Value'].map(h => (
+                        <th key={h} className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3 text-left">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50">
+                    {stockPag.paged.map((t: any) => {
+                      const isLow = Number(t.stock) <= Number(t.reorder_level);
+                      return (
+                        <tr key={t.id} className={`hover:bg-slate-50/50 transition-colors ${isLow ? 'bg-red-50/30' : ''}`}>
+                          <td className="px-4 py-3 text-xs font-semibold text-slate-900">{t.brand}</td>
+                          <td className="px-4 py-3 text-xs text-slate-700">{t.model}</td>
+                          <td className="px-4 py-3 text-xs text-slate-600">{t.size}</td>
+                          <td className="px-4 py-3 text-xs text-slate-500">{t.type || '—'}</td>
+                          <td className="px-4 py-3">
+                            <span className={`text-xs font-bold ${isLow ? 'text-red-600' : 'text-slate-900'}`}>{t.stock}</span>
+                          </td>
+                          <td className="px-4 py-3 text-xs text-slate-500">{t.reorder_level}</td>
+                          <td className="px-4 py-3 text-xs text-slate-600">{formatCurrency(t.cost_price)}</td>
+                          <td className="px-4 py-3 text-xs font-semibold text-slate-900">{formatCurrency(t.sale_price)}</td>
+                          <td className="px-4 py-3 text-xs font-bold text-slate-900">{formatCurrency(Number(t.stock) * Number(t.sale_price))}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <Pagination {...stockPag.paginationProps} onPage={goStockPage} position="bottom" />
+            </>
           )}
-          <div className="px-4 sm:px-5 py-3 border-t border-slate-100 text-xs text-slate-500">
-            {tires.length} total SKUs
-          </div>
         </div>
       )}
 
       {/* ── Low Stock Report tab ─────────────────────────────────────────────── */}
       {activeTab === 'lowstock' && (
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100">
+        <div ref={lowstockTopRef} className="bg-white rounded-2xl shadow-sm border border-slate-100">
           <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-100">
             <div className="flex items-center gap-2">
               <AlertTriangle size={16} className={lowStockTires.length > 0 ? 'text-red-500' : 'text-emerald-500'} />
@@ -489,40 +512,41 @@ export default function Reports() {
               <p className="text-sm font-medium">All stock levels are healthy — nothing to report.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[600px]">
-                <thead>
-                  <tr className="bg-red-50 border-b border-red-100">
-                    {['Brand', 'Model', 'Size', 'Type', 'Current Stock', 'Reorder Level', 'Deficit', 'Sale Price'].map(h => (
-                      <th key={h} className="text-xs font-semibold text-red-600 uppercase tracking-wider px-4 py-3 text-left">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-red-50">
-                  {lowStockTires.map((t: any) => {
-                    const deficit = Math.max(0, Number(t.reorder_level) - Number(t.stock));
-                    return (
-                      <tr key={t.id} className="hover:bg-red-50/40 transition-colors">
-                        <td className="px-4 py-3 text-xs font-semibold text-slate-900">{t.brand}</td>
-                        <td className="px-4 py-3 text-xs text-slate-700">{t.model}</td>
-                        <td className="px-4 py-3 text-xs text-slate-600">{t.size}</td>
-                        <td className="px-4 py-3 text-xs text-slate-500">{t.type || '—'}</td>
-                        <td className="px-4 py-3 text-xs font-bold text-red-600">{t.stock}</td>
-                        <td className="px-4 py-3 text-xs text-slate-600">{t.reorder_level}</td>
-                        <td className="px-4 py-3">
-                          <span className="text-xs font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded-full">−{deficit}</span>
-                        </td>
-                        <td className="px-4 py-3 text-xs font-semibold text-slate-900">{formatCurrency(t.sale_price)}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+            <>
+              <Pagination {...lowstockPag.paginationProps} onPage={goLowstockPage} position="top" />
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[600px]">
+                  <thead>
+                    <tr className="bg-red-50 border-b border-red-100">
+                      {['Brand', 'Model', 'Size', 'Type', 'Current Stock', 'Reorder Level', 'Deficit', 'Sale Price'].map(h => (
+                        <th key={h} className="text-xs font-semibold text-red-600 uppercase tracking-wider px-4 py-3 text-left">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-red-50">
+                    {lowstockPag.paged.map((t: any) => {
+                      const deficit = Math.max(0, Number(t.reorder_level) - Number(t.stock));
+                      return (
+                        <tr key={t.id} className="hover:bg-red-50/40 transition-colors">
+                          <td className="px-4 py-3 text-xs font-semibold text-slate-900">{t.brand}</td>
+                          <td className="px-4 py-3 text-xs text-slate-700">{t.model}</td>
+                          <td className="px-4 py-3 text-xs text-slate-600">{t.size}</td>
+                          <td className="px-4 py-3 text-xs text-slate-500">{t.type || '—'}</td>
+                          <td className="px-4 py-3 text-xs font-bold text-red-600">{t.stock}</td>
+                          <td className="px-4 py-3 text-xs text-slate-600">{t.reorder_level}</td>
+                          <td className="px-4 py-3">
+                            <span className="text-xs font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded-full">−{deficit}</span>
+                          </td>
+                          <td className="px-4 py-3 text-xs font-semibold text-slate-900">{formatCurrency(t.sale_price)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <Pagination {...lowstockPag.paginationProps} onPage={goLowstockPage} position="bottom" />
+            </>
           )}
-          <div className="px-4 sm:px-5 py-3 border-t border-slate-100 text-xs text-slate-500">
-            {lowStockTires.length} items require reordering
-          </div>
         </div>
       )}
     </div>

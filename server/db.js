@@ -1,7 +1,7 @@
 const sql    = require('mssql');
 const bcrypt = require('bcryptjs');
 require('dotenv').config({ path: require('path').join(__dirname, '.env') });
-const { seedTireCatalog, seedInventoryFromCatalog } = require('./seeds/tireCatalog');
+const { seedTireCatalog } = require('./seeds/tireCatalog');
 
 const baseConfig = {
   server:   process.env.DB_SERVER || 'localhost',
@@ -679,9 +679,6 @@ async function setupDatabase() {
 
   // Seed global tire catalog (merges new brands/models on every restart)
   await seedTireCatalog(dbPool, sql);
-
-  // Populate inventory tires table from catalog for every org/branch (skips existing SKUs)
-  await seedInventoryFromCatalog(dbPool, sql);
 
   await dbPool.close();
 

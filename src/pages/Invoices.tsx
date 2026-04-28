@@ -69,7 +69,7 @@ export default function Invoices() {
     (s.customer_name || '').toLowerCase().includes(search.toLowerCase()) ||
     (s.invoice_no    || '').toLowerCase().includes(search.toLowerCase())
   );
-  const { paged, paginationProps } = usePagination(filtered, 25);
+  const { paged, paginationProps } = usePagination(filtered);
 
   return (
     <div className="p-4 sm:p-6 h-full">

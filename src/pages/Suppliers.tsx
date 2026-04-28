@@ -47,7 +47,7 @@ export default function Suppliers() {
     (s.phone || '').includes(search) ||
     (s.code  || '').toLowerCase().includes(search.toLowerCase())
   );
-  const { paged, paginationProps } = usePagination(filtered, 24);
+  const { paged, paginationProps } = usePagination(filtered);
 
   const totalInvoiced = suppliers.reduce((s, c) => s + Number(c.total_invoiced || 0), 0);
   const totalPaid     = suppliers.reduce((s, c) => s + Number(c.total_paid     || 0), 0);

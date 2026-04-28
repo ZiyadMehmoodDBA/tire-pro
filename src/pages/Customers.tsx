@@ -47,7 +47,7 @@ export default function Customers() {
     (c.vehicle_make  || '').toLowerCase().includes(q) ||
     (c.vehicle_model || '').toLowerCase().includes(q)
   );
-  const { paged, paginationProps } = usePagination(filtered, 24);
+  const { paged, paginationProps } = usePagination(filtered);
 
   const totalInvoiced = customers.reduce((s, c) => s + Number(c.total_invoiced || 0), 0);
   const totalPaid     = customers.reduce((s, c) => s + Number(c.total_paid     || 0), 0);
