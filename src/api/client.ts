@@ -285,6 +285,41 @@ export const api = {
         method: 'POST', body: JSON.stringify(data),
       }),
   },
+  catalog: {
+    stats:         () => request<{ total_entries: number; total_brands: number; total_models: number; gtr_entries: number }>('/catalog/stats'),
+    scraperConfig: () => request<{
+      enabled: boolean; schedule: string; isRunning: boolean; isScheduled: boolean;
+      scheduleOptions: { value: string; label: string }[];
+    }>('/catalog/scraper/config'),
+    saveScraperConfig: (data: { enabled: boolean; schedule: string }) =>
+      request<{ success: boolean; enabled: boolean; schedule: string; isRunning: boolean; isScheduled: boolean }>(
+        '/catalog/scraper/config', { method: 'POST', body: JSON.stringify(data) },
+      ),
+    runScraper:    () => request<{ success: boolean; message: string }>('/catalog/scraper/run', { method: 'POST' }),
+    scraperStatus: () => request<{
+      isRunning: boolean; isScheduled: boolean;
+      recentLogs: {
+        id: number; source: string; status: string;
+        started_at: string; finished_at: string | null;
+        items_found: number; items_added: number; items_updated: number;
+        error_msg: string | null; triggered_by: string;
+      }[];
+      gtrCounts: { total: number; brands: number; models: number };
+    }>('/catalog/scraper/status'),
+    entries: (params?: { q?: string; brand?: string; model?: string; size?: string; page?: number; limit?: number }) => {
+      const qs = new URLSearchParams();
+      if (params?.q)     qs.set('q',     params.q);
+      if (params?.brand) qs.set('brand', params.brand);
+      if (params?.model) qs.set('model', params.model);
+      if (params?.size)  qs.set('size',  params.size);
+      if (params?.page)  qs.set('page',  String(params.page));
+      if (params?.limit) qs.set('limit', String(params.limit));
+      return request<{ entries: any[]; total: number; page: number; pageSize: number }>(
+        `/catalog/entries${qs.toString() ? '?' + qs : ''}`,
+      );
+    },
+    deleteEntry: (id: number) => request<{ success: boolean }>(`/catalog/entries/${id}`, { method: 'DELETE' }),
+  },
   audit: {
     list: (params?: { entity?: string; action?: string; from?: string; to?: string; page?: number; limit?: number }) => {
       const qs = new URLSearchParams();

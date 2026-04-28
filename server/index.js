@@ -4,6 +4,7 @@ const helmet     = require('helmet');
 const rateLimit  = require('express-rate-limit');
 const { setupDatabase } = require('./db');
 const { requireAuth } = require('./middleware/auth');
+const { initCatalogScraperJob } = require('./jobs/catalogScraper');
 
 const app  = express();
 const PORT = 3001;
@@ -57,6 +58,7 @@ app.use('/api/branches',      require('./routes/branches'));
 app.use('/api/users',         require('./routes/users'));
 app.use('/api/audit',         require('./routes/audit'));
 app.use('/api/profile',       require('./routes/profile'));
+app.use('/api/catalog',       require('./routes/catalog'));
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }));
 
@@ -71,6 +73,7 @@ app.use((err, req, res, next) => {
 (async () => {
   try {
     await setupDatabase();
+    await initCatalogScraperJob();
     app.listen(PORT, () => {
       console.log(`🚀 TirePro API running at http://localhost:${PORT}`);
     });

@@ -655,6 +655,28 @@ async function setupDatabase() {
       `);
   }
 
+  // Catalog scraper run logs
+  await dbPool.request().query(`
+    IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='catalog_scraper_logs' AND xtype='U')
+    CREATE TABLE catalog_scraper_logs (
+      id            INT IDENTITY(1,1) PRIMARY KEY,
+      source        NVARCHAR(100) NOT NULL,
+      status        NVARCHAR(20)  NOT NULL DEFAULT 'running',
+      started_at    DATETIME2 DEFAULT GETDATE(),
+      finished_at   DATETIME2 NULL,
+      items_found   INT DEFAULT 0,
+      items_added   INT DEFAULT 0,
+      items_updated INT DEFAULT 0,
+      error_msg     NVARCHAR(500) NULL,
+      triggered_by  NVARCHAR(50)  DEFAULT 'schedule'
+    )
+  `);
+  // Migrate: add items_updated column if missing (for existing installs)
+  await dbPool.request().query(`
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('catalog_scraper_logs') AND name = 'items_updated')
+      ALTER TABLE catalog_scraper_logs ADD items_updated INT DEFAULT 0
+  `);
+
   // Seed global tire catalog (merges new brands/models on every restart)
   await seedTireCatalog(dbPool, sql);
 
