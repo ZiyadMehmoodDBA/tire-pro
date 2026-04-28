@@ -80,7 +80,8 @@ export default function Dashboard() {
   const healthyStock     = tires.filter(t => Number(t.stock) >  Number(t.reorder_level));
   const pendingSales     = activeSales.filter(s => s.status === 'pending' || s.status === 'partial' || s.status === 'overdue');
   const paidSales        = activeSales.filter(s => s.status === 'paid');
-  const recentSales      = [...activeSales].slice(0, 5);
+  const recentSales      = [...activeSales].slice(0, 10);
+  const lowStockTop10    = [...lowStock].sort((a, b) => Number(a.stock) - Number(b.stock)).slice(0, 10);
   const pendingPurchases = purchases.filter(p => p.status === 'pending');
 
   const revenueByMonth: Record<string, number> = {};
@@ -451,7 +452,7 @@ export default function Dashboard() {
                     <span className="text-sm font-medium">All stock levels healthy</span>
                   </div>
                 )}
-                {lowStock.map((tire: any) => (
+                {lowStockTop10.map((tire: any) => (
                   <div key={tire.id} className="flex items-center gap-3 px-2 py-2.5 rounded-xl hover:bg-slate-50 transition-colors">
                     <div className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center flex-shrink-0">
                       <AlertTriangle size={13} className="text-red-500" />
@@ -476,7 +477,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-50">
             <div className="flex items-center gap-2">
               <Award size={15} className="text-amber-500" />
-              <h3 className="text-sm font-bold text-slate-900">Top 5 SKUs</h3>
+              <h3 className="text-sm font-bold text-slate-900">Top 10 SKUs</h3>
             </div>
             <span className="text-xs font-semibold bg-amber-50 text-amber-600 border border-amber-100 px-2.5 py-0.5 rounded-full">
               Last 30 days

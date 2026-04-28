@@ -118,7 +118,7 @@ router.get('/stats/dashboard', async (req, res) => {
       .input('orgId',    sql.Int, orgId)
       .input('branchId', sql.Int, branchId)
       .query(`
-        SELECT TOP 5
+        SELECT TOP 10
           t.brand + ' ' + t.model + ' ' + t.size AS sku_name,
           SUM(si.qty)    AS qty_sold,
           SUM(si.amount) AS revenue
