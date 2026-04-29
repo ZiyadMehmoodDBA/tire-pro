@@ -29,14 +29,208 @@ type CatalogEntry = {
   tire_type: string | null;
 };
 
-/* ── Category colour + icon map ───────────────────────────────────────────── */
-const CATEGORY_META: Record<string, { color: string; abbr: string }> = {
-  'Passenger Car Tyres':      { color: 'bg-blue-600',   abbr: 'PCR' },
-  'SUV/Crossovers Tyres':     { color: 'bg-emerald-600', abbr: 'SUV' },
-  'Light Truck Tyres':        { color: 'bg-amber-600',  abbr: 'LT'  },
-  'Truck & Bus/OTR Tyres':    { color: 'bg-orange-700', abbr: 'TBR' },
-  'Tractor Tyres':            { color: 'bg-lime-700',   abbr: 'AGR' },
-  'Motorcycle/Rickshaw Tyres':{ color: 'bg-purple-600', abbr: 'MCY' },
+/* ── Category metadata — colour, badge, vehicle illustration, education text ── */
+type CategoryMeta = {
+  color: string; abbr: string; border: string; text: string;
+  emoji: string; desc: string; examples: string; sizes: string;
+  svg: React.ReactNode;
+};
+
+/** Simple inline SVG silhouettes — no external deps, works offline */
+const CarSVG = () => (
+  <svg viewBox="0 0 120 60" fill="currentColor" className="w-full h-full">
+    <path d="M10 38 L18 22 Q22 16 30 16 L90 16 Q98 16 102 22 L110 38 L110 44 Q110 48 106 48 L14 48 Q10 48 10 44 Z" opacity="0.15"/>
+    <path d="M18 22 Q22 16 30 16 L90 16 Q98 16 102 22 L110 38 L10 38 Z" opacity="0.25"/>
+    <path d="M35 16 L45 6 Q48 4 55 4 L72 4 Q78 4 82 8 L90 16 Z" opacity="0.9"/>
+    <circle cx="30" cy="46" r="9" opacity="0.9"/>
+    <circle cx="30" cy="46" r="5" fill="white" opacity="0.6"/>
+    <circle cx="90" cy="46" r="9" opacity="0.9"/>
+    <circle cx="90" cy="46" r="5" fill="white" opacity="0.6"/>
+    <rect x="12" y="28" width="12" height="8" rx="2" fill="white" opacity="0.5"/>
+    <rect x="96" y="28" width="12" height="8" rx="2" fill="white" opacity="0.5"/>
+  </svg>
+);
+
+const SuvSVG = () => (
+  <svg viewBox="0 0 120 60" fill="currentColor" className="w-full h-full">
+    <path d="M8 38 L14 20 Q18 12 28 12 L92 12 Q102 12 106 20 L112 38 L112 46 Q112 50 108 50 L12 50 Q8 50 8 46 Z" opacity="0.15"/>
+    <path d="M28 12 L34 4 Q37 2 44 2 L80 2 Q87 2 90 6 L96 12 Z" opacity="0.9"/>
+    <path d="M14 20 Q18 12 28 12 L92 12 Q102 12 106 20 L112 38 L8 38 Z" opacity="0.3"/>
+    <circle cx="30" cy="48" r="10" opacity="0.9"/>
+    <circle cx="30" cy="48" r="5" fill="white" opacity="0.6"/>
+    <circle cx="90" cy="48" r="10" opacity="0.9"/>
+    <circle cx="90" cy="48" r="5" fill="white" opacity="0.6"/>
+    <rect x="10" y="26" width="14" height="10" rx="2" fill="white" opacity="0.45"/>
+    <rect x="96" y="26" width="14" height="10" rx="2" fill="white" opacity="0.45"/>
+    <rect x="34" y="4" width="46" height="8" rx="1" fill="white" opacity="0.15"/>
+  </svg>
+);
+
+const PickupSVG = () => (
+  <svg viewBox="0 0 130 60" fill="currentColor" className="w-full h-full">
+    <rect x="70" y="30" width="52" height="18" rx="3" opacity="0.25"/>
+    <path d="M10 38 L16 18 Q20 10 30 10 L74 10 Q82 10 84 18 L86 38 Z" opacity="0.2"/>
+    <path d="M30 10 L36 3 Q40 1 48 1 L70 1 Q76 1 78 6 L84 18 L16 18 Z" opacity="0.9"/>
+    <rect x="84" y="22" width="40" height="16" rx="2" opacity="0.8"/>
+    <circle cx="28" cy="48" r="10" opacity="0.9"/>
+    <circle cx="28" cy="48" r="5" fill="white" opacity="0.6"/>
+    <circle cx="104" cy="48" r="10" opacity="0.9"/>
+    <circle cx="104" cy="48" r="5" fill="white" opacity="0.6"/>
+    <rect x="12" y="25" width="14" height="10" rx="2" fill="white" opacity="0.45"/>
+  </svg>
+);
+
+const TruckSVG = () => (
+  <svg viewBox="0 0 140 60" fill="currentColor" className="w-full h-full">
+    <rect x="6" y="14" width="38" height="34" rx="4" opacity="0.9"/>
+    <rect x="44" y="8" width="88" height="40" rx="3" opacity="0.7"/>
+    <rect x="8" y="18" width="16" height="12" rx="2" fill="white" opacity="0.6"/>
+    <rect x="26" y="18" width="16" height="12" rx="2" fill="white" opacity="0.3"/>
+    <circle cx="22" cy="50" r="9" opacity="0.9"/>
+    <circle cx="22" cy="50" r="4" fill="white" opacity="0.6"/>
+    <circle cx="90" cy="50" r="9" opacity="0.9"/>
+    <circle cx="90" cy="50" r="4" fill="white" opacity="0.6"/>
+    <circle cx="112" cy="50" r="9" opacity="0.9"/>
+    <circle cx="112" cy="50" r="4" fill="white" opacity="0.6"/>
+    <rect x="6" y="44" width="128" height="4" rx="1" opacity="0.4"/>
+  </svg>
+);
+
+const TractorSVG = () => (
+  <svg viewBox="0 0 120 65" fill="currentColor" className="w-full h-full">
+    <circle cx="85" cy="46" r="18" opacity="0.9"/>
+    <circle cx="85" cy="46" r="10" fill="white" opacity="0.5"/>
+    <circle cx="85" cy="46" r="4" opacity="0.8"/>
+    <circle cx="30" cy="52" r="12" opacity="0.85"/>
+    <circle cx="30" cy="52" r="6" fill="white" opacity="0.5"/>
+    <path d="M38 20 L52 10 Q58 6 66 6 L88 6 Q96 6 100 14 L104 24 L104 34 L38 34 Z" opacity="0.85"/>
+    <rect x="38" y="28" width="66" height="8" rx="2" opacity="0.4"/>
+    <rect x="50" y="8" width="22" height="4" rx="1" fill="white" opacity="0.3"/>
+    <path d="M20 34 L38 34 L38 44 L18 44 Z" opacity="0.6"/>
+    <rect x="100" y="14" width="14" height="6" rx="2" opacity="0.5"/>
+  </svg>
+);
+
+const MotorcycleSVG = () => (
+  <svg viewBox="0 0 110 60" fill="currentColor" className="w-full h-full">
+    <circle cx="20" cy="44" r="14" opacity="0.9"/>
+    <circle cx="20" cy="44" r="8" fill="white" opacity="0.5"/>
+    <circle cx="90" cy="44" r="14" opacity="0.9"/>
+    <circle cx="90" cy="44" r="8" fill="white" opacity="0.5"/>
+    <path d="M20 44 L40 28 L58 24 L70 30 L90 44" stroke="currentColor" strokeWidth="5" fill="none" opacity="0.85"/>
+    <path d="M58 24 L62 14 L72 12 L74 18 L64 22 Z" opacity="0.9"/>
+    <path d="M38 28 L44 20 L54 20 L54 28 Z" opacity="0.7"/>
+    <circle cx="62" cy="18" r="3" fill="white" opacity="0.6"/>
+    <path d="M88 30 L96 24 L102 26 L96 34 Z" opacity="0.8"/>
+  </svg>
+);
+
+const CATEGORY_META: Record<string, CategoryMeta> = {
+  'Passenger Car Tyres': {
+    color: 'bg-blue-600', abbr: 'PCR', border: 'border-blue-200', text: 'text-blue-700',
+    emoji: '🚗',
+    desc: 'Sedans, hatchbacks & saloon cars',
+    examples: 'Toyota Corolla, Honda City, Suzuki Alto, Kia Picanto, Hyundai Elantra',
+    sizes: '145/80R12 – 205/65R15',
+    svg: <CarSVG />,
+  },
+  'SUV/Crossovers Tyres': {
+    color: 'bg-emerald-600', abbr: 'SUV', border: 'border-emerald-200', text: 'text-emerald-700',
+    emoji: '🚙',
+    desc: '4×4s, crossovers & sport utility vehicles',
+    examples: 'Toyota Fortuner, Kia Sportage, Honda BR-V, Hyundai Tucson, Toyota Land Cruiser',
+    sizes: '215/65R16 – 265/65R17',
+    svg: <SuvSVG />,
+  },
+  'Light Truck Tyres': {
+    color: 'bg-amber-600', abbr: 'LT', border: 'border-amber-200', text: 'text-amber-700',
+    emoji: '🛻',
+    desc: 'Pickup trucks & light commercial vans',
+    examples: 'Toyota Hilux, Isuzu D-Max, Suzuki Ravi, Mazda BT-50, KIA Frontier',
+    sizes: '195R14C – 265/70R16',
+    svg: <PickupSVG />,
+  },
+  'Truck & Bus/OTR Tyres': {
+    color: 'bg-orange-700', abbr: 'TBR', border: 'border-orange-200', text: 'text-orange-700',
+    emoji: '🚛',
+    desc: 'Heavy trucks, buses & off-road vehicles',
+    examples: 'Hino, Isuzu NQR, FAW, Daewoo Bus, Sinotruk, Volvo',
+    sizes: '7.50R16 – 11R22.5',
+    svg: <TruckSVG />,
+  },
+  'Tractor Tyres': {
+    color: 'bg-lime-700', abbr: 'AGR', border: 'border-lime-200', text: 'text-lime-700',
+    emoji: '🚜',
+    desc: 'Agricultural tractors & farm machinery',
+    examples: 'Massey Ferguson, New Holland, Fiat, Millat Tractors, Al-Ghazi',
+    sizes: '6.00-16 – 18.4-30',
+    svg: <TractorSVG />,
+  },
+  'Motorcycle/Rickshaw Tyres': {
+    color: 'bg-purple-600', abbr: 'MCY', border: 'border-purple-200', text: 'text-purple-700',
+    emoji: '🏍️',
+    desc: 'Motorbikes, scooters & auto-rickshaws',
+    examples: 'Honda 125, Yamaha YBR, Sazgar Rickshaw, Ravi Loader, Road Prince',
+    sizes: '2.50-17 – 4.00-8',
+    svg: <MotorcycleSVG />,
+  },
+};
+
+/* ── Vehicle → Tyre Type mapping (source: tyres-online.pk) ───────────────── */
+type VehicleTyreInfo = {
+  vehicleLabel: string;
+  /** Usage/season types from tyres-online.pk */
+  usageTypes: string[];
+  /** tire_type values stored in tire_catalog DB */
+  dbTypes: string[];
+};
+
+const VEHICLE_TYRE_TYPES: Record<string, VehicleTyreInfo> = {
+  'Passenger Car Tyres': {
+    vehicleLabel: 'Passenger Car',
+    usageTypes: ['Summer', 'Winter', 'All-Season', 'Performance', 'Touring', 'Run-Flat'],
+    dbTypes: ['Passenger', 'Performance'],
+  },
+  'SUV/Crossovers Tyres': {
+    vehicleLabel: 'SUV / Crossover',
+    usageTypes: ['All-Terrain', 'Highway Terrain', 'Mud Terrain', 'All-Season', 'Sport'],
+    dbTypes: ['SUV', '4x4', 'Performance'],
+  },
+  'Light Truck Tyres': {
+    vehicleLabel: 'Light Truck',
+    usageTypes: ['Highway Terrain', 'All-Terrain', 'Commercial', 'All-Season'],
+    dbTypes: ['LT', '4x4', 'Van'],
+  },
+  'Truck & Bus/OTR Tyres': {
+    vehicleLabel: 'Truck / Bus / OTR',
+    usageTypes: ['Long Haul', 'Regional', 'All-Season', 'Mixed Service', 'Off-Road'],
+    dbTypes: ['Truck', 'OTR'],
+  },
+  'Tractor Tyres': {
+    vehicleLabel: 'Agricultural',
+    usageTypes: ['Ribbed Front', 'Traction Rear', 'Implement', 'Float'],
+    dbTypes: ['Agricultural'],
+  },
+  'Motorcycle/Rickshaw Tyres': {
+    vehicleLabel: 'Motorcycle / Rickshaw',
+    usageTypes: ['Sport', 'Touring', 'Enduro', 'Scooter', 'Motocross', 'Chopper'],
+    dbTypes: ['Motorcycle', 'Rickshaw'],
+  },
+};
+
+/** Colour classes per DB tire_type value */
+const TIRE_TYPE_STYLE: Record<string, string> = {
+  Passenger:   'bg-blue-50 text-blue-700 border-blue-200',
+  Performance: 'bg-red-50 text-red-700 border-red-200',
+  SUV:         'bg-emerald-50 text-emerald-700 border-emerald-200',
+  '4x4':       'bg-emerald-50 text-emerald-700 border-emerald-200',
+  LT:          'bg-amber-50 text-amber-700 border-amber-200',
+  Van:         'bg-amber-50 text-amber-700 border-amber-200',
+  Truck:       'bg-orange-50 text-orange-700 border-orange-200',
+  OTR:         'bg-orange-50 text-orange-700 border-orange-200',
+  Agricultural:'bg-lime-50 text-lime-700 border-lime-200',
+  Motorcycle:  'bg-purple-50 text-purple-700 border-purple-200',
+  Rickshaw:    'bg-purple-50 text-purple-700 border-purple-200',
 };
 
 /* ── Sub-components ───────────────────────────────────────────────────────── */
@@ -107,7 +301,48 @@ function GtrBadge({ pattern }: { pattern: string | null }) {
   );
 }
 
+/** Shows the vehicle type label derived from category */
+function VehicleTypeBadge({ category }: { category: string }) {
+  const info = VEHICLE_TYRE_TYPES[category];
+  const meta = CATEGORY_META[category];
+  if (!info || !meta) return <span className="text-slate-300 text-xs">—</span>;
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-lg border text-[10px] font-bold whitespace-nowrap ${meta.text} ${meta.border} bg-white`}>
+      {info.vehicleLabel}
+    </span>
+  );
+}
+
+/** Shows usage tyre types applicable for the vehicle category (from tyres-online.pk) */
+function TyreTypesPills({ category }: { category: string }) {
+  const info = VEHICLE_TYRE_TYPES[category];
+  if (!info) return <span className="text-slate-300 text-xs">—</span>;
+  const SHOW = 3;
+  const visible = info.usageTypes.slice(0, SHOW);
+  const hidden  = info.usageTypes.slice(SHOW);
+  return (
+    <div className="flex flex-wrap gap-1 items-center">
+      {visible.map(t => (
+        <span key={t} className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-medium border border-slate-200 whitespace-nowrap">
+          {t}
+        </span>
+      ))}
+      {hidden.length > 0 && (
+        <span
+          title={hidden.join(', ')}
+          className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-slate-50 text-slate-400 text-[10px] font-medium border border-slate-200 cursor-default whitespace-nowrap"
+        >
+          +{hidden.length}
+        </span>
+      )}
+    </div>
+  );
+}
+
 function CatalogBadges({ entries }: { entries: CatalogEntry[] }) {
+  const [expanded, setExpanded] = useState(false);
+  const LIMIT = 5;
+
   if (entries.length === 0) {
     return (
       <span className="inline-flex items-center gap-1 text-xs text-slate-300">
@@ -115,18 +350,49 @@ function CatalogBadges({ entries }: { entries: CatalogEntry[] }) {
       </span>
     );
   }
+
+  const visible = expanded ? entries : entries.slice(0, LIMIT);
+  const hidden  = entries.length - LIMIT;
+
   return (
-    <div className="flex flex-wrap gap-1">
-      {entries.map(c => (
-        <span
-          key={c.id}
-          title={[c.load_index && `LI: ${c.load_index}`, c.speed_index && `SI: ${c.speed_index}`, c.tire_type].filter(Boolean).join(' | ')}
-          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-green-50 border border-green-200 text-green-700 text-xs font-medium cursor-default"
+    <div className="flex flex-wrap gap-1 items-center">
+      {visible.map(c => {
+        const typeStyle = c.tire_type ? (TIRE_TYPE_STYLE[c.tire_type] ?? 'bg-slate-50 text-slate-500 border-slate-200') : null;
+        return (
+          <span
+            key={c.id}
+            title={[
+              c.load_index  && `LI: ${c.load_index}`,
+              c.speed_index && `SI: ${c.speed_index}`,
+            ].filter(Boolean).join(' | ')}
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-green-50 border border-green-200 text-green-700 text-xs font-medium cursor-default"
+          >
+            <CheckCircle2 size={10} />
+            {c.brand} — {c.tire_model}
+            {typeStyle && (
+              <span className={`ml-1 px-1.5 py-px rounded text-[9px] font-bold border ${typeStyle}`}>
+                {c.tire_type}
+              </span>
+            )}
+          </span>
+        );
+      })}
+      {!expanded && hidden > 0 && (
+        <button
+          onClick={() => setExpanded(true)}
+          className="inline-flex items-center px-2 py-0.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-500 text-xs font-medium hover:bg-slate-200 transition-colors cursor-pointer"
         >
-          <CheckCircle2 size={10} />
-          {c.brand}{c.pattern ? ` — ${c.pattern}` : ''}
-        </span>
-      ))}
+          +{hidden} more
+        </button>
+      )}
+      {expanded && entries.length > LIMIT && (
+        <button
+          onClick={() => setExpanded(false)}
+          className="inline-flex items-center px-2 py-0.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-500 text-xs font-medium hover:bg-slate-200 transition-colors cursor-pointer"
+        >
+          show less
+        </button>
+      )}
     </div>
   );
 }
@@ -374,6 +640,12 @@ export function FitmentSearch() {
                           <th className="px-4 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase tracking-wide">
                             OEM Size
                           </th>
+                          <th className="px-4 py-2 text-left text-[10px] font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">
+                            Vehicle Type
+                          </th>
+                          <th className="px-4 py-2 text-left text-[10px] font-semibold text-indigo-500 uppercase tracking-wide whitespace-nowrap">
+                            Tyre Types
+                          </th>
                           <th className="px-4 py-2 text-left text-[10px] font-semibold text-red-500 uppercase tracking-wide">
                             GTR Recommended
                           </th>
@@ -409,6 +681,12 @@ export function FitmentSearch() {
                                 <SizeBadge size={f.tire_size} />
                               </td>
                               <td className="px-4 py-3">
+                                <VehicleTypeBadge category={f.category} />
+                              </td>
+                              <td className="px-4 py-3">
+                                <TyreTypesPills category={f.category} />
+                              </td>
+                              <td className="px-4 py-3">
                                 <div className="flex items-center gap-1.5">
                                   <GtrBadge pattern={f.gtr_pattern} />
                                   {f.gtr_pattern && gtrInCatalog && (
@@ -436,7 +714,7 @@ export function FitmentSearch() {
 
       {/* ── Empty / error state (before first search) ──────────────── */}
       {!searched && !loading && (
-        <div className="text-center py-14 select-none">
+        <div className="select-none">
           {/* Server not started or API error */}
           {catsError && (
             <div className="mb-6 inline-block text-left bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 max-w-md">
@@ -470,34 +748,74 @@ export function FitmentSearch() {
 
           {/* Loading state */}
           {catsLoading && (
-            <Loader2 size={28} className="mx-auto mb-3 text-slate-300 animate-spin" />
+            <div className="flex justify-center py-14">
+              <Loader2 size={28} className="text-slate-300 animate-spin" />
+            </div>
           )}
 
-          {/* Normal idle state */}
+          {/* Normal idle state — vehicle category education cards */}
           {!catsError && !catsLoading && (
-            <>
-              <Car size={44} className="mx-auto mb-4 text-slate-200" />
-              <p className="text-slate-400 text-sm font-medium">Select a vehicle category, make, and model above</p>
-              <p className="text-slate-300 text-xs mt-1">
-                Get OEM tyre size and see which GTR products fit
+            <div className="text-left">
+              <p className="text-center text-slate-400 text-sm font-medium mb-1">
+                Select your vehicle category to get started
+              </p>
+              <p className="text-center text-slate-300 text-xs mb-6">
+                Click a card to pre-fill the category, then choose your make and model
               </p>
 
-              {/* Category quick-pick pills */}
-              <div className="flex flex-wrap justify-center gap-2 mt-5">
-                {categories.map(cat => {
-                  const m = CATEGORY_META[cat] ?? { color: 'bg-slate-400', abbr: '' };
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {(categories.length > 0 ? categories : Object.keys(CATEGORY_META)).map(cat => {
+                  const m = CATEGORY_META[cat];
+                  if (!m) return null;
                   return (
                     <button
                       key={cat}
                       onClick={() => setSelCategory(cat)}
-                      className={`${m.color} text-white text-xs font-semibold px-3 py-1.5 rounded-xl opacity-70 hover:opacity-100 transition-opacity`}
+                      className={`group text-left border-2 ${m.border} rounded-2xl overflow-hidden hover:shadow-md transition-all hover:-translate-y-0.5 bg-white`}
                     >
-                      {cat}
+                      {/* Vehicle illustration */}
+                      <div className={`${m.color} bg-opacity-10 px-6 pt-5 pb-3 flex items-center justify-center`}
+                           style={{ background: 'linear-gradient(135deg, rgba(0,0,0,0.04) 0%, rgba(0,0,0,0.01) 100%)' }}>
+                        <div className={`w-32 h-16 ${m.text} opacity-80 group-hover:opacity-100 transition-opacity`}>
+                          {m.svg}
+                        </div>
+                      </div>
+
+                      {/* Card body */}
+                      <div className="px-4 py-3">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={`${m.color} text-white text-[9px] font-black px-1.5 py-0.5 rounded-md tracking-wider`}>
+                            {m.abbr}
+                          </span>
+                          <span className="text-xs font-bold text-slate-800 leading-tight">{cat}</span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 mb-2">{m.desc}</p>
+
+                        <div className="space-y-1">
+                          <div>
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Examples</span>
+                            <p className="text-[10px] text-slate-600 leading-snug">{m.examples}</p>
+                          </div>
+                          <div>
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Typical sizes</span>
+                            <p className={`text-[10px] font-mono font-semibold ${m.text}`}>{m.sizes}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Footer */}
+                      <div className={`${m.color} bg-opacity-5 px-4 py-2 border-t ${m.border} flex items-center justify-between`}
+                           style={{ background: 'rgba(0,0,0,0.02)' }}>
+                        <span className="text-[10px] font-semibold text-slate-400 group-hover:text-slate-600 transition-colors">
+                          Click to select →
+                        </span>
+                        <span className="text-[9px] text-slate-300">{m.emoji}</span>
+                      </div>
                     </button>
                   );
                 })}
               </div>
-            </>
+            </div>
           )}
         </div>
       )}

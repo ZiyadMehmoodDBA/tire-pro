@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   LayoutDashboard, ShoppingCart, Boxes, Users, MoreHorizontal,
-  Package, FileText, Truck, BarChart2, Settings, LogOut, X,
+  Package, FileText, Truck, BarChart2, Settings, LogOut, X, Car,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -20,11 +20,12 @@ const primaryTabs = [
 ];
 
 const moreItems = [
-  { id: 'purchases', label: 'Purchases', icon: Package },
-  { id: 'invoices',  label: 'Invoices',  icon: FileText },
-  { id: 'reports',   label: 'Reports',   icon: BarChart2 },
-  { id: 'suppliers', label: 'Suppliers', icon: Truck },
-  { id: 'settings',  label: 'Settings',  icon: Settings },
+  { id: 'purchases',   label: 'Purchases',     icon: Package },
+  { id: 'invoices',    label: 'Invoices',      icon: FileText },
+  { id: 'reports',     label: 'Reports',       icon: BarChart2 },
+  { id: 'suppliers',   label: 'Suppliers',     icon: Truck },
+  { id: 'tyreFitment', label: 'Tyre Fitment',  icon: Car },
+  { id: 'settings',    label: 'Settings',      icon: Settings },
 ];
 
 export default function BottomNav({ activePage, onNavigate, onLogout, counts = {} }: BottomNavProps) {

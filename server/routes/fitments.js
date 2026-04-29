@@ -22,18 +22,23 @@ function normCol(col) { return SIZE_NORM_SQL.replace('%COL%', col); }
 router.get('/categories', async (req, res) => {
   try {
     const pool   = await getPool();
+    // SQL Server requires ORDER BY columns to appear in SELECT when using DISTINCT.
+    // Wrap in a subquery: inner selects category + sort_key, outer orders by sort_key.
     const result = await pool.request().query(`
-      SELECT DISTINCT category FROM vehicle_fitments
-      ORDER BY
-        CASE category
-          WHEN 'Passenger Car Tyres'     THEN 1
-          WHEN 'SUV/Crossovers Tyres'    THEN 2
-          WHEN 'Light Truck Tyres'       THEN 3
-          WHEN 'Truck & Bus/OTR Tyres'   THEN 4
-          WHEN 'Tractor Tyres'           THEN 5
-          WHEN 'Motorcycle/Rickshaw Tyres' THEN 6
-          ELSE 7
-        END
+      SELECT category FROM (
+        SELECT DISTINCT category,
+          CASE category
+            WHEN 'Passenger Car Tyres'       THEN 1
+            WHEN 'SUV/Crossovers Tyres'      THEN 2
+            WHEN 'Light Truck Tyres'         THEN 3
+            WHEN 'Truck & Bus/OTR Tyres'     THEN 4
+            WHEN 'Tractor Tyres'             THEN 5
+            WHEN 'Motorcycle/Rickshaw Tyres' THEN 6
+            ELSE 7
+          END AS sort_key
+        FROM vehicle_fitments
+      ) AS cats
+      ORDER BY sort_key
     `);
     res.json(result.recordset.map(r => r.category));
   } catch (err) {

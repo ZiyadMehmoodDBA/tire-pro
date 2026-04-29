@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, ShoppingCart, Package, FileText,
   Users, Truck, BarChart2, Settings, ChevronLeft,
-  ChevronRight, Boxes, TrendingUp, LogOut, X, BookOpen, Building2, Wrench, ClipboardList,
+  ChevronRight, Boxes, TrendingUp, LogOut, X, BookOpen, Building2, Wrench, ClipboardList, Car,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -52,6 +52,12 @@ const navGroups: NavGroup[] = [
       { id: 'suppliers',     label: 'Suppliers',     icon: Truck },
       { id: 'organizations', label: 'Organization',  icon: Building2 },
       { id: 'auditlog',      label: 'Audit Log',     icon: ClipboardList },
+    ],
+  },
+  {
+    label: 'FITMENT GUIDE',
+    items: [
+      { id: 'tyreFitment', label: 'Tyre Fitment', icon: Car },
     ],
   },
 ];
@@ -162,7 +168,7 @@ export default function Sidebar({
                           onClick={() => onNavigate(item.id)}
                           title={collapsed ? item.label : undefined}
                           className={cn(
-                            'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 group relative',
+                            'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 group relative cursor-pointer',
                             isActive
                               ? 'bg-teal-500 text-white shadow-sm shadow-teal-200'
                               : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
@@ -226,7 +232,7 @@ export default function Sidebar({
             onClick={() => onNavigate('settings')}
             title={collapsed ? 'Settings' : undefined}
             className={cn(
-              'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all group relative',
+              'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all group relative cursor-pointer',
               collapsed && 'lg:justify-center lg:px-0 lg:py-3',
               activePage === 'settings'
                 ? 'bg-teal-500 text-white shadow-sm shadow-teal-200'
@@ -254,7 +260,7 @@ export default function Sidebar({
             onClick={onLogout}
             title={collapsed ? 'Sign Out' : undefined}
             className={cn(
-              'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-slate-600 hover:bg-red-50 hover:text-red-600 transition-all group relative',
+              'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-slate-600 hover:bg-red-50 hover:text-red-600 transition-all group relative cursor-pointer',
               collapsed && 'lg:justify-center lg:px-0 lg:py-3'
             )}
           >

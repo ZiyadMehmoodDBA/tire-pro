@@ -36,8 +36,9 @@ const generalLimiter = rateLimit({
 app.use('/api', generalLimiter);
 
 // ── Auth guard — all /api routes except /auth/* and /health ──────────────────
+// Fitment routes are global reference data (no user/org context) — no auth needed.
 app.use('/api', (req, res, next) => {
-  if (req.path.startsWith('/auth') || req.path === '/health') return next();
+  if (req.path.startsWith('/auth') || req.path === '/health' || req.path.startsWith('/fitments')) return next();
   requireAuth(req, res, next);
 });
 
