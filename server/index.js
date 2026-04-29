@@ -5,7 +5,9 @@ const rateLimit  = require('express-rate-limit');
 const { setupDatabase } = require('./db');
 const { requireAuth } = require('./middleware/auth');
 const { validateBranchContext } = require('./middleware/validateBranchContext');
+const { blockDemo } = require('./middleware/demo');
 const { initCatalogScraperJob } = require('./jobs/catalogScraper');
+const { initDemoCleanupJob }    = require('./jobs/demoCleanup');
 
 const app  = express();
 const PORT = 3001;
@@ -47,6 +49,40 @@ app.use('/api', (req, res, next) => {
 // Ensures org_admins cannot target branches from other organisations.
 app.use('/api', validateBranchContext);
 
+// ── Demo role guard ───────────────────────────────────────────────────────────
+// Block demo users from ALL destructive / administrative mutations.
+// Demo users may GET anything and POST to create-only routes (sandboxed).
+// Transactional data created by demo users is reset every 30 min by demoCleanup.
+const DEMO_BLOCKED_PATHS = [
+  /\/void$/,            // POST /sales/:id/void
+  /\/status$/,          // PATCH /sales|purchases/:id/status
+  /\/password$/,        // PATCH /users/:id/password
+  /\/import-catalog$/,  // POST /inventory/import-catalog
+  /\/scraper\//,        // POST /catalog/scraper/*
+];
+const DEMO_ALLOWED_POST_PREFIXES = [
+  '/customers', '/suppliers', '/inventory', '/sales', '/purchases',
+  '/products', '/payments', '/ledger',
+];
+
+app.use('/api', (req, res, next) => {
+  if (req.user?.role !== 'demo') return next();
+  if (req.method === 'GET') return next();
+
+  // Block specific mutation sub-paths regardless of method
+  if (DEMO_BLOCKED_PATHS.some(p => p.test(req.path))) {
+    return blockDemo(req, res, next);
+  }
+
+  // Allow sandboxed creates on whitelisted route prefixes
+  if (req.method === 'POST' && DEMO_ALLOWED_POST_PREFIXES.some(p => req.path.startsWith(p))) {
+    return next();
+  }
+
+  // Block everything else (DELETE, PUT, PATCH, admin POSTs)
+  return blockDemo(req, res, next);
+});
+
 // ── Routes ────────────────────────────────────────────────────────────────────
 app.use('/api/auth',      require('./routes/auth'));
 app.use('/api/customers', require('./routes/customers'));
@@ -81,6 +117,7 @@ app.use((err, req, res, next) => {
   try {
     await setupDatabase();
     await initCatalogScraperJob();
+    initDemoCleanupJob();
     app.listen(PORT, () => {
       console.log(`🚀 TirePro API running at http://localhost:${PORT}`);
     });

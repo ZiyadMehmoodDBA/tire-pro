@@ -101,6 +101,12 @@ export const api = {
         body: JSON.stringify({ credential }),
       }).then(r => r.ok ? r.json() : r.json().then((e: any) => Promise.reject(new Error(e.error)))),
 
+    demo: () =>
+      fetch('/api/auth/demo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      }).then(r => r.ok ? r.json() : r.json().then((e: any) => Promise.reject(new Error(e.error)))),
+
     register: (data: any) =>
       fetch('/api/auth/register', {
         method: 'POST',

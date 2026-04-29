@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import {
   TrendingUp, Eye, EyeOff, User, Mail, Phone, Lock,
   Building2, MapPin, ArrowRight, CheckCircle, AlertCircle,
-  Loader2, ShieldCheck, Zap, PieChart,
+  Loader2, ShieldCheck, Zap, PieChart, FlaskConical,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { api } from '../api/client';
@@ -260,6 +260,20 @@ export default function Auth({ onAuth }: AuthProps) {
     setView(v); setErrors({}); setForm({});
     if (v !== 'reset') setResetToken('');
     if (v !== 'login')  { setSuccess(false); setSuccessMsg(''); }
+  };
+
+  const handleDemo = async () => {
+    setLoading(true);
+    setErrors({});
+    try {
+      const raw = await api.auth.demo() as any;
+      const { accessToken, refreshToken, user: userFields } = raw;
+      onAuth({ ...userFields, accessToken, refreshToken, rememberMe: false });
+    } catch (err: any) {
+      setErrors({ _form: err.message || 'Failed to start demo. Please try again.' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fields = view === 'login' ? loginFields : registerFields;
@@ -738,6 +752,26 @@ export default function Auth({ onAuth }: AuthProps) {
                     {view === 'login' ? 'Register now' : 'Sign in'}
                   </button>
                 </p>
+              )}
+
+              {/* Try Demo — login view only */}
+              {view === 'login' && (
+                <div className="mt-4">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="flex-1 h-px bg-slate-200" />
+                    <span className="text-xs text-slate-400 font-medium whitespace-nowrap">or</span>
+                    <div className="flex-1 h-px bg-slate-200" />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleDemo}
+                    disabled={loading}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-amber-800 bg-amber-50 border border-amber-200 hover:bg-amber-100 transition-colors disabled:opacity-60"
+                  >
+                    <FlaskConical size={15} className="text-amber-600" />
+                    Try Demo — No sign-up needed
+                  </button>
+                </div>
               )}
             </div>
           </div>

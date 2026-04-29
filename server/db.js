@@ -711,6 +711,12 @@ async function setupDatabase() {
       ALTER TABLE catalog_scraper_logs ADD items_updated INT DEFAULT 0
   `);
 
+  // ── Demo organisation ─────────────────────────────────────────────────────
+  // Seed a read-only demo org + branch + user if they don't exist yet.
+  // Demo data (customers / suppliers / tires) is also seeded here once.
+  // Transactional data (sales / purchases) is seeded by the demoCleanup job.
+  await seedDemoOrg(dbPool, sql);
+
   // Seed global tire catalog (merges new brands/models on every restart)
   await seedTireCatalog(dbPool, sql);
 
@@ -722,6 +728,178 @@ async function setupDatabase() {
   pool = new sql.ConnectionPool({ ...baseConfig, database: 'TireProDB' });
   await pool.connect();
   console.log('✅ Database TireProDB and all tables ready.');
+}
+
+// ── Demo org seeder ───────────────────────────────────────────────────────────
+async function seedDemoOrg(pool, sqlLib) {
+  // Idempotent — only runs if the demo org doesn't exist yet
+  const existing = await pool.request()
+    .input('code', sqlLib.NVarChar, 'DEMO')
+    .query('SELECT id FROM organizations WHERE code = @code');
+  if (existing.recordset.length > 0) return;
+
+  // 1. Create demo organisation
+  const orgRes = await pool.request()
+    .input('name', sqlLib.NVarChar, 'TirePro Demo')
+    .input('code', sqlLib.NVarChar, 'DEMO')
+    .input('type', sqlLib.NVarChar, 'retail')
+    .query(`
+      INSERT INTO organizations (name, code, type)
+      OUTPUT INSERTED.id
+      VALUES (@name, @code, @type)
+    `);
+  const demoOrgId = orgRes.recordset[0].id;
+
+  // 2. Create demo branch
+  const branchRes = await pool.request()
+    .input('org_id', sqlLib.Int,      demoOrgId)
+    .input('name',   sqlLib.NVarChar, 'Demo Branch')
+    .input('code',   sqlLib.NVarChar, 'DEMO-BR')
+    .query(`
+      INSERT INTO branches (organization_id, name, code)
+      OUTPUT INSERTED.id
+      VALUES (@org_id, @name, @code)
+    `);
+  const demoBranchId = branchRes.recordset[0].id;
+
+  // 3. Seed demo settings
+  const demoSettings = [
+    ['company_name',        'TirePro Demo'],
+    ['company_tagline',     'Demo Tyre Shop — Explore Freely'],
+    ['company_address',     '1 Demo Street, Lahore, Pakistan'],
+    ['company_phone',       '+92-42-0000000'],
+    ['company_email',       'demo@tirepro.app'],
+    ['invoice_prefix',      'DEMO'],
+    ['po_prefix',           'DEMO-PO'],
+    ['default_tax_rate',    '15'],
+    ['payment_due_days',    '30'],
+    ['default_sale_status', 'pending'],
+    ['currency',            'PKR'],
+    ['announcement',        'You are in Demo Mode — data resets every 30 minutes'],
+    ['refresh_interval',    '60'],
+  ];
+  for (const [key, value] of demoSettings) {
+    await pool.request()
+      .input('org_id', sqlLib.Int,      demoOrgId)
+      .input('key',    sqlLib.NVarChar, key)
+      .input('value',  sqlLib.NVarChar, value)
+      .query(`INSERT INTO settings (organization_id, [key], value) VALUES (@org_id, @key, @value)`);
+  }
+
+  // 4. Create demo user (role = 'demo')
+  const demoHash = await require('bcryptjs').hash('demo1234', 10);
+  await pool.request()
+    .input('name',            sqlLib.NVarChar, 'Demo User')
+    .input('email',           sqlLib.NVarChar, 'demo@tirepro.app')
+    .input('password_hash',   sqlLib.NVarChar, demoHash)
+    .input('role',            sqlLib.NVarChar, 'demo')
+    .input('organization_id', sqlLib.Int,      demoOrgId)
+    .query(`
+      INSERT INTO users (name, email, password_hash, role, organization_id)
+      VALUES (@name, @email, @password_hash, @role, @organization_id)
+    `);
+
+  // 5. Seed demo customers
+  const demoCustomers = [
+    { code: 'C-DEMO-001', name: 'Ahmed Motors',         phone: '0300-1111111', email: 'ahmed@demo.pk' },
+    { code: 'C-DEMO-002', name: 'Bilal Auto Works',     phone: '0301-2222222', email: 'bilal@demo.pk' },
+    { code: 'C-DEMO-003', name: 'Karachi Wheel House',  phone: '0302-3333333', email: 'kwh@demo.pk'   },
+    { code: 'C-DEMO-004', name: 'Raza Tyre Center',     phone: '0303-4444444', email: 'raza@demo.pk'  },
+    { code: 'C-DEMO-005', name: 'Star Auto Garage',     phone: '0304-5555555', email: 'star@demo.pk'  },
+  ];
+  for (const c of demoCustomers) {
+    await pool.request()
+      .input('code',    sqlLib.NVarChar, c.code)
+      .input('name',    sqlLib.NVarChar, c.name)
+      .input('phone',   sqlLib.NVarChar, c.phone)
+      .input('email',   sqlLib.NVarChar, c.email)
+      .input('org_id',  sqlLib.Int,      demoOrgId)
+      .query(`
+        INSERT INTO customers (code, name, phone, email, organization_id)
+        VALUES (@code, @name, @phone, @email, @org_id)
+      `);
+  }
+
+  // 6. Seed demo suppliers
+  const demoSuppliers = [
+    { code: 'S-DEMO-001', name: 'Bridgestone Pakistan',   phone: '0311-1111111', email: 'bs@demo.pk'  },
+    { code: 'S-DEMO-002', name: 'GTR Tyres Ltd',          phone: '0312-2222222', email: 'gtr@demo.pk' },
+    { code: 'S-DEMO-003', name: 'Hankook Distributors',   phone: '0313-3333333', email: 'hk@demo.pk'  },
+  ];
+  for (const s of demoSuppliers) {
+    await pool.request()
+      .input('code',   sqlLib.NVarChar, s.code)
+      .input('name',   sqlLib.NVarChar, s.name)
+      .input('phone',  sqlLib.NVarChar, s.phone)
+      .input('email',  sqlLib.NVarChar, s.email)
+      .input('org_id', sqlLib.Int,      demoOrgId)
+      .query(`
+        INSERT INTO suppliers (code, name, phone, email, organization_id)
+        VALUES (@code, @name, @phone, @email, @org_id)
+      `);
+  }
+
+  // 7. Seed demo tire inventory
+  const demoTires = [
+    { brand: 'Bridgestone', model: 'Turanza T005',       size: '205/55R16', type: 'Passenger',    stock: 24, cost: 12500, sale: 15000 },
+    { brand: 'Michelin',    model: 'Pilot Sport 4',      size: '225/45R17', type: 'Performance',  stock: 18, cost: 18000, sale: 22000 },
+    { brand: 'Continental', model: 'PremiumContact 6',   size: '195/65R15', type: 'Passenger',    stock: 30, cost: 10500, sale: 13000 },
+    { brand: 'Yokohama',    model: 'BluEarth GT AE51',   size: '215/60R16', type: 'Passenger',    stock: 12, cost: 11000, sale: 14000 },
+    { brand: 'Hankook',     model: 'Ventus Prime 4',     size: '205/60R16', type: 'Passenger',    stock: 20, cost: 9500,  sale: 12000 },
+    { brand: 'Goodyear',    model: 'EfficientGrip 2',    size: '185/65R15', type: 'Passenger',    stock: 35, cost: 8800,  sale: 11000 },
+    { brand: 'GTR',         model: 'HP10',               size: '195/55R15', type: 'Passenger',    stock: 50, cost: 4500,  sale:  6000 },
+    { brand: 'GTR',         model: 'HP10',               size: '215/60R16', type: 'SUV',          stock: 40, cost: 5200,  sale:  7000 },
+    { brand: 'Dunlop',      model: 'SportMaxx RT2',      size: '225/50R17', type: 'Performance',  stock: 15, cost: 15000, sale: 18500 },
+    { brand: 'Falken',      model: 'ZIEX ZE914',         size: '205/55R16', type: 'Passenger',    stock: 22, cost: 7500,  sale:  9500 },
+  ];
+  for (const t of demoTires) {
+    await pool.request()
+      .input('brand',      sqlLib.NVarChar,      t.brand)
+      .input('model',      sqlLib.NVarChar,      t.model)
+      .input('size',       sqlLib.NVarChar,      t.size)
+      .input('type',       sqlLib.NVarChar,      t.type)
+      .input('stock',      sqlLib.Int,           t.stock)
+      .input('cost_price', sqlLib.Decimal(18,2), t.cost)
+      .input('sale_price', sqlLib.Decimal(18,2), t.sale)
+      .input('org_id',     sqlLib.Int,           demoOrgId)
+      .input('branch_id',  sqlLib.Int,           demoBranchId)
+      .query(`
+        INSERT INTO tires (brand, model, size, type, stock, cost_price, sale_price, organization_id, branch_id)
+        VALUES (@brand, @model, @size, @type, @stock, @cost_price, @sale_price, @org_id, @branch_id)
+      `);
+  }
+
+  // 8. Seed demo services
+  const demoServices = [
+    { name: 'Tire Fitting',      sale: 300,  cost: 100, desc: 'Mount and fit tyre to wheel rim' },
+    { name: 'Wheel Balancing',   sale: 250,  cost: 80,  desc: 'Dynamic wheel balancing with weights' },
+    { name: 'Wheel Alignment',   sale: 1500, cost: 500, desc: '4-wheel laser alignment' },
+    { name: 'Puncture Repair',   sale: 200,  cost: 50,  desc: 'Tubeless puncture plug and patch repair' },
+  ];
+  for (const svc of demoServices) {
+    await pool.request()
+      .input('name',   sqlLib.NVarChar,      svc.name)
+      .input('desc',   sqlLib.NVarChar,      svc.desc)
+      .input('sale',   sqlLib.Decimal(18,2), svc.sale)
+      .input('cost',   sqlLib.Decimal(18,2), svc.cost)
+      .input('org_id', sqlLib.Int,           demoOrgId)
+      .query(`
+        INSERT INTO products (organization_id, name, description, category, unit, sale_price, cost_price, is_active)
+        VALUES (@org_id, @name, @desc, 'Service', 'job', @sale, @cost, 1)
+      `);
+  }
+
+  console.log('✅ Demo org, branch, user and master data seeded (org_id =', demoOrgId, ')');
+
+  // Seed initial demo transactions immediately (the cleanup cron will refresh them every 30 min)
+  try {
+    const { seedDemoTransactions } = require('./jobs/demoCleanup');
+    await seedDemoTransactions(pool, demoOrgId, demoBranchId);
+    console.log('✅ Demo transactions seeded for org_id =', demoOrgId);
+  } catch (err) {
+    // Non-fatal — the cleanup cron will seed on its next run
+    console.warn('⚠ Could not seed demo transactions:', err.message);
+  }
 }
 
 module.exports = { getPool, setupDatabase, getSetting, sql };

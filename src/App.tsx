@@ -20,6 +20,7 @@ import BottomNav from './components/BottomNav';
 import NewsBanner from './components/NewsBanner';
 import Profile from './pages/Profile';
 import ChangePasswordModal from './components/ChangePasswordModal';
+import DemoBanner from './components/DemoBanner';
 import { api, registerLogoutCallback } from './api/client';
 import { setTokens, setAccessToken, clearTokens, getRefreshToken } from './lib/auth';
 import { getCachedSettings } from './lib/appSettings';
@@ -218,6 +219,7 @@ export default function App() {
         className="flex-1 flex flex-col overflow-hidden transition-all duration-300"
         style={{ marginLeft: sidebarWidth }}
       >
+        {user?.role === 'demo' && <DemoBanner onExit={handleLogout} />}
         <NewsBanner message={getCachedSettings().announcement} />
         <Header
           title={showProfile ? 'My Profile' : title}

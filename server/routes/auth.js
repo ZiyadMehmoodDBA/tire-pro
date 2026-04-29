@@ -434,6 +434,62 @@ router.post('/google', async (req, res) => {
   }
 });
 
+// POST /api/auth/demo
+// One-click demo login — no credentials required.
+// The demo user is pre-seeded by setupDatabase() (role = 'demo', org code = 'DEMO').
+router.post('/demo', async (req, res) => {
+  try {
+    const pool = await getPool();
+    const result = await pool.request()
+      .input('email', sql.NVarChar, 'demo@tirepro.app')
+      .query(`
+        SELECT u.id, u.name, u.email, u.role, u.is_active,
+               u.organization_id, u.branch_id,
+               o.name AS org_name, o.code AS org_code, o.currency AS org_currency
+        FROM users u
+        LEFT JOIN organizations o ON o.id = u.organization_id
+        WHERE u.email = @email
+      `);
+
+    if (!result.recordset.length) {
+      return res.status(503).json({ error: 'Demo mode is not configured on this server.' });
+    }
+    const user = result.recordset[0];
+    if (!user.is_active) {
+      return res.status(503).json({ error: 'Demo account is currently unavailable.' });
+    }
+
+    const branchRes = await pool.request()
+      .input('org_id', sql.Int, user.organization_id)
+      .query('SELECT id, name, code FROM branches WHERE organization_id = @org_id AND is_active = 1 ORDER BY name');
+
+    const accessToken  = issueAccessToken(user);
+    const refreshToken = await createRefreshToken(pool, user.id, false);
+
+    res.json({
+      accessToken,
+      refreshToken,
+      user: {
+        id:              user.id,
+        name:            user.name,
+        email:           user.email,
+        role:            user.role,
+        organization_id: user.organization_id,
+        branch_id:       user.branch_id,
+        organization: {
+          name:     user.org_name,
+          code:     user.org_code,
+          currency: user.org_currency || 'PKR',
+        },
+        branches: branchRes.recordset,
+      },
+    });
+  } catch (err) {
+    console.error('Demo auth error:', err.message);
+    res.status(500).json({ error: 'Failed to start demo session. Please try again.' });
+  }
+});
+
 // POST /api/auth/logout
 router.post('/logout', async (req, res) => {
   const { refreshToken } = req.body || {};

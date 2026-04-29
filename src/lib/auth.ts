@@ -53,3 +53,7 @@ export function getUserRole(): string | null {
     return null;
   }
 }
+
+export function isDemo(): boolean {
+  return getUserRole() === 'demo';
+}
