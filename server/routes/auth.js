@@ -11,9 +11,13 @@ const JWT_EXPIRY              = '15m';
 const REFRESH_EXPIRY_DEFAULT  = 1  * 24 * 60 * 60 * 1000;  // 1 day
 const REFRESH_EXPIRY_REMEMBER = 30 * 24 * 60 * 60 * 1000;  // 30 days
 
+// Auth rate limit — covers ALL /api/auth/* routes (login, register, refresh, etc.)
+// 10/15min was too tight: a single user logging in + a couple refreshes can burn through it.
+// 50/15min is still small enough to rate-limit credential-stuffing attacks while leaving
+// room for legitimate refresh-token churn and dev/test runs.
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: 50,
   message: { error: 'Too many attempts. Please try again in 15 minutes.' },
   standardHeaders: true,
   legacyHeaders: false,

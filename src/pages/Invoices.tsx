@@ -5,6 +5,7 @@ import { formatCurrency, formatDate } from '../lib/utils';
 import { printInvoice, downloadInvoice } from '../lib/invoicePdf';
 import NewSaleModal from '../components/NewSaleModal';
 import { useAutoRefresh } from '../lib/useAutoRefresh';
+import { getCachedSettings } from '../lib/appSettings';
 import { usePagination } from '../lib/usePagination';
 import Pagination from '../components/Pagination';
 import ExcelImportModal from '../components/ExcelImportModal';
@@ -196,14 +197,20 @@ export default function Invoices() {
                       <div>
                         <div className="flex items-center gap-2 mb-2">
                           <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center">
-                            <span className="text-white font-bold text-xs">TP</span>
+                            <span className="text-white font-bold text-xs">
+                              {getCachedSettings().company_name.split(' ').map((w: string) => w[0] || '').join('').slice(0, 2).toUpperCase()}
+                            </span>
                           </div>
                           <div>
-                            <h1 className="text-lg font-bold text-slate-900">TirePro</h1>
-                            <p className="text-xs text-slate-500">Tyre & Wheel Solutions</p>
+                            <h1 className="text-lg font-bold text-slate-900">{getCachedSettings().company_name}</h1>
+                            <p className="text-xs text-slate-500">{getCachedSettings().company_tagline}</p>
                           </div>
                         </div>
-                        <p className="text-xs sm:text-sm text-slate-500 mt-2">123 Industrial Zone, Lahore<br />Pakistan · info@tirepro.pk</p>
+                        <p className="text-xs sm:text-sm text-slate-500 mt-2">
+                          {getCachedSettings().company_address}
+                          {getCachedSettings().company_phone && <><br />{getCachedSettings().company_phone}</>}
+                          {getCachedSettings().company_email && <> · {getCachedSettings().company_email}</>}
+                        </p>
                       </div>
                       <div className="sm:text-right">
                         <p className="text-2xl sm:text-3xl font-bold text-slate-200 uppercase tracking-widest">Invoice</p>
@@ -260,7 +267,7 @@ export default function Invoices() {
                     </div>
 
                     <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-slate-100 text-xs text-slate-400 text-center">
-                      Thank you for your business · Payment due within 30 days · TirePro — Quality Tyres
+                      Thank you for your business · Payment due within {getCachedSettings().payment_due_days} days · {getCachedSettings().company_name}
                     </div>
                   </div>
                 ) : null}

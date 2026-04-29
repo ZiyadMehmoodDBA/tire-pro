@@ -4,6 +4,7 @@ import {
   ChevronRight, Boxes, TrendingUp, LogOut, X, BookOpen, Building2, Wrench, ClipboardList, Car,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { getCachedSettings } from '../lib/appSettings';
 
 interface NavItem {
   id: string;
@@ -116,8 +117,8 @@ export default function Sidebar({
             <TrendingUp size={18} className="text-white" />
           </div>
           <div className={cn(collapsed && 'lg:hidden')}>
-            <h1 className="text-base font-bold text-slate-900 leading-tight">TirePro</h1>
-            <p className="text-[11px] text-slate-400 font-medium">Management System</p>
+            <h1 className="text-base font-bold text-slate-900 leading-tight">{getCachedSettings().company_name}</h1>
+            <p className="text-[11px] text-slate-400 font-medium">{getCachedSettings().company_tagline}</p>
           </div>
           <button
             onClick={onMobileClose}

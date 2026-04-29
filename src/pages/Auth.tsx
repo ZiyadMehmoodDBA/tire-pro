@@ -16,6 +16,7 @@ interface AuthProps {
     branches?: { id: number; name: string; code: string }[];
     accessToken: string;
     refreshToken: string;
+    rememberMe?: boolean;
   }) => void;
 }
 
@@ -115,7 +116,8 @@ export default function Auth({ onAuth }: AuthProps) {
           try {
             const raw = await api.auth.google(response.credential) as any;
             const { accessToken, refreshToken, user: userFields } = raw;
-            onAuth({ ...userFields, accessToken, refreshToken });
+            // Google sign-in is session-only (no "keep me signed in" prompt)
+            onAuth({ ...userFields, accessToken, refreshToken, rememberMe: false });
           } catch (err: any) {
             setErrors({ _form: err.message || 'Google sign-in failed. Please try again.' });
           } finally {
@@ -189,15 +191,16 @@ export default function Auth({ onAuth }: AuthProps) {
         setSuccess(true);
         setTimeout(() => { setSuccess(false); setView('login'); setForm({}); }, 1800);
       } else {
+        const remember = form.rememberMe === 'true';
         const raw = await api.auth.login({
           email:      form.email,
           password:   form.password,
-          rememberMe: form.rememberMe === 'true',
+          rememberMe: remember,
         }) as any;
         // Server returns { accessToken, refreshToken, user: {...} }
         // Flatten so handleAuth receives a single object
         const { accessToken, refreshToken, user: userFields } = raw;
-        onAuth({ ...userFields, accessToken, refreshToken });
+        onAuth({ ...userFields, accessToken, refreshToken, rememberMe: remember });
       }
     } catch (err: any) {
       setErrors({ _form: err.message || 'Something went wrong. Please try again.' });

@@ -2,6 +2,7 @@ const express = require('express');
 const router  = express.Router();
 const { getPool, sql } = require('../db');
 const { getContext }   = require('../context');
+const { invalidateBranchCache } = require('../middleware/validateBranchContext');
 
 // GET /api/branches — list branches for the caller's org
 router.get('/', async (req, res) => {
@@ -124,10 +125,14 @@ router.delete('/:id', async (req, res) => {
       return res.status(400).json({ error: 'Cannot delete the last branch — an organization must have at least one branch' });
     }
 
+    const branchId = parseInt(req.params.id, 10);
     await pool.request()
-      .input('id',     sql.Int, req.params.id)
+      .input('id',     sql.Int, branchId)
       .input('org_id', sql.Int, orgId)
       .query('UPDATE branches SET is_active = 0 WHERE id = @id AND organization_id = @org_id');
+
+    // Evict cache so org_admins can't target a deleted branch via X-Branch-ID.
+    invalidateBranchCache(orgId, branchId);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });

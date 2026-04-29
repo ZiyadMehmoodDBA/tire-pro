@@ -4,6 +4,7 @@ const helmet     = require('helmet');
 const rateLimit  = require('express-rate-limit');
 const { setupDatabase } = require('./db');
 const { requireAuth } = require('./middleware/auth');
+const { validateBranchContext } = require('./middleware/validateBranchContext');
 const { initCatalogScraperJob } = require('./jobs/catalogScraper');
 
 const app  = express();
@@ -41,6 +42,10 @@ app.use('/api', (req, res, next) => {
   if (req.path.startsWith('/auth') || req.path === '/health' || req.path.startsWith('/fitments')) return next();
   requireAuth(req, res, next);
 });
+
+// ── Branch context validation — org_admin X-Branch-ID header sanity check ────
+// Ensures org_admins cannot target branches from other organisations.
+app.use('/api', validateBranchContext);
 
 // ── Routes ────────────────────────────────────────────────────────────────────
 app.use('/api/auth',      require('./routes/auth'));

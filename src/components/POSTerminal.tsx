@@ -2,12 +2,13 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   X, Search, Plus, Minus, Trash2, Tag, ShoppingCart,
   Loader2, CheckCircle, Printer, Banknote, CreditCard, Shuffle,
-  AlertCircle, ChevronDown, ChevronUp, Car, Award, ChevronRight,
+  AlertCircle, ChevronDown, ChevronUp, Car, Award, ChevronRight, UserPlus,
 } from 'lucide-react';
 import { api } from '../api/client';
 import { formatCurrency } from '../lib/utils';
 import { getCachedSettings } from '../lib/appSettings';
 import { printInvoice, printThermalReceipt } from '../lib/invoicePdf';
+import QuickAddCustomerModal from './QuickAddCustomerModal';
 
 interface CartItem {
   key: string;
@@ -76,6 +77,9 @@ export default function POSTerminal({ onClose, onCreated }: Props) {
   const [vehSearching, setVehSearching] = useState(false);
   const [vehResult,    setVehResult]    = useState<{ size: string; gtr: string | null } | null>(null);
   const [vehError,     setVehError]     = useState('');
+
+  // Walk-in / quick-add customer
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
 
   // State
   const [loading,       setLoading]       = useState(false);
@@ -231,7 +235,7 @@ export default function POSTerminal({ onClose, onCreated }: Props) {
     setError(''); setLoading(true);
     try {
       const created = await api.sales.create({
-        customer_id:    Number(customerId),
+        customer_id:    customerId === 'walkin' ? null : Number(customerId),
         date:           new Date().toISOString().split('T')[0],
         notes,
         tax_rate:       TAX_RATE,
@@ -253,7 +257,9 @@ export default function POSTerminal({ onClose, onCreated }: Props) {
       const fullSale = await api.sales.get(created.id);
       setCheckoutSale({
         ...fullSale,
-        customer_name: customers.find(cu => cu.id === Number(customerId))?.name,
+        customer_name: customerId === 'walkin'
+          ? 'Walk-in Customer'
+          : customers.find(cu => cu.id === Number(customerId))?.name,
         cash_given:    payMethod === 'cash' ? cashGivenNum : undefined,
         change_due:    payMethod === 'cash' ? change : undefined,
       });
@@ -341,14 +347,25 @@ export default function POSTerminal({ onClose, onCreated }: Props) {
           <h2 className="text-sm font-bold text-slate-900 flex-shrink-0">POS Terminal</h2>
 
           {/* Customer */}
-          <select
-            value={customerId}
-            onChange={e => setCustomerId(e.target.value)}
-            className="flex-1 max-w-xs text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-          >
-            <option value="">— Select customer —</option>
-            {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
+          <div className="flex items-center gap-1.5 flex-1 max-w-xs">
+            <select
+              value={customerId}
+              onChange={e => setCustomerId(e.target.value)}
+              className="flex-1 min-w-0 text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            >
+              <option value="">— Select customer —</option>
+              <option value="walkin">Walk-in Customer</option>
+              {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+            <button
+              type="button"
+              title="Save customer info"
+              onClick={() => setShowQuickAdd(true)}
+              className="flex-shrink-0 p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors border border-slate-200 hover:border-teal-300"
+            >
+              <UserPlus size={15} />
+            </button>
+          </div>
 
           <span className="hidden sm:block text-[11px] text-slate-400 ml-auto flex-shrink-0">
             F2 Search · F4 Discount · F8 Checkout
@@ -783,6 +800,17 @@ export default function POSTerminal({ onClose, onCreated }: Props) {
           </div>
         </div>
       </div>
+
+      {showQuickAdd && (
+        <QuickAddCustomerModal
+          onCreated={customer => {
+            setCustomers(prev => [...prev, customer]);
+            setCustomerId(String(customer.id));
+            setShowQuickAdd(false);
+          }}
+          onClose={() => setShowQuickAdd(false)}
+        />
+      )}
     </div>
   );
 }

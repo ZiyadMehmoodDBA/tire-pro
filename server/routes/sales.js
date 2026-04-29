@@ -186,7 +186,7 @@ router.post('/', async (req, res) => {
       cash_given, cash_amount, card_amount,
     } = req.body;
 
-    if (!customer_id) return res.status(400).json({ error: 'Customer is required' });
+    // customer_id is optional — null means walk-in (no AR/ledger entry will be created)
     if (!items?.length) return res.status(400).json({ error: 'At least one item is required' });
 
     // Per-line discount support: amount = qty * price * (1 - disc%)
@@ -283,8 +283,10 @@ router.post('/', async (req, res) => {
       }
     }
 
-    // Capture payment in the same transaction (POS checkout)
-    if (payment_method && paidAmt > 0) {
+    // Capture payment in the same transaction (POS checkout).
+    // Walk-in sales (customer_id = null) skip sale_payments — no AR to track;
+    // amount_paid + status on the sales row itself is sufficient.
+    if (customer_id && payment_method && paidAmt > 0) {
       const payDate = date || new Date().toISOString().split('T')[0];
       if (payment_method === 'mixed') {
         const cAmt = parseFloat(cash_amount || 0);

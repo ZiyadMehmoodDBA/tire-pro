@@ -10,6 +10,7 @@ import {
 import { api } from '../api/client';
 import { formatCurrency, formatDate } from '../lib/utils';
 import { useAutoRefresh } from '../lib/useAutoRefresh';
+import { getCachedSettings } from '../lib/appSettings';
 
 const BASE_MONTHS = [
   { month: 'Jan' }, { month: 'Feb' }, { month: 'Mar' },
@@ -125,7 +126,7 @@ export default function Dashboard() {
             <div>
               <p className="text-teal-100 text-sm font-medium">{getGreeting()}!</p>
               <h2 className="text-xl sm:text-2xl font-bold text-white leading-tight mt-0.5">
-                TirePro Dashboard
+                {getCachedSettings().company_name}
               </h2>
               <p className="text-teal-200 text-xs mt-1">{today}</p>
             </div>

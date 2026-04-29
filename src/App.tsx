@@ -21,7 +21,7 @@ import NewsBanner from './components/NewsBanner';
 import Profile from './pages/Profile';
 import ChangePasswordModal from './components/ChangePasswordModal';
 import { api, registerLogoutCallback } from './api/client';
-import { setTokens, setAccessToken, clearTokens } from './lib/auth';
+import { setTokens, setAccessToken, clearTokens, getRefreshToken } from './lib/auth';
 import { getCachedSettings } from './lib/appSettings';
 
 export interface AuthUser {
@@ -37,6 +37,7 @@ export interface AuthUser {
 interface LoginPayload extends AuthUser {
   accessToken: string;
   refreshToken: string;
+  rememberMe?: boolean;
 }
 
 const ADMIN_ONLY = new Set(['organizations', 'settings']);
@@ -80,7 +81,7 @@ export default function App() {
 
   // Attempt silent session restore from stored refresh token
   useEffect(() => {
-    const stored = localStorage.getItem('tirepro_rt');
+    const stored = getRefreshToken(); // checks sessionStorage first, then localStorage
     if (!stored) { setAuthLoading(false); return; }
 
     api.auth.refresh()
@@ -97,10 +98,12 @@ export default function App() {
       .finally(() => setAuthLoading(false));
   }, []);
 
-  // Warm settings cache once user is authenticated
+  // Warm settings cache once user is authenticated, then sync document.title
   useEffect(() => {
     if (!user) return;
-    api.settings.get().catch(() => {});
+    api.settings.get()
+      .then(s => { document.title = s.company_name || 'TirePro'; })
+      .catch(() => {});
   }, [user]);
 
   // Fetch today's activity counts and build notification alerts
@@ -158,11 +161,11 @@ export default function App() {
   }, []);
 
   const handleAuth = (payload: LoginPayload) => {
-    setTokens(payload.accessToken, payload.refreshToken);
+    setTokens(payload.accessToken, payload.refreshToken, payload.rememberMe ?? false);
     const branchId = payload.branch_id ?? payload.branches?.[0]?.id ?? 1;
     localStorage.setItem('orgId',    String(payload.organization_id || 1));
     localStorage.setItem('branchId', String(branchId));
-    const { accessToken: _at, refreshToken: _rt, ...userFields } = payload;
+    const { accessToken: _at, refreshToken: _rt, rememberMe: _rm, ...userFields } = payload;
     setUser(userFields);
   };
 

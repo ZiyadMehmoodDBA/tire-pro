@@ -1,5 +1,6 @@
 import { X, Printer, Download } from 'lucide-react';
 import { formatCurrency, formatDate } from '../lib/utils';
+import { getCachedSettings } from '../lib/appSettings';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -15,6 +16,7 @@ const statusColor: Record<string, string> = {
 };
 
 function downloadPO(po: any) {
+  const s = getCachedSettings();
   const doc = new jsPDF();
   const violet: [number, number, number] = [109, 40, 217];
   const dark: [number, number, number] = [15, 23, 42];
@@ -27,21 +29,22 @@ function downloadPO(po: any) {
   doc.setFontSize(8);
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
-  doc.text('TIREPRO — TYRE & WHEEL SOLUTIONS', 14, 8);
+  doc.text(`${s.company_name.toUpperCase()} — ${s.company_tagline.toUpperCase()}`, 14, 8);
   doc.text('PURCHASE ORDER', pageW - 14, 8, { align: 'right' });
 
   let y = 22;
   doc.setFontSize(16);
   doc.setTextColor(...dark);
   doc.setFont('helvetica', 'bold');
-  doc.text('TirePro', 14, y);
+  doc.text(s.company_name, 14, y);
   y += 5;
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...muted);
-  doc.text('123 Industrial Zone, Lahore, Pakistan', 14, y);
+  doc.text(s.company_address, 14, y);
   y += 4;
-  doc.text('info@tirepro.pk  |  +92-42-1234567', 14, y);
+  const contactLine = [s.company_email, s.company_phone].filter(Boolean).join('  |  ');
+  if (contactLine) doc.text(contactLine, 14, y);
 
   const rightX = pageW - 14;
   let ry = 22;
@@ -112,12 +115,13 @@ function downloadPO(po: any) {
   doc.setFontSize(7);
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'normal');
-  doc.text('TirePro — Purchase Order Document', pageW / 2, pageH - 4, { align: 'center' });
+  doc.text(`${getCachedSettings().company_name} — Purchase Order Document`, pageW / 2, pageH - 4, { align: 'center' });
 
   doc.save(`${po.po_no || `PO-${po.id}`}.pdf`);
 }
 
 function printPO(po: any) {
+  const s = getCachedSettings();
   const doc = new jsPDF();
   const violet: [number, number, number] = [109, 40, 217];
   const dark: [number, number, number] = [15, 23, 42];
@@ -128,7 +132,7 @@ function printPO(po: any) {
   doc.setFontSize(8);
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
-  doc.text('TIREPRO — PURCHASE ORDER', 14, 8);
+  doc.text(`${s.company_name.toUpperCase()} — PURCHASE ORDER`, 14, 8);
   doc.text(po.po_no || '', pageW - 14, 8, { align: 'right' });
 
   const items = po.items || [];
@@ -181,14 +185,16 @@ export default function POViewModal({ po, onClose }: POViewModalProps) {
               <div>
                 <div className="flex items-center gap-2.5 mb-2">
                   <div className="w-10 h-10 bg-violet-600 rounded-xl flex items-center justify-center">
-                    <span className="text-white font-bold text-sm">TP</span>
+                    <span className="text-white font-bold text-sm">
+                      {getCachedSettings().company_name.split(' ').map((w: string) => w[0] || '').join('').slice(0, 2).toUpperCase()}
+                    </span>
                   </div>
                   <div>
-                    <p className="text-base font-bold text-slate-900">TirePro</p>
-                    <p className="text-xs text-slate-500">Tyre & Wheel Solutions</p>
+                    <p className="text-base font-bold text-slate-900">{getCachedSettings().company_name}</p>
+                    <p className="text-xs text-slate-500">{getCachedSettings().company_tagline}</p>
                   </div>
                 </div>
-                <p className="text-xs text-slate-500">123 Industrial Zone, Lahore, Pakistan</p>
+                <p className="text-xs text-slate-500">{getCachedSettings().company_address}</p>
               </div>
               <div className="sm:text-right">
                 <p className="text-2xl font-bold text-slate-200 uppercase tracking-widest">PO</p>

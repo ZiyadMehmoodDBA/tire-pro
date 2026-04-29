@@ -9,13 +9,25 @@ export function getAccessToken(): string | null {
 }
 
 export function getRefreshToken(): string | null {
-  return localStorage.getItem(REFRESH_TOKEN_KEY);
+  // Check sessionStorage first (non-persistent session), then localStorage ("keep me signed in")
+  return sessionStorage.getItem(REFRESH_TOKEN_KEY) ?? localStorage.getItem(REFRESH_TOKEN_KEY);
 }
 
-export function setTokens(accessToken: string, refreshToken: string): void {
+/**
+ * @param remember - true = "Keep me signed in" — persists across browser restarts (localStorage)
+ *                   false = session only — cleared when tab/browser closes (sessionStorage)
+ */
+export function setTokens(accessToken: string, refreshToken: string, remember = false): void {
   _accessToken = accessToken;
   localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-  localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+
+  if (remember) {
+    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+    sessionStorage.removeItem(REFRESH_TOKEN_KEY); // clear any leftover session token
+  } else {
+    sessionStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+    localStorage.removeItem(REFRESH_TOKEN_KEY); // don't persist across browser restarts
+  }
 }
 
 export function setAccessToken(accessToken: string): void {
@@ -27,6 +39,7 @@ export function clearTokens(): void {
   _accessToken = null;
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
+  sessionStorage.removeItem(REFRESH_TOKEN_KEY);
 }
 
 export function getUserRole(): string | null {

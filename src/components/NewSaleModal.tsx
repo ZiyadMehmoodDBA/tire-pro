@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Loader2, CheckCircle } from 'lucide-react';
+import { X, Plus, Trash2, Loader2, CheckCircle, UserPlus } from 'lucide-react';
 import { api } from '../api/client';
 import { formatCurrency } from '../lib/utils';
 import { getCachedSettings } from '../lib/appSettings';
 import ComboboxInput from './ComboboxInput';
+import QuickAddCustomerModal from './QuickAddCustomerModal';
 
 interface NewSaleModalProps {
   onClose: () => void;
@@ -47,6 +48,7 @@ export default function NewSaleModal({ onClose, onCreated }: NewSaleModalProps) 
   const appSettings = getCachedSettings();
   const TAX_RATE    = appSettings.default_tax_rate;
 
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [customers,   setCustomers]   = useState<any[]>([]);
   const [products,    setProducts]    = useState<any[]>([]);
   const [tires,       setTires]       = useState<any[]>([]);
@@ -174,7 +176,7 @@ export default function NewSaleModal({ onClose, onCreated }: NewSaleModalProps) 
     setLoading(true);
     try {
       await api.sales.create({
-        customer_id: Number(customerId),
+        customer_id: customerId === 'walkin' ? null : Number(customerId),
         date,
         status,
         notes,
@@ -231,14 +233,25 @@ export default function NewSaleModal({ onClose, onCreated }: NewSaleModalProps) 
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                   Customer <span className="text-red-500">*</span>
                 </label>
-                <select
-                  value={customerId}
-                  onChange={e => setCustomerId(e.target.value)}
-                  className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50"
-                  required>
-                  <option value="">Select customer...</option>
-                  {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
+                <div className="flex gap-2">
+                  <select
+                    value={customerId}
+                    onChange={e => setCustomerId(e.target.value)}
+                    className="flex-1 min-w-0 text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50"
+                    required>
+                    <option value="">Select customer...</option>
+                    <option value="walkin">Walk-in Customer</option>
+                    {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                  <button
+                    type="button"
+                    title="Save customer info"
+                    onClick={() => setShowQuickAdd(true)}
+                    className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-teal-700 bg-teal-50 border border-teal-200 rounded-xl hover:bg-teal-100 transition-colors whitespace-nowrap"
+                  >
+                    <UserPlus size={13} /> New
+                  </button>
+                </div>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">Date</label>
@@ -462,6 +475,17 @@ export default function NewSaleModal({ onClose, onCreated }: NewSaleModalProps) 
           </div>
         </form>
       </div>
+
+      {showQuickAdd && (
+        <QuickAddCustomerModal
+          onCreated={customer => {
+            setCustomers(prev => [...prev, customer]);
+            setCustomerId(String(customer.id));
+            setShowQuickAdd(false);
+          }}
+          onClose={() => setShowQuickAdd(false)}
+        />
+      )}
     </div>
   );
 }
