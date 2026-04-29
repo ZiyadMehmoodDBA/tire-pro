@@ -274,8 +274,8 @@ export default function GRNModal({ onClose, onCreated }: Props) {
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 flex-shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-violet-100 rounded-lg flex items-center justify-center">
-              <Package size={15} className="text-violet-600" />
+            <div className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center">
+              <Package size={15} className="text-teal-600" />
             </div>
             <div>
               <h2 className="text-base font-bold text-slate-900">Receive Stock — GRN</h2>
@@ -304,7 +304,7 @@ export default function GRNModal({ onClose, onCreated }: Props) {
                   Supplier <span className="text-red-500">*</span>
                 </label>
                 <select value={supplierId} onChange={e => setSupplierId(e.target.value)}
-                  className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-slate-50">
+                  className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50">
                   <option value="">Select supplier...</option>
                   {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
@@ -312,12 +312,12 @@ export default function GRNModal({ onClose, onCreated }: Props) {
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">Date</label>
                 <input type="date" value={date} onChange={e => setDate(e.target.value)}
-                  className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-slate-50" />
+                  className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50" />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">Reference / GRN #</label>
                 <input value={refNo} onChange={e => setRefNo(e.target.value)} placeholder="e.g. GRN-001"
-                  className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-slate-50" />
+                  className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50" />
               </div>
             </div>
 
@@ -328,7 +328,7 @@ export default function GRNModal({ onClose, onCreated }: Props) {
                   Items Received <span className="text-red-500">*</span>
                 </label>
                 <button type="button" onClick={addItem}
-                  className="flex items-center gap-1 text-xs text-violet-600 hover:text-violet-700 font-semibold">
+                  className="flex items-center gap-1 text-xs text-teal-600 hover:text-teal-700 font-semibold">
                   <Plus size={13} /> Add Row
                 </button>
               </div>
@@ -342,11 +342,11 @@ export default function GRNModal({ onClose, onCreated }: Props) {
                       {/* Mode toggle */}
                       <div className="flex rounded-lg border border-slate-200 overflow-hidden text-xs font-semibold shrink-0 bg-white">
                         <button type="button" onClick={() => setItemMode(i, 'product')}
-                          className={`px-2.5 py-1.5 transition-colors ${item.mode === 'product' ? 'bg-violet-600 text-white' : 'text-slate-500 hover:bg-slate-50'}`}>
+                          className={`px-2.5 py-1.5 transition-colors ${item.mode === 'product' ? 'bg-teal-600 text-white' : 'text-slate-500 hover:bg-slate-50'}`}>
                           Product
                         </button>
                         <button type="button" onClick={() => setItemMode(i, 'tire')}
-                          className={`px-2.5 py-1.5 transition-colors ${item.mode === 'tire' ? 'bg-violet-600 text-white' : 'text-slate-500 hover:bg-slate-50'}`}>
+                          className={`px-2.5 py-1.5 transition-colors ${item.mode === 'tire' ? 'bg-teal-600 text-white' : 'text-slate-500 hover:bg-slate-50'}`}>
                           Tire
                         </button>
                       </div>
@@ -356,13 +356,13 @@ export default function GRNModal({ onClose, onCreated }: Props) {
                         <input type="number" min={1}
                           value={item.qty}
                           onChange={e => updateQty(i, Number(e.target.value))}
-                          className="w-16 text-sm border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500 text-center bg-white"
+                          className="w-16 text-sm border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-500 text-center bg-white"
                           placeholder="1" />
                         <span className="text-xs text-slate-400 shrink-0">Cost</span>
                         <input type="number" min={0} step="0.01"
                           value={item.unit_price}
                           onChange={e => updatePrice(i, Number(e.target.value))}
-                          className="flex-1 min-w-0 text-sm border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500 text-right bg-white"
+                          className="flex-1 min-w-0 text-sm border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-500 text-right bg-white"
                           placeholder="0.00" />
                       </div>
 
@@ -393,7 +393,7 @@ export default function GRNModal({ onClose, onCreated }: Props) {
                             }}
                             onFocus={() => setRowOpen(p => ({ ...p, [i]: true }))}
                             placeholder="Search tire or product..."
-                            className="w-full text-sm border border-slate-200 rounded-lg pl-7 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                            className="w-full text-sm border border-slate-200 rounded-lg pl-7 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
                           />
                         </div>
                         {rowOpen[i] && (
@@ -405,7 +405,7 @@ export default function GRNModal({ onClose, onCreated }: Props) {
                                 key={cat.key}
                                 type="button"
                                 onMouseDown={e => { e.preventDefault(); selectCatalogItem(i, cat); }}
-                                className="w-full text-left px-3 py-2 hover:bg-violet-50 transition-colors"
+                                className="w-full text-left px-3 py-2 hover:bg-teal-50 transition-colors"
                               >
                                 <div className="text-sm font-medium text-slate-800">{cat.name}</div>
                                 <div className="text-xs text-slate-400">{cat.subtitle} · {formatCurrency(cat.costPrice)}</div>
@@ -511,16 +511,16 @@ export default function GRNModal({ onClose, onCreated }: Props) {
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">Notes</label>
               <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Optional notes..."
-                className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-slate-50" />
+                className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50" />
             </div>
 
             {/* Total */}
-            <div className="bg-violet-50 border border-violet-100 rounded-xl px-4 py-3 flex items-center justify-between">
+            <div className="bg-teal-50 border border-teal-100 rounded-xl px-4 py-3 flex items-center justify-between">
               <div>
-                <p className="text-xs text-violet-600 font-medium">Total Goods Value</p>
+                <p className="text-xs text-teal-600 font-medium">Total Goods Value</p>
                 <p className="text-xs text-emerald-600 mt-0.5">✓ Matched tire stock will be added to inventory on save</p>
               </div>
-              <p className="text-xl font-bold text-violet-700">{formatCurrency(subtotal)}</p>
+              <p className="text-xl font-bold text-teal-700">{formatCurrency(subtotal)}</p>
             </div>
           </div>
 
@@ -531,7 +531,7 @@ export default function GRNModal({ onClose, onCreated }: Props) {
               Cancel
             </button>
             <button type="submit" disabled={loading || success}
-              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-violet-600 rounded-xl hover:bg-violet-700 transition-colors disabled:opacity-60 min-w-40 justify-center">
+              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-teal-600 rounded-xl hover:bg-teal-700 transition-colors disabled:opacity-60 min-w-40 justify-center">
               {loading  ? <><Loader2 size={15} className="animate-spin" /> Saving...</>
               : success ? <><CheckCircle size={15} /> Stock Received!</>
               : 'Receive Stock'}

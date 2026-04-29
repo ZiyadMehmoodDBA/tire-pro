@@ -18,8 +18,8 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 const ROLE_COLORS: Record<string, string> = {
-  org_admin:      'bg-violet-100 text-violet-700 border-violet-200',
-  branch_manager: 'bg-blue-100 text-blue-700 border-blue-200',
+  org_admin:      'bg-teal-100 text-teal-700 border-teal-200',
+  branch_manager: 'bg-teal-100 text-teal-700 border-teal-200',
   staff:          'bg-slate-100 text-slate-600 border-slate-200',
 };
 
@@ -162,7 +162,7 @@ export default function Profile({ onBack, onUpdated }: Props) {
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-2 mb-1">
                   <h1 className="text-xl font-bold text-slate-900">{profile?.name}</h1>
-                  <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${
+                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${
                     ROLE_COLORS[profile?.role] ?? 'bg-slate-100 text-slate-600 border-slate-200'
                   }`}>
                     {ROLE_LABELS[profile?.role] ?? profile?.role}

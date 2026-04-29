@@ -10,6 +10,7 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import { useAutoRefresh } from '../lib/useAutoRefresh';
 import { usePagination } from '../lib/usePagination';
 import Pagination from '../components/Pagination';
+import EmptyState from '../components/EmptyState';
 
 // Common tire-shop services for the one-click seed when the list is empty
 const QUICK_SEEDS = [
@@ -112,7 +113,7 @@ export default function Services() {
       {/* Summary */}
       <div className="grid grid-cols-3 gap-3 sm:gap-4">
         {[
-          { label: 'Active',    value: `${activeCount}`,            color: 'text-violet-600', help: 'Available on invoices' },
+          { label: 'Active',    value: `${activeCount}`,            color: 'text-teal-600', help: 'Available on invoices' },
           { label: 'Inactive',  value: `${inactiveCount}`,          color: inactiveCount > 0 ? 'text-amber-500' : 'text-slate-400', help: 'Hidden from invoices' },
           { label: 'Avg Price', value: formatCurrency(avgPrice),    color: 'text-slate-900',  help: 'Average sale price' },
         ].map(s => (
@@ -137,7 +138,7 @@ export default function Services() {
               </button>
               <button
                 onClick={() => setAddModal(true)}
-                className="flex items-center gap-1.5 bg-violet-600 text-white text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-2 rounded-lg hover:bg-violet-700 transition-colors">
+                className="flex items-center gap-1.5 bg-teal-600 text-white text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-2 rounded-lg hover:bg-teal-700 transition-colors">
                 <Plus size={14} />
                 <span className="hidden sm:inline">Add Service</span>
                 <span className="sm:hidden">Add</span>
@@ -149,7 +150,7 @@ export default function Services() {
             <input
               value={search} onChange={e => setSearch(e.target.value)}
               placeholder="Search services…"
-              className="pl-8 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 w-full"
+              className="pl-8 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 w-full"
             />
           </div>
         </div>
@@ -161,7 +162,7 @@ export default function Services() {
         )}
 
         {loading && (
-          <div className="p-6 space-y-3">
+          <div className="p-4 space-y-2">
             {[1,2,3,4,5].map(i => <div key={i} className="h-14 bg-slate-100 rounded-lg animate-pulse" />)}
           </div>
         )}
@@ -173,8 +174,8 @@ export default function Services() {
             {/* Empty state with quick-seed */}
             {services.length === 0 && !error && (
               <div className="py-12 text-center px-6">
-                <div className="w-14 h-14 bg-violet-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Wrench size={24} className="text-violet-400" />
+                <div className="w-14 h-14 bg-teal-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Wrench size={24} className="text-teal-400" />
                 </div>
                 <p className="text-sm font-semibold text-slate-700 mb-1">No services yet</p>
                 <p className="text-xs text-slate-400 mb-6">
@@ -183,7 +184,7 @@ export default function Services() {
                 <button
                   onClick={seedDefaults}
                   disabled={seeding}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-violet-600 rounded-xl hover:bg-violet-700 disabled:opacity-60 transition-colors"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-teal-600 rounded-xl hover:bg-teal-700 disabled:opacity-60 transition-colors"
                 >
                   {seeding ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />}
                   {seeding ? 'Adding defaults…' : 'Add default services'}
@@ -220,8 +221,8 @@ export default function Services() {
                             {/* Service name + description */}
                             <td className="px-4 py-3.5">
                               <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 bg-violet-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                                  <Wrench size={14} className="text-violet-500" />
+                                <div className="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                  <Wrench size={14} className="text-teal-500" />
                                 </div>
                                 <div>
                                   <p className="text-sm font-semibold text-slate-900 leading-tight">{svc.name}</p>
@@ -279,7 +280,7 @@ export default function Services() {
                             <td className="px-4 py-3.5">
                               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <button onClick={() => setEditSvc(svc)} title="Edit"
-                                  className="p-1.5 text-slate-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors">
+                                  className="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors">
                                   <Pencil size={14} />
                                 </button>
                                 <button onClick={() => setDeleteSvc(svc)} title="Delete"
@@ -304,8 +305,8 @@ export default function Services() {
 
                     return (
                       <div key={svc.id} className="p-4 flex items-start gap-3">
-                        <div className="w-10 h-10 bg-violet-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <Wrench size={16} className="text-violet-500" />
+                        <div className="w-10 h-10 bg-teal-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Wrench size={16} className="text-teal-500" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2">
@@ -317,7 +318,7 @@ export default function Services() {
                             </div>
                             <div className="flex items-center gap-1 flex-shrink-0">
                               <button onClick={() => setEditSvc(svc)} title="Edit"
-                                className="p-1.5 text-slate-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors">
+                                className="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors">
                                 <Pencil size={13} />
                               </button>
                               <button onClick={() => setDeleteSvc(svc)} title="Delete"
@@ -367,10 +368,7 @@ export default function Services() {
                 </div>
 
                 {filtered.length === 0 && (
-                  <div className="text-center py-10 text-slate-400">
-                    <Wrench size={28} className="mx-auto mb-2 opacity-30" />
-                    <p className="text-sm">No services match your search.</p>
-                  </div>
+                  <EmptyState icon={Wrench} message="No services match your search." />
                 )}
               </>
             )}

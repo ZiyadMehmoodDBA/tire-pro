@@ -12,10 +12,11 @@ import { printInvoice, downloadInvoice } from '../lib/invoicePdf';
 import { useAutoRefresh } from '../lib/useAutoRefresh';
 import { usePagination } from '../lib/usePagination';
 import Pagination from '../components/Pagination';
+import EmptyState from '../components/EmptyState';
 
 const statusColor: Record<string, string> = {
   paid:    'bg-emerald-50 text-emerald-700 border border-emerald-100',
-  partial: 'bg-blue-50   text-blue-700   border border-blue-100',
+  partial: 'bg-teal-50   text-teal-700   border border-teal-100',
   pending: 'bg-amber-50  text-amber-700  border border-amber-100',
   overdue: 'bg-red-50    text-red-700    border border-red-100',
   voided:  'bg-slate-100 text-slate-500  border border-slate-200',
@@ -23,7 +24,7 @@ const statusColor: Record<string, string> = {
 
 const STATUS_OPTIONS = [
   { value: 'paid',    label: 'Mark as Paid',    color: 'text-emerald-700' },
-  { value: 'partial', label: 'Mark as Partial', color: 'text-blue-700' },
+  { value: 'partial', label: 'Mark as Partial', color: 'text-teal-700' },
   { value: 'pending', label: 'Mark as Pending', color: 'text-amber-700' },
   { value: 'overdue', label: 'Mark as Overdue', color: 'text-red-700' },
 ];
@@ -195,7 +196,7 @@ export default function Sales() {
               <button
                 onClick={() => setShowModal(true)}
                 title="Create a new sales invoice"
-                className="flex items-center gap-1.5 bg-blue-600 text-white text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex items-center gap-1.5 bg-teal-600 text-white text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-2 rounded-lg hover:bg-teal-700 transition-colors"
               >
                 <Plus size={14} />
                 <span className="hidden sm:inline">POS / New Sale</span>
@@ -209,18 +210,18 @@ export default function Sales() {
               <input
                 value={search} onChange={e => setSearch(e.target.value)}
                 placeholder="Search customer or invoice number..."
-                className="pl-8 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                className="pl-8 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 w-full"
               />
             </div>
             <input
               type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
               title="From date"
-              className="text-sm bg-slate-50 border border-slate-200 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-shrink-0"
+              className="text-sm bg-slate-50 border border-slate-200 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 flex-shrink-0"
             />
             <input
               type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
               title="To date"
-              className="text-sm bg-slate-50 border border-slate-200 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-shrink-0"
+              className="text-sm bg-slate-50 border border-slate-200 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 flex-shrink-0"
             />
             {(dateFrom || dateTo) && (
               <button
@@ -233,7 +234,7 @@ export default function Sales() {
             <select
               value={filter} onChange={e => setFilter(e.target.value)}
               title="Filter by payment status"
-              className="text-sm bg-slate-50 border border-slate-200 rounded-lg px-2 sm:px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-shrink-0"
+              className="text-sm bg-slate-50 border border-slate-200 rounded-lg px-2 sm:px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 flex-shrink-0"
             >
               <option value="all">All</option>
               <option value="paid">Paid</option>
@@ -252,7 +253,7 @@ export default function Sales() {
         )}
 
         {loading && !error && (
-          <div className="p-6 space-y-3">
+          <div className="p-4 space-y-2">
             {[1,2,3,4].map(i => <div key={i} className="h-12 bg-slate-100 rounded-lg animate-pulse" />)}
           </div>
         )}
@@ -275,9 +276,9 @@ export default function Sales() {
                 {paged.map(sale => {
                   const isVoided = sale.status === 'voided';
                   return (
-                    <tr key={sale.id} className={`hover:bg-slate-50/50 transition-colors ${isVoided ? 'opacity-60' : ''}`}>
+                    <tr key={sale.id} className={`hover:bg-slate-50 transition-colors ${isVoided ? 'opacity-60' : ''}`}>
                       <td className="px-3 sm:px-4 py-3 sm:py-3.5">
-                        <span className={`text-xs sm:text-sm font-semibold ${isVoided ? 'text-slate-400 line-through' : 'text-blue-600'}`}>{sale.invoice_no}</span>
+                        <span className={`text-xs sm:text-sm font-semibold ${isVoided ? 'text-slate-400 line-through' : 'text-teal-600'}`}>{sale.invoice_no}</span>
                       </td>
                       <td className="px-3 sm:px-4 py-3 sm:py-3.5 text-xs sm:text-sm text-slate-600 whitespace-nowrap">{formatDate(sale.date)}</td>
                       <td className="px-3 sm:px-4 py-3 sm:py-3.5 text-xs sm:text-sm font-medium text-slate-900 max-w-[130px] truncate">{sale.customer_name}</td>
@@ -335,7 +336,7 @@ export default function Sales() {
                             onClick={() => handleView(sale.id)}
                             disabled={loadingId === sale.id}
                             title="View invoice"
-                            className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-40"
+                            className="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors disabled:opacity-40"
                           >
                             <Eye size={14} />
                           </button>
@@ -390,9 +391,7 @@ export default function Sales() {
               </tbody>
             </table>
             {filtered.length === 0 && (
-              <div className="text-center py-12 text-slate-400 text-sm">
-                {sales.length === 0 ? 'No sales yet. Create your first invoice.' : 'No records match your search.'}
-              </div>
+              <EmptyState message={sales.length === 0 ? 'No sales yet. Create your first invoice.' : 'No records match your search.'} />
             )}
           </div>
         )}

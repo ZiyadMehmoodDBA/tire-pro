@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { api } from '../api/client';
 import { useAutoRefresh } from '../lib/useAutoRefresh';
+import EmptyState from '../components/EmptyState';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -26,7 +27,7 @@ function formatFull(dateStr: string) {
 
 const ACTION_STYLES: Record<string, string> = {
   CREATE: 'bg-emerald-50 text-emerald-700 border border-emerald-100',
-  UPDATE: 'bg-blue-50    text-blue-700    border border-blue-100',
+  UPDATE: 'bg-teal-50    text-teal-700    border border-teal-100',
   DELETE: 'bg-red-50     text-red-700     border border-red-100',
 };
 
@@ -242,7 +243,7 @@ export default function AuditLog() {
         <button
           onClick={() => fetchLogs(page)}
           disabled={loading}
-          className="p-2 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-xl transition-colors"
+          className="p-2 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
           title="Refresh"
         >
           <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
@@ -333,10 +334,7 @@ export default function AuditLog() {
             <div className="w-7 h-7 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : logs.length === 0 ? (
-          <div className="text-center py-16 text-slate-400 text-sm">
-            <ClipboardList size={32} className="mx-auto mb-2 text-slate-200" />
-            No audit entries found
-          </div>
+          <EmptyState icon={ClipboardList} message="No audit entries found" />
         ) : (
           <div className="divide-y divide-slate-100">
             {logs.map(log => {

@@ -225,7 +225,7 @@ export default function NewPurchaseModal({ onClose, onCreated }: NewPurchaseModa
                   Supplier <span className="text-red-500">*</span>
                 </label>
                 <select value={supplierId} onChange={e => setSupplierId(e.target.value)}
-                  className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-slate-50"
+                  className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50"
                   required>
                   <option value="">Select supplier...</option>
                   {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -234,7 +234,7 @@ export default function NewPurchaseModal({ onClose, onCreated }: NewPurchaseModa
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">Date</label>
                 <input type="date" value={date} onChange={e => setDate(e.target.value)}
-                  className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-slate-50" />
+                  className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50" />
               </div>
             </div>
 
@@ -245,7 +245,7 @@ export default function NewPurchaseModal({ onClose, onCreated }: NewPurchaseModa
                   Line Items <span className="text-red-500">*</span>
                 </label>
                 <button type="button" onClick={addItem}
-                  className="flex items-center gap-1 text-xs text-violet-600 hover:text-violet-700 font-semibold">
+                  className="flex items-center gap-1 text-xs text-teal-600 hover:text-teal-700 font-semibold">
                   <Plus size={13} /> Add Item
                 </button>
               </div>
@@ -259,11 +259,11 @@ export default function NewPurchaseModal({ onClose, onCreated }: NewPurchaseModa
                       {/* Mode toggle */}
                       <div className="flex rounded-lg border border-slate-200 overflow-hidden text-xs font-semibold shrink-0 bg-white">
                         <button type="button" onClick={() => setItemMode(i, 'product')}
-                          className={`px-2.5 py-1.5 transition-colors ${item.mode === 'product' ? 'bg-violet-600 text-white' : 'text-slate-500 hover:bg-slate-50'}`}>
+                          className={`px-2.5 py-1.5 transition-colors ${item.mode === 'product' ? 'bg-teal-600 text-white' : 'text-slate-500 hover:bg-slate-50'}`}>
                           Product
                         </button>
                         <button type="button" onClick={() => setItemMode(i, 'tire')}
-                          className={`px-2.5 py-1.5 transition-colors ${item.mode === 'tire' ? 'bg-violet-600 text-white' : 'text-slate-500 hover:bg-slate-50'}`}>
+                          className={`px-2.5 py-1.5 transition-colors ${item.mode === 'tire' ? 'bg-teal-600 text-white' : 'text-slate-500 hover:bg-slate-50'}`}>
                           Tire
                         </button>
                       </div>
@@ -273,13 +273,13 @@ export default function NewPurchaseModal({ onClose, onCreated }: NewPurchaseModa
                         <input type="number" min={1}
                           value={item.qty}
                           onChange={e => updateItem(i, 'qty', e.target.value)}
-                          className="w-16 text-sm border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500 text-center bg-white"
+                          className="w-16 text-sm border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-500 text-center bg-white"
                           placeholder="1" />
                         <span className="text-xs text-slate-400 shrink-0">Cost</span>
                         <input type="number" min={0} step="0.01"
                           value={item.unit_price}
                           onChange={e => updateItem(i, 'unit_price', e.target.value)}
-                          className="flex-1 min-w-0 text-sm border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500 text-right bg-white"
+                          className="flex-1 min-w-0 text-sm border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-500 text-right bg-white"
                           placeholder="0.00" />
                       </div>
 
@@ -298,7 +298,7 @@ export default function NewPurchaseModal({ onClose, onCreated }: NewPurchaseModa
                       <select
                         value={item.item_key}
                         onChange={e => updateItem(i, 'item_key', e.target.value)}
-                        className="w-full text-sm border border-slate-200 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                        className="w-full text-sm border border-slate-200 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
                         required>
                         <option value="">Select product or tire...</option>
                         {products.length > 0 && (
@@ -412,7 +412,7 @@ export default function NewPurchaseModal({ onClose, onCreated }: NewPurchaseModa
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">Status</label>
                 <select value={status} onChange={e => setStatus(e.target.value)}
-                  className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-slate-50">
+                  className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50">
                   <option value="pending">Pending Delivery</option>
                   <option value="received">Received</option>
                 </select>
@@ -421,14 +421,14 @@ export default function NewPurchaseModal({ onClose, onCreated }: NewPurchaseModa
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">Notes</label>
                 <input type="text" value={notes} onChange={e => setNotes(e.target.value)}
                   placeholder="Optional notes..."
-                  className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-slate-50" />
+                  className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50" />
               </div>
             </div>
 
-            <div className="bg-violet-50 rounded-xl p-4 border border-violet-100">
+            <div className="bg-teal-50 rounded-xl p-4 border border-teal-100">
               <div className="flex justify-between text-base font-bold text-slate-900">
                 <span>Total Amount</span>
-                <span className="text-violet-600">{formatCurrency(subtotal)}</span>
+                <span className="text-teal-600">{formatCurrency(subtotal)}</span>
               </div>
               {status === 'received' && (
                 <p className="text-xs text-emerald-600 font-medium mt-1.5">
@@ -444,7 +444,7 @@ export default function NewPurchaseModal({ onClose, onCreated }: NewPurchaseModa
               Cancel
             </button>
             <button type="submit" disabled={loading || success}
-              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-violet-600 rounded-xl hover:bg-violet-700 transition-colors disabled:opacity-60 min-w-36 justify-center">
+              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-teal-600 rounded-xl hover:bg-teal-700 transition-colors disabled:opacity-60 min-w-36 justify-center">
               {loading  ? <><Loader2 size={15} className="animate-spin" /> Saving...</>
                : success ? <><CheckCircle size={15} /> Saved!</>
                : 'Create PO'}

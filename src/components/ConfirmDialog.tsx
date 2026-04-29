@@ -34,7 +34,7 @@ export default function ConfirmDialog({
           <button
             onClick={onCancel}
             disabled={loading}
-            className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 hover:text-slate-600 disabled:opacity-40"
+            className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 hover:text-slate-600 disabled:opacity-40"
           >
             <X size={16} />
           </button>

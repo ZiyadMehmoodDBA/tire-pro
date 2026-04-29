@@ -100,7 +100,7 @@ export default function CatalogImportModal({ onClose, onImported }: Props) {
               }
             </p>
             <button onClick={onClose}
-              className="mt-2 px-6 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-xl hover:bg-emerald-700 transition-colors">
+              className="mt-2 px-6 py-2.5 bg-teal-600 text-white text-sm font-semibold rounded-xl hover:bg-teal-700 transition-colors">
               Done
             </button>
           </div>
@@ -190,7 +190,7 @@ export default function CatalogImportModal({ onClose, onImported }: Props) {
                         <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">
                           International Brands
                         </span>
-                        <span className="text-[10px] bg-blue-100 text-blue-700 border border-blue-200 px-1.5 py-0.5 rounded-full font-semibold">
+                        <span className="text-[10px] bg-teal-100 text-teal-700 border border-teal-200 px-1.5 py-0.5 rounded-full font-semibold">
                           Global
                         </span>
                       </div>
@@ -226,7 +226,7 @@ export default function CatalogImportModal({ onClose, onImported }: Props) {
                 <button
                   onClick={handleImport}
                   disabled={importing || noneSelected}
-                  className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 transition-colors disabled:opacity-50 min-w-36 justify-center"
+                  className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-teal-600 rounded-xl hover:bg-teal-700 transition-colors disabled:opacity-50 min-w-36 justify-center"
                 >
                   {importing
                     ? <><Loader2 size={15} className="animate-spin" /> Importing...</>

@@ -102,14 +102,14 @@ export default function Dashboard() {
 
   const statusColor: Record<string, string> = {
     paid:    'bg-emerald-50 text-emerald-700',
-    partial: 'bg-blue-50 text-blue-700',
+    partial: 'bg-teal-50 text-teal-700',
     pending: 'bg-amber-50 text-amber-700',
     overdue: 'bg-red-50 text-red-700',
   };
 
   const Skeleton = () => (
-    <div className="space-y-3">
-      {[1, 2, 3].map(i => <div key={i} className="h-10 bg-slate-100 rounded-xl animate-pulse" />)}
+    <div className="space-y-2">
+      {[1, 2, 3].map(i => <div key={i} className="h-10 bg-slate-100 rounded-lg animate-pulse" />)}
     </div>
   );
 
@@ -217,18 +217,18 @@ export default function Dashboard() {
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100">
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-50">
             <div className="flex items-center gap-2">
-              <Package size={15} className="text-blue-500" />
+              <Package size={15} className="text-teal-500" />
               <h3 className="text-sm font-bold text-slate-900">Inventory Status</h3>
             </div>
             <Bell size={14} className="text-slate-300" />
           </div>
           <div className="p-4 grid grid-cols-3 gap-3">
-            <div className="bg-blue-50 border border-blue-100 rounded-xl p-3.5 text-center">
-              <p className="text-[10px] text-blue-600 font-bold uppercase tracking-wide mb-1.5">Total SKUs</p>
-              <p className="text-xl sm:text-2xl font-bold text-blue-700 leading-none">
+            <div className="bg-teal-50 border border-teal-100 rounded-xl p-3.5 text-center">
+              <p className="text-[10px] text-teal-600 font-bold uppercase tracking-wide mb-1.5">Total SKUs</p>
+              <p className="text-xl sm:text-2xl font-bold text-teal-700 leading-none">
                 {loading ? '—' : tires.length}
               </p>
-              <p className="text-[10px] text-blue-500 mt-1.5">Products</p>
+              <p className="text-[10px] text-teal-500 mt-1.5">Products</p>
             </div>
             <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3.5 text-center">
               <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-wide mb-1.5">In Stock</p>
@@ -255,7 +255,7 @@ export default function Dashboard() {
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100">
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-50">
             <div className="flex items-center gap-2">
-              <BookOpen size={15} className="text-violet-500" />
+              <BookOpen size={15} className="text-teal-500" />
               <h3 className="text-sm font-bold text-slate-900">Finance Overview</h3>
             </div>
             <Bell size={14} className="text-slate-300" />
@@ -275,12 +275,12 @@ export default function Dashboard() {
               </p>
               <p className="text-[10px] text-red-500 mt-1.5">To Pay</p>
             </div>
-            <div className="bg-violet-50 border border-violet-100 rounded-xl p-3.5 text-center">
-              <p className="text-[10px] text-violet-600 font-bold uppercase tracking-wide mb-1.5">Purchases</p>
-              <p className="text-xl sm:text-2xl font-bold text-violet-700 leading-none">
+            <div className="bg-teal-50 border border-teal-100 rounded-xl p-3.5 text-center">
+              <p className="text-[10px] text-teal-600 font-bold uppercase tracking-wide mb-1.5">Purchases</p>
+              <p className="text-xl sm:text-2xl font-bold text-teal-700 leading-none">
                 {loading ? '—' : pendingPurchases.length}
               </p>
-              <p className="text-[10px] text-violet-500 mt-1.5">Pending POs</p>
+              <p className="text-[10px] text-teal-500 mt-1.5">Pending POs</p>
             </div>
           </div>
         </div>

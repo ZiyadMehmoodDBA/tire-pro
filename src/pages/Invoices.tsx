@@ -9,6 +9,7 @@ import { getCachedSettings } from '../lib/appSettings';
 import { usePagination } from '../lib/usePagination';
 import Pagination from '../components/Pagination';
 import ExcelImportModal from '../components/ExcelImportModal';
+import EmptyState from '../components/EmptyState';
 
 const statusColor: Record<string, string> = {
   paid:    'bg-emerald-50 text-emerald-700',
@@ -82,19 +83,19 @@ export default function Invoices() {
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm sm:text-base font-bold text-slate-900">Invoices</h3>
               <div className="flex items-center gap-1.5">
-                <button onClick={fetchSales} className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
+                <button onClick={fetchSales} className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
                   <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
                 </button>
                 <button
                   onClick={() => setShowImport(true)}
                   title="Import invoices from Excel"
-                  className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                  className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
                 >
                   <FileSpreadsheet size={14} />
                 </button>
                 <button
                   onClick={() => setShowNewSale(true)}
-                  className="flex items-center gap-1 bg-blue-600 text-white text-xs font-medium px-2.5 py-1.5 rounded-lg hover:bg-blue-700 transition-colors"
+                  className="flex items-center gap-1 bg-teal-600 text-white text-xs font-medium px-2.5 py-1.5 rounded-lg hover:bg-teal-700 transition-colors"
                 >
                   <Plus size={13} /> New
                 </button>
@@ -106,7 +107,7 @@ export default function Invoices() {
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Search..."
-                className="pl-8 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                className="pl-8 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 w-full"
               />
             </div>
           </div>
@@ -128,10 +129,10 @@ export default function Invoices() {
                   <button
                     key={inv.id}
                     onClick={() => handleSelect(inv.id)}
-                    className={`w-full text-left px-4 py-3.5 border-b border-slate-50 hover:bg-slate-50 transition-colors ${selectedId === inv.id ? 'bg-blue-50 border-l-2 border-l-blue-500' : ''}`}
+                    className={`w-full text-left px-4 py-3.5 border-b border-slate-50 hover:bg-slate-50 transition-colors ${selectedId === inv.id ? 'bg-teal-50 border-l-2 border-l-teal-500' : ''}`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-xs sm:text-sm font-semibold text-blue-600">{inv.invoice_no}</span>
+                      <span className="text-xs sm:text-sm font-semibold text-teal-600">{inv.invoice_no}</span>
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${statusColor[inv.status] || 'bg-slate-100 text-slate-600'}`}>{inv.status}</span>
                     </div>
                     <p className="text-xs sm:text-sm text-slate-900 font-medium mt-0.5 truncate">{inv.customer_name}</p>
@@ -142,7 +143,7 @@ export default function Invoices() {
                   </button>
                 ))}
                 {filtered.length === 0 && (
-                  <p className="text-center text-sm text-slate-400 py-10">No invoices found</p>
+                  <EmptyState message="No invoices found" />
                 )}
               </>
             )}
@@ -158,7 +159,7 @@ export default function Invoices() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => { setMobileView('list'); setSelectedId(null); setDetail(null); }}
-                    className="p-1.5 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors xl:hidden"
+                    className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors xl:hidden"
                   >
                     <ArrowLeft size={16} />
                   </button>
@@ -176,7 +177,7 @@ export default function Invoices() {
                   <button
                     onClick={handleDownload}
                     disabled={!detail || actionLoading === 'download'}
-                    className="flex items-center gap-1.5 text-xs sm:text-sm text-white bg-blue-600 hover:bg-blue-700 px-2 sm:px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                    className="flex items-center gap-1.5 text-xs sm:text-sm text-white bg-teal-600 hover:bg-teal-700 px-2 sm:px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
                   >
                     {actionLoading === 'download' ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
                     <span className="hidden sm:inline">Download PDF</span>
@@ -196,7 +197,7 @@ export default function Invoices() {
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6 sm:mb-8">
                       <div>
                         <div className="flex items-center gap-2 mb-2">
-                          <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center">
+                          <div className="w-9 h-9 bg-teal-600 rounded-xl flex items-center justify-center">
                             <span className="text-white font-bold text-xs">
                               {getCachedSettings().company_name.split(' ').map((w: string) => w[0] || '').join('').slice(0, 2).toUpperCase()}
                             </span>
@@ -214,9 +215,9 @@ export default function Invoices() {
                       </div>
                       <div className="sm:text-right">
                         <p className="text-2xl sm:text-3xl font-bold text-slate-200 uppercase tracking-widest">Invoice</p>
-                        <p className="text-base sm:text-lg font-bold text-blue-600 mt-1">{detail.invoice_no}</p>
+                        <p className="text-base sm:text-lg font-bold text-teal-600 mt-1">{detail.invoice_no}</p>
                         <p className="text-xs sm:text-sm text-slate-500 mt-1">Date: {formatDate(detail.date)}</p>
-                        <span className={`inline-block mt-2 text-xs font-semibold px-3 py-1 rounded-full ${statusColor[detail.status] || 'bg-slate-100 text-slate-600'}`}>
+                        <span className={`inline-block mt-2 text-xs font-semibold px-2.5 py-1 rounded-full ${statusColor[detail.status] || 'bg-slate-100 text-slate-600'}`}>
                           {(detail.status || '').toUpperCase()}
                         </span>
                       </div>
@@ -261,7 +262,7 @@ export default function Invoices() {
                         </div>
                         <div className="flex justify-between text-sm sm:text-base font-bold text-slate-900 pt-2 border-t-2 border-slate-200">
                           <span>Total</span>
-                          <span className="text-blue-600">{formatCurrency(Number(detail.total))}</span>
+                          <span className="text-teal-600">{formatCurrency(Number(detail.total))}</span>
                         </div>
                       </div>
                     </div>

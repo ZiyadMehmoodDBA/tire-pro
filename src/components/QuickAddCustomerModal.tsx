@@ -42,7 +42,7 @@ export default function QuickAddCustomerModal({ onCreated, onClose }: Props) {
             </div>
             <h3 className="text-sm font-bold text-slate-900">Save Customer Info</h3>
           </div>
-          <button onClick={onClose} className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors">
+          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
             <X size={16} className="text-slate-400" />
           </button>
         </div>

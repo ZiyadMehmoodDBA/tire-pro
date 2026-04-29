@@ -8,6 +8,7 @@ import { api } from '../api/client';
 import { formatCurrency } from '../lib/utils';
 import ConfirmDialog from '../components/ConfirmDialog';
 import ExcelImportModal from '../components/ExcelImportModal';
+import EmptyState from '../components/EmptyState';
 import { usePagination } from '../lib/usePagination';
 import Pagination from '../components/Pagination';
 import { useAutoRefresh } from '../lib/useAutoRefresh';
@@ -117,10 +118,10 @@ export default function Suppliers() {
         </div>
         <div className="bg-white rounded-xl p-3 sm:p-4 border border-slate-100 shadow-sm">
           <div className="flex items-center gap-1.5 mb-1">
-            <ShoppingBag size={12} className="text-violet-500" />
+            <ShoppingBag size={12} className="text-teal-500" />
             <p className="text-xs text-slate-500 font-medium">Total Purchased</p>
           </div>
-          <p className="text-sm sm:text-xl font-bold text-violet-600 truncate">{formatCurrency(totalInvoiced)}</p>
+          <p className="text-sm sm:text-xl font-bold text-teal-600 truncate">{formatCurrency(totalInvoiced)}</p>
           <p className="text-xs text-slate-400 mt-0.5 hidden sm:block">All purchase orders</p>
         </div>
         <div className="bg-white rounded-xl p-3 sm:p-4 border border-slate-100 shadow-sm">
@@ -155,7 +156,7 @@ export default function Suppliers() {
             <div className="relative flex-1 sm:flex-none">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Name, code, phone..."
-                className="pl-8 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 w-full sm:w-44" />
+                className="pl-8 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 w-full sm:w-44" />
             </div>
             <button onClick={() => setShowImport(true)} title="Import from Excel"
               className="flex items-center gap-1.5 bg-slate-100 text-slate-700 text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-2 rounded-lg hover:bg-slate-200 transition-colors whitespace-nowrap">
@@ -163,7 +164,7 @@ export default function Suppliers() {
               <span className="hidden sm:inline">Import Excel</span>
             </button>
             <button onClick={() => setShowAdd(v => !v)} title="Add new supplier"
-              className="flex items-center gap-1.5 bg-violet-600 text-white text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-2 rounded-lg hover:bg-violet-700 transition-colors whitespace-nowrap">
+              className="flex items-center gap-1.5 bg-teal-600 text-white text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-2 rounded-lg hover:bg-teal-700 transition-colors whitespace-nowrap">
               <Plus size={14} />
               <span className="hidden sm:inline">Add Supplier</span>
               <span className="sm:hidden">Add</span>
@@ -173,11 +174,11 @@ export default function Suppliers() {
 
         {/* Add form */}
         {showAdd && (
-          <form onSubmit={handleAdd} className="m-4 sm:m-5 p-4 bg-violet-50 rounded-xl border border-violet-100 space-y-3">
+          <form onSubmit={handleAdd} className="m-4 sm:m-5 p-4 bg-teal-50 rounded-xl border border-teal-100 space-y-3">
             <div className="flex items-center justify-between">
               <p className="text-sm font-bold text-slate-900">New Supplier</p>
               <button type="button" onClick={() => { setShowAdd(false); setFormErr(''); }}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-violet-100 transition-colors">
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-teal-100 transition-colors">
                 <X size={16} />
               </button>
             </div>
@@ -197,7 +198,7 @@ export default function Suppliers() {
                     value={(form as any)[field]}
                     onChange={e => setForm(f => ({ ...f, [field]: e.target.value }))}
                     placeholder={placeholder}
-                    className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                    className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
                   />
                 </div>
               ))}
@@ -206,7 +207,7 @@ export default function Suppliers() {
               <button type="button" onClick={() => { setShowAdd(false); setFormErr(''); }}
                 className="px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">Cancel</button>
               <button type="submit" disabled={saving}
-                className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-violet-600 rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-60">
+                className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-teal-600 rounded-lg hover:bg-teal-700 transition-colors disabled:opacity-60">
                 {saving ? <><Loader2 size={13} className="animate-spin" />Saving...</> : 'Save Supplier'}
               </button>
             </div>
@@ -237,12 +238,12 @@ export default function Suppliers() {
 
               return (
                 <div key={s.id}
-                  className="border border-slate-100 rounded-xl p-4 hover:shadow-md transition-shadow hover:border-violet-200 group relative bg-white"
+                  className="border border-slate-100 rounded-xl p-4 hover:shadow-md transition-shadow hover:border-teal-200 group relative bg-white"
                 >
                   {/* Action buttons */}
                   <div className="absolute top-3 right-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button onClick={() => openEdit(s)} title="Edit supplier"
-                      className="p-1.5 text-slate-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors">
+                      className="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors">
                       <Pencil size={13} />
                     </button>
                     <button onClick={() => setDeleteSupplier(s)} title="Delete supplier"
@@ -253,7 +254,7 @@ export default function Suppliers() {
 
                   {/* Header */}
                   <div className="flex items-start gap-3 pr-14">
-                    <div className="w-10 h-10 bg-violet-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 bg-teal-600 rounded-xl flex items-center justify-center flex-shrink-0">
                       <Truck size={16} className="text-white" />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -306,7 +307,7 @@ export default function Suppliers() {
                     </div>
                     <div className="w-full bg-slate-100 rounded-full h-1.5">
                       <div
-                        className={`h-1.5 rounded-full transition-all ${isSettled ? 'bg-emerald-500' : paidPct >= 50 ? 'bg-violet-500' : 'bg-amber-400'}`}
+                        className={`h-1.5 rounded-full transition-all ${isSettled ? 'bg-emerald-500' : paidPct >= 50 ? 'bg-teal-500' : 'bg-amber-400'}`}
                         style={{ width: `${paidPct}%` }}
                       />
                     </div>
@@ -316,9 +317,10 @@ export default function Suppliers() {
             })}
 
             {filtered.length === 0 && !loading && (
-              <div className="col-span-full text-center py-12 text-slate-400 text-sm">
-                {suppliers.length === 0 ? 'No suppliers yet. Add your first supplier.' : 'No suppliers match your search.'}
-              </div>
+              <EmptyState
+                message={suppliers.length === 0 ? 'No suppliers yet. Add your first supplier.' : 'No suppliers match your search.'}
+                className="col-span-full"
+              />
             )}
           </div>
         )}
@@ -352,7 +354,7 @@ export default function Suppliers() {
                     value={(editForm as any)[field]}
                     onChange={e => setEditForm(f => ({ ...f, [field]: e.target.value }))}
                     placeholder={placeholder}
-                    className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-slate-50"
+                    className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50"
                   />
                 </div>
               ))}
@@ -360,7 +362,7 @@ export default function Suppliers() {
                 <button type="button" onClick={() => setEditSupplier(null)}
                   className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors">Cancel</button>
                 <button type="submit" disabled={editSaving}
-                  className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-violet-600 rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-60">
+                  className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-teal-600 rounded-lg hover:bg-teal-700 transition-colors disabled:opacity-60">
                   {editSaving ? <><Loader2 size={13} className="animate-spin" />Saving...</> : <><CheckCircle size={13} />Save Changes</>}
                 </button>
               </div>

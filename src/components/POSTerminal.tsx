@@ -312,7 +312,7 @@ export default function POSTerminal({ onClose, onCreated }: Props) {
           <div className="space-y-2 mt-4">
             <button
               onClick={() => printInvoice(checkoutSale)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-teal-600 rounded-xl hover:bg-teal-700 transition-colors"
             >
               <Printer size={15} /> Print A4 Invoice
             </button>
@@ -341,7 +341,7 @@ export default function POSTerminal({ onClose, onCreated }: Props) {
 
         {/* ── Top bar ──────────────────────────────────────────────────────── */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 bg-slate-50 flex-shrink-0">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+          <div className="w-8 h-8 bg-teal-600 rounded-lg flex items-center justify-center flex-shrink-0">
             <ShoppingCart size={16} className="text-white" />
           </div>
           <h2 className="text-sm font-bold text-slate-900 flex-shrink-0">POS Terminal</h2>
@@ -351,7 +351,7 @@ export default function POSTerminal({ onClose, onCreated }: Props) {
             <select
               value={customerId}
               onChange={e => setCustomerId(e.target.value)}
-              className="flex-1 min-w-0 text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              className="flex-1 min-w-0 text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
             >
               <option value="">— Select customer —</option>
               <option value="walkin">Walk-in Customer</option>
@@ -398,7 +398,7 @@ export default function POSTerminal({ onClose, onCreated }: Props) {
                       if (e.key === 'Escape') setSearchOpen(false);
                     }}
                     placeholder="Search tires & services... (F2)"
-                    className="w-full text-sm border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50"
+                    className="w-full text-sm border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50"
                   />
                   {/* Search dropdown — positioned relative to the input wrapper */}
                   {searchOpen && (
@@ -410,13 +410,13 @@ export default function POSTerminal({ onClose, onCreated }: Props) {
                           key={item.key}
                           type="button"
                           onMouseDown={e => { e.preventDefault(); addToCart(item); }}
-                          className="w-full text-left px-4 py-2.5 hover:bg-blue-50 transition-colors border-b border-slate-50 last:border-0 flex items-center justify-between gap-2"
+                          className="w-full text-left px-4 py-2.5 hover:bg-teal-50 transition-colors border-b border-slate-50 last:border-0 flex items-center justify-between gap-2"
                         >
                           <div className="min-w-0">
                             <p className="text-sm font-medium text-slate-900 truncate">{item.name}</p>
                             <p className="text-xs text-slate-400">{item.subtitle}</p>
                           </div>
-                          <span className="text-sm font-bold text-blue-600 whitespace-nowrap flex-shrink-0">
+                          <span className="text-sm font-bold text-teal-600 whitespace-nowrap flex-shrink-0">
                             {formatCurrency(item.price)}
                           </span>
                         </button>
@@ -503,7 +503,7 @@ export default function POSTerminal({ onClose, onCreated }: Props) {
                           </span>
                         )}
                         <button type="button" onClick={() => applyVehicleSize(vehResult!.size)}
-                          className="ml-auto flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-colors">
+                          className="ml-auto flex items-center gap-1 px-3 py-1.5 bg-teal-600 text-white text-xs font-bold rounded-lg hover:bg-teal-700 transition-colors">
                           Filter Inventory <ChevronRight size={10} />
                         </button>
                       </>
@@ -556,7 +556,7 @@ export default function POSTerminal({ onClose, onCreated }: Props) {
                               <input
                                 type="number" min={1} value={item.qty}
                                 onChange={e => setQty(item.key, Number(e.target.value))}
-                                className="w-12 text-center text-sm border border-slate-200 rounded-md py-0.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                className="w-12 text-center text-sm border border-slate-200 rounded-md py-0.5 focus:outline-none focus:ring-1 focus:ring-teal-500"
                               />
                               <button type="button" onClick={() => updateQty(item.key, 1)}
                                 className="w-6 h-6 rounded-md bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors">
@@ -568,14 +568,14 @@ export default function POSTerminal({ onClose, onCreated }: Props) {
                             <input
                               type="number" min={0} step="0.01" value={item.unitPrice}
                               onChange={e => setPrice(item.key, Number(e.target.value))}
-                              className="w-24 text-right text-sm border border-slate-200 rounded-md px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                              className="w-24 text-right text-sm border border-slate-200 rounded-md px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-teal-500"
                             />
                           </td>
                           <td className="px-2 py-2 hidden md:table-cell">
                             <input
                               type="number" min={0} max={100} step="0.5" value={item.discount}
                               onChange={e => setLineDis(item.key, Number(e.target.value))}
-                              className="w-16 text-center text-sm border border-slate-200 rounded-md px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                              className="w-16 text-center text-sm border border-slate-200 rounded-md px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-teal-500"
                             />
                           </td>
                           <td className="px-4 py-2 text-right font-semibold text-slate-900 whitespace-nowrap">
@@ -630,7 +630,7 @@ export default function POSTerminal({ onClose, onCreated }: Props) {
 
               <div className="flex justify-between text-base font-bold text-slate-900 pt-2 border-t border-slate-200">
                 <span>TOTAL</span>
-                <span className="text-blue-600">{formatCurrency(total)}</span>
+                <span className="text-teal-600">{formatCurrency(total)}</span>
               </div>
             </div>
 
@@ -699,7 +699,7 @@ export default function POSTerminal({ onClose, onCreated }: Props) {
                     onClick={() => setPayMethod(v as any)}
                     className={`flex flex-col items-center gap-1 py-2.5 rounded-xl text-xs font-semibold border transition-all ${
                       payMethod === v
-                        ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                        ? 'bg-teal-600 text-white border-teal-600 shadow-sm'
                         : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                     }`}
                   >
@@ -719,7 +719,7 @@ export default function POSTerminal({ onClose, onCreated }: Props) {
                       value={cashGiven}
                       onChange={e => setCashGiven(e.target.value)}
                       placeholder={formatCurrency(total)}
-                      className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-right font-mono"
+                      className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 text-right font-mono"
                     />
                   </div>
                   {cashGivenNum > 0 && (
@@ -741,7 +741,7 @@ export default function POSTerminal({ onClose, onCreated }: Props) {
                     <input
                       type="number" min={0} step="100" value={cashAmount}
                       onChange={e => setCashAmount(e.target.value)}
-                      className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-right font-mono"
+                      className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 text-right font-mono"
                     />
                   </div>
                   <div>
@@ -749,7 +749,7 @@ export default function POSTerminal({ onClose, onCreated }: Props) {
                     <input
                       type="number" min={0} step="100" value={cardAmount}
                       onChange={e => setCardAmount(e.target.value)}
-                      className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-right font-mono"
+                      className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 text-right font-mono"
                     />
                   </div>
                   {(() => {
@@ -782,7 +782,7 @@ export default function POSTerminal({ onClose, onCreated }: Props) {
                 type="button"
                 onClick={handleCheckout}
                 disabled={loading || cart.length === 0}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3.5 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 active:bg-blue-800 transition-colors disabled:opacity-50 shadow-md shadow-blue-200"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3.5 text-sm font-bold text-white bg-teal-600 rounded-xl hover:bg-teal-700 active:bg-teal-800 transition-colors disabled:opacity-50 shadow-md shadow-teal-200"
               >
                 {loading
                   ? <><Loader2 size={16} className="animate-spin" /> Processing...</>

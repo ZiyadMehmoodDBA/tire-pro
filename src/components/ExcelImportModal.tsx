@@ -82,11 +82,11 @@ const CONFIGS: Record<ImportEntity, EntityConfig> = {
 };
 
 const ACCENT: Record<ImportEntity, { btn: string; text: string; light: string; border: string }> = {
-  customers: { btn: 'bg-blue-600 hover:bg-blue-700',     text: 'text-blue-600',   light: 'bg-blue-50',   border: 'border-blue-200' },
-  suppliers:  { btn: 'bg-violet-600 hover:bg-violet-700', text: 'text-violet-600', light: 'bg-violet-50', border: 'border-violet-200' },
+  customers: { btn: 'bg-teal-600 hover:bg-teal-700',     text: 'text-teal-600',   light: 'bg-teal-50',   border: 'border-teal-200' },
+  suppliers:  { btn: 'bg-teal-600 hover:bg-teal-700', text: 'text-teal-600', light: 'bg-teal-50', border: 'border-teal-200' },
   inventory:  { btn: 'bg-emerald-600 hover:bg-emerald-700', text: 'text-emerald-600', light: 'bg-emerald-50', border: 'border-emerald-200' },
-  sales:      { btn: 'bg-blue-600 hover:bg-blue-700',     text: 'text-blue-600',   light: 'bg-blue-50',   border: 'border-blue-200' },
-  purchases:  { btn: 'bg-violet-600 hover:bg-violet-700', text: 'text-violet-600', light: 'bg-violet-50', border: 'border-violet-200' },
+  sales:      { btn: 'bg-teal-600 hover:bg-teal-700',     text: 'text-teal-600',   light: 'bg-teal-50',   border: 'border-teal-200' },
+  purchases:  { btn: 'bg-teal-600 hover:bg-teal-700', text: 'text-teal-600', light: 'bg-teal-50', border: 'border-teal-200' },
 };
 
 type Step = 'select' | 'preview' | 'importing' | 'done';

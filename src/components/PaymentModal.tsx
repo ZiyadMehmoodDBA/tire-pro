@@ -82,7 +82,7 @@ export default function PaymentModal({ sale, onClose, onPaymentRecorded }: Payme
               <p className="text-xs text-slate-400">{sale.invoice_no}</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
             <X size={16} className="text-slate-500" />
           </button>
         </div>
@@ -145,7 +145,7 @@ export default function PaymentModal({ sale, onClose, onPaymentRecorded }: Payme
               {amountNum > 0 && (
                 <div className={`mt-1.5 text-xs px-2 py-1 rounded-lg inline-flex items-center gap-1 ${
                   willBePaid ? 'bg-emerald-50 text-emerald-700' :
-                  willBePartial ? 'bg-blue-50 text-blue-700' : ''
+                  willBePartial ? 'bg-teal-50 text-teal-700' : ''
                 }`}>
                   <DollarSign size={11} />
                   {willBePaid

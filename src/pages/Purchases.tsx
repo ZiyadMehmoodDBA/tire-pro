@@ -10,6 +10,7 @@ import POViewModal from '../components/POViewModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import ExcelImportModal from '../components/ExcelImportModal';
 import PurchasePaymentModal from '../components/PurchasePaymentModal';
+import EmptyState from '../components/EmptyState';
 
 const statusColor: Record<string, string> = {
   received:  'bg-emerald-50 text-emerald-700 border border-emerald-100',
@@ -120,7 +121,7 @@ export default function Purchases() {
           { label: 'Total Purchases',  value: formatCurrency(totalPurchased), color: 'text-slate-900',   help: `${filtered.length} orders` },
           { label: 'Total Paid Out',   value: formatCurrency(totalPaid),      color: 'text-emerald-600', help: 'Payments made' },
           { label: 'Outstanding',      value: formatCurrency(totalOutstanding), color: totalOutstanding > 0 ? 'text-amber-600' : 'text-emerald-600', help: 'Balance due to suppliers' },
-          { label: 'Pending Delivery', value: formatCurrency(pending),        color: 'text-violet-600',  help: 'Awaiting receipt' },
+          { label: 'Pending Delivery', value: formatCurrency(pending),        color: 'text-teal-600',  help: 'Awaiting receipt' },
         ].map(s => (
           <div key={s.label} className="bg-white rounded-xl p-3 sm:p-4 border border-slate-100 shadow-sm">
             <p className="text-xs text-slate-500 font-medium truncate">{s.label}</p>
@@ -150,7 +151,7 @@ export default function Purchases() {
               <button
                 onClick={() => setShowModal(true)}
                 title="Create a new purchase order"
-                className="flex items-center gap-1.5 bg-violet-600 text-white text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-2 rounded-lg hover:bg-violet-700 transition-colors"
+                className="flex items-center gap-1.5 bg-teal-600 text-white text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-2 rounded-lg hover:bg-teal-700 transition-colors"
               >
                 <Plus size={14} />
                 <span className="hidden sm:inline">Receive Stock (GRN)</span>
@@ -164,13 +165,13 @@ export default function Purchases() {
               <input
                 value={search} onChange={e => setSearch(e.target.value)}
                 placeholder="Search supplier or PO number..."
-                className="pl-8 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 w-full"
+                className="pl-8 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 w-full"
               />
             </div>
             <select
               value={filter} onChange={e => setFilter(e.target.value)}
               title="Filter by delivery status"
-              className="text-sm bg-slate-50 border border-slate-200 rounded-lg px-2 sm:px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500 flex-shrink-0"
+              className="text-sm bg-slate-50 border border-slate-200 rounded-lg px-2 sm:px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 flex-shrink-0"
             >
               <option value="all">All</option>
               <option value="received">Received</option>
@@ -187,7 +188,7 @@ export default function Purchases() {
         )}
 
         {loading && !error && (
-          <div className="p-6 space-y-3">
+          <div className="p-4 space-y-2">
             {[1,2,3,4].map(i => <div key={i} className="h-12 bg-slate-100 rounded-lg animate-pulse" />)}
           </div>
         )}
@@ -213,9 +214,9 @@ export default function Purchases() {
                   const paidAmt    = Number(po.amount_paid || 0);
                   const balanceDue = parseFloat((Number(po.total) - paidAmt).toFixed(2));
                   return (
-                  <tr key={po.id} className="hover:bg-slate-50/50 transition-colors">
+                  <tr key={po.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-3 sm:px-4 py-3 sm:py-3.5">
-                      <span className="text-xs sm:text-sm font-semibold text-violet-600">{po.po_no}</span>
+                      <span className="text-xs sm:text-sm font-semibold text-teal-600">{po.po_no}</span>
                     </td>
                     <td className="px-3 sm:px-4 py-3 sm:py-3.5 text-xs sm:text-sm text-slate-600 hidden sm:table-cell whitespace-nowrap">{formatDate(po.date)}</td>
                     <td className="px-3 sm:px-4 py-3 sm:py-3.5 text-xs sm:text-sm font-medium text-slate-900 max-w-[130px] truncate">{po.supplier_name}</td>
@@ -237,7 +238,7 @@ export default function Purchases() {
                           onClick={() => handleView(po.id)}
                           disabled={loadingId === po.id}
                           title="View purchase order"
-                          className="p-1.5 text-slate-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors disabled:opacity-40"
+                          className="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors disabled:opacity-40"
                         >
                           {loadingId === po.id ? <Loader2 size={14} className="animate-spin" /> : <Eye size={14} />}
                         </button>
@@ -247,7 +248,7 @@ export default function Purchases() {
                           <button
                             onClick={() => setPaymentPO(po)}
                             title="Record payment for this PO"
-                            className="p-1.5 text-slate-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors"
+                            className="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
                           >
                             <CreditCard size={14} />
                           </button>
@@ -294,9 +295,7 @@ export default function Purchases() {
               </tbody>
             </table>
             {filtered.length === 0 && (
-              <div className="text-center py-12 text-slate-400 text-sm">
-                {purchases.length === 0 ? 'No purchase orders yet. Create your first PO.' : 'No records match your search.'}
-              </div>
+              <EmptyState message={purchases.length === 0 ? 'No purchase orders yet. Create your first PO.' : 'No records match your search.'} />
             )}
           </div>
         )}

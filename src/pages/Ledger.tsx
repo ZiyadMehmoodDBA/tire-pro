@@ -8,6 +8,7 @@ import { api } from '../api/client';
 import { formatCurrency, formatDate } from '../lib/utils';
 import LedgerPaymentModal from '../components/LedgerPaymentModal';
 import { useAutoRefresh } from '../lib/useAutoRefresh';
+import EmptyState from '../components/EmptyState';
 
 type Tab = 'receivables' | 'payables';
 
@@ -224,14 +225,11 @@ export default function Ledger() {
           {/* List */}
           <div className="flex-1 overflow-y-auto">
             {loading ? (
-              <div className="p-3 space-y-2">
-                {[1,2,3,4,5].map(i => <div key={i} className="h-16 bg-slate-50 rounded-xl animate-pulse" />)}
+              <div className="p-4 space-y-2">
+                {[1,2,3,4,5].map(i => <div key={i} className="h-14 bg-slate-100 rounded-lg animate-pulse" />)}
               </div>
             ) : filtered.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-40 text-slate-400">
-                <BookOpen className="w-8 h-8 opacity-30 mb-2" />
-                <p className="text-xs">No records found</p>
-              </div>
+              <EmptyState icon={BookOpen} message="No records found" className="h-40 py-0" />
             ) : (
               <ul className="p-2 space-y-0.5">
                 {filtered.map(entity => (
@@ -269,9 +267,9 @@ export default function Ledger() {
                       </div>
                       {Number(entity.balance) > 0 && (
                         <div className="mt-2 flex items-center gap-2">
-                          <div className="flex-1 bg-slate-100 rounded-full h-1">
+                          <div className="flex-1 bg-slate-100 rounded-full h-1.5">
                             <div
-                              className="bg-teal-500 h-1 rounded-full"
+                              className="bg-teal-500 h-1.5 rounded-full"
                               style={{
                                 width: `${Math.min(100, (entity.total_paid / Math.max(1, Number(entity.total_invoiced || entity.total_purchased || 1))) * 100).toFixed(0)}%`
                               }}
@@ -337,7 +335,7 @@ export default function Ledger() {
                   <button
                     onClick={() => setShowPayModal(true)}
                     className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white rounded-xl transition-colors ${
-                      tab === 'receivables' ? 'bg-teal-600 hover:bg-teal-700' : 'bg-violet-600 hover:bg-violet-700'
+                      tab === 'receivables' ? 'bg-teal-600 hover:bg-teal-700' : 'bg-teal-600 hover:bg-teal-700'
                     }`}
                   >
                     <CreditCard size={13} />
@@ -346,7 +344,7 @@ export default function Ledger() {
                 )}
                 <button
                   onClick={() => { setSelected(null); setStatement(null); }}
-                  className="lg:hidden p-2 hover:bg-slate-100 rounded-xl"
+                  className="lg:hidden p-2 hover:bg-slate-100 rounded-lg transition-colors"
                 >
                   <X size={15} className="text-slate-500" />
                 </button>
@@ -397,17 +395,16 @@ export default function Ledger() {
             {/* Statement Table */}
             <div className="flex-1 overflow-auto">
               {stmtLoading ? (
-                <div className="p-6 space-y-2">
-                  {[1,2,3,4,5].map(i => <div key={i} className="h-10 bg-slate-50 rounded-lg animate-pulse" />)}
+                <div className="p-4 space-y-2">
+                  {[1,2,3,4,5].map(i => <div key={i} className="h-10 bg-slate-100 rounded-lg animate-pulse" />)}
                 </div>
               ) : !statement ? null : statement.entries.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-48 text-slate-400">
-                  <ReceiptText className="w-10 h-10 opacity-20 mb-3" />
-                  <p className="text-sm font-medium">No transactions yet</p>
-                  <p className="text-xs mt-1">
-                    {tab === 'receivables' ? 'Create a sale to see activity here.' : 'Create a purchase order to see activity here.'}
-                  </p>
-                </div>
+                <EmptyState
+                  icon={ReceiptText}
+                  message="No transactions yet"
+                  subtitle={tab === 'receivables' ? 'Create a sale to see activity here.' : 'Create a purchase order to see activity here.'}
+                  className="h-48 py-0"
+                />
               ) : (
                 <table className="w-full min-w-[600px]">
                   <thead>
@@ -439,7 +436,7 @@ export default function Ledger() {
                                 ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
                                 : isPurchase
                                   ? 'bg-purple-50 text-purple-700 border border-purple-100'
-                                  : 'bg-blue-50 text-blue-700 border border-blue-100'
+                                  : 'bg-teal-50 text-teal-700 border border-teal-100'
                             }`}>
                               {isPayment || entry.entry_type === 'purchase_payment'
                                 ? <><CreditCard size={9} /> Payment</>

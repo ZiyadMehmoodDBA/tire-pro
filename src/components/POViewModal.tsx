@@ -18,13 +18,13 @@ const statusColor: Record<string, string> = {
 function downloadPO(po: any) {
   const s = getCachedSettings();
   const doc = new jsPDF();
-  const violet: [number, number, number] = [109, 40, 217];
+  const teal: [number, number, number] = [13, 148, 136];
   const dark: [number, number, number] = [15, 23, 42];
   const muted: [number, number, number] = [100, 116, 139];
   const light: [number, number, number] = [241, 245, 249];
   const pageW = doc.internal.pageSize.getWidth();
 
-  doc.setFillColor(...violet);
+  doc.setFillColor(...teal);
   doc.rect(0, 0, pageW, 12, 'F');
   doc.setFontSize(8);
   doc.setTextColor(255, 255, 255);
@@ -54,7 +54,7 @@ function downloadPO(po: any) {
   doc.text('PURCHASE ORDER', rightX, ry, { align: 'right' });
   ry += 7;
   doc.setFontSize(11);
-  doc.setTextColor(...violet);
+  doc.setTextColor(...teal);
   doc.text(po.po_no || `PO-${po.id}`, rightX, ry, { align: 'right' });
   ry += 5;
   doc.setFontSize(8);
@@ -90,7 +90,7 @@ function downloadPO(po: any) {
       formatCurrency(it.amount ?? (it.qty * (it.unit_price ?? 0))),
     ]),
     styles: { fontSize: 8, cellPadding: 3, textColor: dark },
-    headStyles: { fillColor: violet, textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 7.5 },
+    headStyles: { fillColor: teal, textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 7.5 },
     alternateRowStyles: { fillColor: [248, 250, 252] },
     columnStyles: {
       0: { cellWidth: 8, halign: 'center' },
@@ -105,12 +105,12 @@ function downloadPO(po: any) {
   const totalsX = pageW - 14;
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...violet);
+  doc.setTextColor(...teal);
   doc.text('TOTAL:', totalsX - 40, afterTable, { align: 'right' });
   doc.text(formatCurrency(po.total), totalsX, afterTable, { align: 'right' });
 
   const pageH = doc.internal.pageSize.getHeight();
-  doc.setFillColor(...violet);
+  doc.setFillColor(...teal);
   doc.rect(0, pageH - 10, pageW, 10, 'F');
   doc.setFontSize(7);
   doc.setTextColor(255, 255, 255);
@@ -123,11 +123,11 @@ function downloadPO(po: any) {
 function printPO(po: any) {
   const s = getCachedSettings();
   const doc = new jsPDF();
-  const violet: [number, number, number] = [109, 40, 217];
+  const teal: [number, number, number] = [13, 148, 136];
   const dark: [number, number, number] = [15, 23, 42];
   const pageW = doc.internal.pageSize.getWidth();
 
-  doc.setFillColor(...violet);
+  doc.setFillColor(...teal);
   doc.rect(0, 0, pageW, 12, 'F');
   doc.setFontSize(8);
   doc.setTextColor(255, 255, 255);
@@ -145,7 +145,7 @@ function printPO(po: any) {
       formatCurrency(it.amount ?? (it.qty * (it.unit_price ?? 0))),
     ]),
     styles: { fontSize: 8, textColor: dark },
-    headStyles: { fillColor: violet },
+    headStyles: { fillColor: teal },
     margin: { left: 14, right: 14 },
   });
 
@@ -170,7 +170,7 @@ export default function POViewModal({ po, onClose }: POViewModalProps) {
               <Printer size={14} /> Print
             </button>
             <button onClick={() => downloadPO(po)}
-              className="flex items-center gap-1.5 text-sm text-white bg-violet-600 hover:bg-violet-700 px-3 py-1.5 rounded-lg transition-colors">
+              className="flex items-center gap-1.5 text-sm text-white bg-teal-600 hover:bg-teal-700 px-3 py-1.5 rounded-lg transition-colors">
               <Download size={14} /> Download PDF
             </button>
             <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
@@ -184,7 +184,7 @@ export default function POViewModal({ po, onClose }: POViewModalProps) {
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
               <div>
                 <div className="flex items-center gap-2.5 mb-2">
-                  <div className="w-10 h-10 bg-violet-600 rounded-xl flex items-center justify-center">
+                  <div className="w-10 h-10 bg-teal-600 rounded-xl flex items-center justify-center">
                     <span className="text-white font-bold text-sm">
                       {getCachedSettings().company_name.split(' ').map((w: string) => w[0] || '').join('').slice(0, 2).toUpperCase()}
                     </span>
@@ -198,7 +198,7 @@ export default function POViewModal({ po, onClose }: POViewModalProps) {
               </div>
               <div className="sm:text-right">
                 <p className="text-2xl font-bold text-slate-200 uppercase tracking-widest">PO</p>
-                <p className="text-base font-bold text-violet-600 mt-1">{po.po_no}</p>
+                <p className="text-base font-bold text-teal-600 mt-1">{po.po_no}</p>
                 <p className="text-xs text-slate-500 mt-1">Date: {formatDate(po.date)}</p>
                 <span className={`inline-block mt-2 text-xs font-semibold px-2.5 py-1 rounded-full ${statusColor[po.status] || ''}`}>
                   {(po.status || '').toUpperCase()}
@@ -215,7 +215,7 @@ export default function POViewModal({ po, onClose }: POViewModalProps) {
             <div className="overflow-x-auto mb-5">
               <table className="w-full min-w-[380px]">
                 <thead>
-                  <tr className="bg-violet-600 text-white">
+                  <tr className="bg-teal-600 text-white">
                     <th className="text-xs font-semibold text-left px-3 py-2.5 rounded-l-lg">#</th>
                     <th className="text-xs font-semibold text-left px-3 py-2.5">Description</th>
                     <th className="text-xs font-semibold text-center px-3 py-2.5">Qty</th>
@@ -246,7 +246,7 @@ export default function POViewModal({ po, onClose }: POViewModalProps) {
                 </div>
                 <div className="flex justify-between text-base font-bold pt-2 border-t-2 border-slate-200">
                   <span className="text-slate-900">Total</span>
-                  <span className="text-violet-600">{formatCurrency(po.total)}</span>
+                  <span className="text-teal-600">{formatCurrency(po.total)}</span>
                 </div>
               </div>
             </div>

@@ -237,7 +237,7 @@ export default function NewSaleModal({ onClose, onCreated }: NewSaleModalProps) 
                   <select
                     value={customerId}
                     onChange={e => setCustomerId(e.target.value)}
-                    className="flex-1 min-w-0 text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50"
+                    className="flex-1 min-w-0 text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50"
                     required>
                     <option value="">Select customer...</option>
                     <option value="walkin">Walk-in Customer</option>
@@ -256,7 +256,7 @@ export default function NewSaleModal({ onClose, onCreated }: NewSaleModalProps) 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">Date</label>
                 <input type="date" value={date} onChange={e => setDate(e.target.value)}
-                  className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50" />
+                  className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50" />
               </div>
             </div>
 
@@ -267,7 +267,7 @@ export default function NewSaleModal({ onClose, onCreated }: NewSaleModalProps) 
                   Line Items <span className="text-red-500">*</span>
                 </label>
                 <button type="button" onClick={addItem}
-                  className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-semibold">
+                  className="flex items-center gap-1 text-xs text-teal-600 hover:text-teal-700 font-semibold">
                   <Plus size={13} /> Add Item
                 </button>
               </div>
@@ -281,11 +281,11 @@ export default function NewSaleModal({ onClose, onCreated }: NewSaleModalProps) 
                       {/* Mode toggle */}
                       <div className="flex rounded-lg border border-slate-200 overflow-hidden text-xs font-semibold shrink-0 bg-white">
                         <button type="button" onClick={() => setItemMode(i, 'product')}
-                          className={`px-2.5 py-1.5 transition-colors ${item.mode === 'product' ? 'bg-blue-600 text-white' : 'text-slate-500 hover:bg-slate-50'}`}>
+                          className={`px-2.5 py-1.5 transition-colors ${item.mode === 'product' ? 'bg-teal-600 text-white' : 'text-slate-500 hover:bg-slate-50'}`}>
                           Product
                         </button>
                         <button type="button" onClick={() => setItemMode(i, 'tire')}
-                          className={`px-2.5 py-1.5 transition-colors ${item.mode === 'tire' ? 'bg-blue-600 text-white' : 'text-slate-500 hover:bg-slate-50'}`}>
+                          className={`px-2.5 py-1.5 transition-colors ${item.mode === 'tire' ? 'bg-teal-600 text-white' : 'text-slate-500 hover:bg-slate-50'}`}>
                           Tire
                         </button>
                       </div>
@@ -295,13 +295,13 @@ export default function NewSaleModal({ onClose, onCreated }: NewSaleModalProps) 
                         <input type="number" min={1}
                           value={item.qty}
                           onChange={e => updateItem(i, 'qty', e.target.value)}
-                          className="w-16 text-sm border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 text-center bg-white"
+                          className="w-16 text-sm border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-500 text-center bg-white"
                           placeholder="1" />
                         <span className="text-xs text-slate-400 shrink-0">Price</span>
                         <input type="number" min={0} step="0.01"
                           value={item.unit_price}
                           onChange={e => updateItem(i, 'unit_price', e.target.value)}
-                          className="flex-1 min-w-0 text-sm border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 text-right bg-white"
+                          className="flex-1 min-w-0 text-sm border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-500 text-right bg-white"
                           placeholder="0.00" />
                       </div>
 
@@ -320,7 +320,7 @@ export default function NewSaleModal({ onClose, onCreated }: NewSaleModalProps) 
                       <select
                         value={item.item_key}
                         onChange={e => updateItem(i, 'item_key', e.target.value)}
-                        className="w-full text-sm border border-slate-200 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                        className="w-full text-sm border border-slate-200 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
                         required>
                         <option value="">Select product or tire...</option>
                         {products.length > 0 && (
@@ -433,7 +433,7 @@ export default function NewSaleModal({ onClose, onCreated }: NewSaleModalProps) 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">Payment Status</label>
                 <select value={status} onChange={e => setStatus(e.target.value)}
-                  className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50">
+                  className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50">
                   <option value="pending">Pending</option>
                   <option value="paid">Paid</option>
                   <option value="overdue">Overdue</option>
@@ -443,7 +443,7 @@ export default function NewSaleModal({ onClose, onCreated }: NewSaleModalProps) 
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">Notes</label>
                 <input type="text" value={notes} onChange={e => setNotes(e.target.value)}
                   placeholder="Optional notes..."
-                  className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50" />
+                  className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50" />
               </div>
             </div>
 
@@ -456,7 +456,7 @@ export default function NewSaleModal({ onClose, onCreated }: NewSaleModalProps) 
                 <span>Tax ({TAX_RATE}%)</span><span className="font-medium">{formatCurrency(tax)}</span>
               </div>
               <div className="flex justify-between text-base font-bold text-slate-900 pt-2 border-t border-slate-200">
-                <span>Total</span><span className="text-blue-600">{formatCurrency(total)}</span>
+                <span>Total</span><span className="text-teal-600">{formatCurrency(total)}</span>
               </div>
             </div>
           </div>
@@ -467,7 +467,7 @@ export default function NewSaleModal({ onClose, onCreated }: NewSaleModalProps) 
               Cancel
             </button>
             <button type="submit" disabled={loading || success}
-              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed min-w-36 justify-center">
+              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-teal-600 rounded-xl hover:bg-teal-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed min-w-36 justify-center">
               {loading  ? <><Loader2 size={15} className="animate-spin" /> Saving...</>
                : success ? <><CheckCircle size={15} /> Saved!</>
                : 'Create Invoice'}

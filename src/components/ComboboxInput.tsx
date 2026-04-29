@@ -100,7 +100,7 @@ export default function ComboboxInput({
           onChange={e => { onChange(e.target.value); setOpen(true); setActiveIdx(-1); }}
           onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}
-          className={`w-full text-sm border border-slate-200 rounded-lg px-3 py-2.5 pr-8 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 ${inputClassName}`}
+          className={`w-full text-sm border border-slate-200 rounded-lg px-3 py-2.5 pr-8 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50 ${inputClassName}`}
         />
         <button
           type="button"
@@ -137,7 +137,7 @@ export default function ComboboxInput({
                 onMouseDown={e => { e.preventDefault(); select(opt); }}
                 className={`px-3 py-2 text-sm cursor-pointer select-none transition-colors ${
                   i === activeIdx
-                    ? 'bg-emerald-50 text-emerald-700 font-medium'
+                    ? 'bg-teal-50 text-teal-700 font-medium'
                     : 'text-slate-700 hover:bg-slate-50'
                 }`}
               >

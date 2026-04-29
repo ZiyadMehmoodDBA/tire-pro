@@ -60,7 +60,7 @@ function Input({
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
-        className={`w-full text-sm border border-slate-200 rounded-xl py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 ${prefix ? 'pl-10 pr-3' : 'px-3'}`}
+        className={`w-full text-sm border border-slate-200 rounded-xl py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50 ${prefix ? 'pl-10 pr-3' : 'px-3'}`}
       />
     </div>
   );
@@ -89,7 +89,7 @@ function CompanyTab({
             onChange={e => onChange('company_address', e.target.value)}
             placeholder="123 Industrial Zone, Lahore, Pakistan"
             rows={2}
-            className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 resize-none"
+            className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50 resize-none"
           />
         </Field>
       </div>
@@ -106,7 +106,7 @@ function CompanyTab({
             onChange={e => onChange('announcement', e.target.value)}
             placeholder="e.g. Office closed on Friday · New tire brands now in stock · System maintenance tonight at 11 PM"
             rows={2}
-            className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 resize-none"
+            className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50 resize-none"
           />
         </Field>
       </div>
@@ -194,7 +194,7 @@ function DefaultsTab({
             <select
               value={settings.default_sale_status ?? 'pending'}
               onChange={e => onChange('default_sale_status', e.target.value)}
-              className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50"
+              className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50"
             >
               <option value="pending">Pending</option>
               <option value="paid">Paid</option>
@@ -214,7 +214,7 @@ function DefaultsTab({
             <select
               value={settings.refresh_interval ?? '60'}
               onChange={e => onChange('refresh_interval', e.target.value)}
-              className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50"
+              className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50"
             >
               <option value="0">Disabled</option>
               <option value="30">30 seconds</option>
@@ -331,7 +331,7 @@ function ProductsTab() {
         {!showForm && (
           <button
             onClick={openAdd}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-teal-600 rounded-xl hover:bg-teal-700 transition-colors"
           >
             <Plus size={14} /> Add Product
           </button>
@@ -360,7 +360,7 @@ function ProductsTab() {
               <input
                 value={form.code} onChange={e => setF('code', e.target.value)}
                 placeholder="e.g. SVC-BAL"
-                className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
               />
             </div>
             <div className="sm:col-span-2">
@@ -370,7 +370,7 @@ function ProductsTab() {
               <input
                 value={form.name} onChange={e => setF('name', e.target.value)}
                 placeholder="e.g. Tyre Balancing Service"
-                className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
               />
             </div>
           </div>
@@ -381,7 +381,7 @@ function ProductsTab() {
               <input
                 value={form.category} onChange={e => setF('category', e.target.value)}
                 placeholder="e.g. Service"
-                className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
               />
             </div>
             <div>
@@ -389,7 +389,7 @@ function ProductsTab() {
               <input
                 value={form.unit} onChange={e => setF('unit', e.target.value)}
                 placeholder="pcs / hr / set"
-                className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
               />
             </div>
             <div className="flex items-end pb-0.5">
@@ -412,7 +412,7 @@ function ProductsTab() {
                 type="number" min={0} step="0.01"
                 value={form.cost_price} onChange={e => setF('cost_price', e.target.value)}
                 placeholder="0.00"
-                className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
               />
             </div>
             <div>
@@ -421,7 +421,7 @@ function ProductsTab() {
                 type="number" min={0} step="0.01"
                 value={form.sale_price} onChange={e => setF('sale_price', e.target.value)}
                 placeholder="0.00"
-                className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
               />
             </div>
           </div>
@@ -431,7 +431,7 @@ function ProductsTab() {
             <input
               value={form.description} onChange={e => setF('description', e.target.value)}
               placeholder="Optional description..."
-              className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
             />
           </div>
 
@@ -441,7 +441,7 @@ function ProductsTab() {
               Cancel
             </button>
             <button onClick={handleSave} disabled={saving}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-60 transition-colors min-w-24 justify-center">
+              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-teal-600 rounded-xl hover:bg-teal-700 disabled:opacity-60 transition-colors min-w-24 justify-center">
               {saving ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
               {saving ? 'Saving...' : editId ? 'Update' : 'Add Product'}
             </button>
@@ -496,7 +496,7 @@ function ProductsTab() {
                   <td className="px-3 py-2.5">
                     <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button onClick={() => openEdit(p)}
-                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
+                        className="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors" title="Edit">
                         <Pencil size={13} />
                       </button>
                       <button onClick={() => handleDelete(p.id)} disabled={deletingId === p.id}
@@ -601,12 +601,12 @@ function LookupsTab() {
             onChange={e => setNewName(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAdd())}
             placeholder="New tire type name..."
-            className="flex-1 text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50"
+            className="flex-1 text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50"
           />
           <button
             onClick={handleAdd}
             disabled={adding || !newName.trim()}
-            className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold text-white bg-teal-600 rounded-xl hover:bg-teal-700 disabled:opacity-50 transition-colors"
           >
             {adding ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
             Add
@@ -652,7 +652,7 @@ function LookupsTab() {
                         if (e.key === 'Enter') saveEdit(t.id);
                         if (e.key === 'Escape') setEditId(null);
                       }}
-                      className="flex-1 text-sm border border-blue-400 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="flex-1 text-sm border border-teal-400 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-teal-500"
                     />
                     <button
                       onClick={() => saveEdit(t.id)}
@@ -674,7 +674,7 @@ function LookupsTab() {
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => startEdit(t)}
-                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        className="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
                         title="Rename"
                       >
                         <Pencil size={13} />
@@ -951,7 +951,7 @@ function ServicesTab() {
 
 const ROLES = [
   { value: 'org_admin',       label: 'Admin',           color: 'bg-purple-50 text-purple-700 border border-purple-100' },
-  { value: 'branch_manager',  label: 'Branch Manager',  color: 'bg-blue-50 text-blue-700 border border-blue-100' },
+  { value: 'branch_manager',  label: 'Branch Manager',  color: 'bg-teal-50 text-teal-700 border border-teal-100' },
   { value: 'staff',           label: 'Staff',           color: 'bg-slate-100 text-slate-600 border border-slate-200' },
 ];
 
@@ -1297,7 +1297,7 @@ function SystemInfoTab() {
 
   function roleBadge(role: string) {
     if (role === 'org_admin')      return 'bg-purple-50 text-purple-700 border border-purple-100';
-    if (role === 'branch_manager') return 'bg-blue-50 text-blue-700 border border-blue-100';
+    if (role === 'branch_manager') return 'bg-teal-50 text-teal-700 border border-teal-100';
     return 'bg-slate-100 text-slate-600 border border-slate-200';
   }
 
@@ -1377,14 +1377,14 @@ function SystemInfoTab() {
           />
           <StatCard
             icon={Cpu}
-            color="bg-blue-100 text-blue-600"
+            color="bg-teal-100 text-teal-600"
             label="Memory Used"
             value={`${server.memory_used_mb} MB`}
             sub={`heap: ${server.memory_heap_mb} MB (${memPct}%)`}
           />
           <StatCard
             icon={Server}
-            color="bg-violet-100 text-violet-600"
+            color="bg-teal-100 text-teal-600"
             label="Node.js"
             value={server.node_version}
             sub={server.platform}
@@ -1412,7 +1412,7 @@ function SystemInfoTab() {
             </p>
             <div className="space-y-2">
               {[
-                { label: 'Data files',  value: database.data_mb,  color: 'bg-blue-500' },
+                { label: 'Data files',  value: database.data_mb,  color: 'bg-teal-500' },
                 { label: 'Log files',   value: database.log_mb,   color: 'bg-slate-300' },
               ].map(row => (
                 <div key={row.label}>
@@ -1611,7 +1611,7 @@ function CatalogScraperTab() {
   function statusBadge(s: string) {
     if (s === 'success') return 'bg-emerald-100 text-emerald-700';
     if (s === 'error')   return 'bg-red-100 text-red-700';
-    if (s === 'running') return 'bg-blue-100 text-blue-700 animate-pulse';
+    if (s === 'running') return 'bg-teal-100 text-teal-700 animate-pulse';
     return 'bg-slate-100 text-slate-600';
   }
 
@@ -1680,7 +1680,7 @@ function CatalogScraperTab() {
 
               {/* Job state indicators */}
               <div className="flex items-center gap-3 flex-wrap">
-                <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${isJobRunning ? 'bg-blue-100 text-blue-700 animate-pulse' : 'bg-slate-100 text-slate-500'}`}>
+                <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${isJobRunning ? 'bg-teal-100 text-teal-700 animate-pulse' : 'bg-slate-100 text-slate-500'}`}>
                   {isJobRunning ? '⟳ Running now' : '● Idle'}
                 </span>
                 <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${(config.isScheduled || status?.isScheduled) ? 'bg-teal-100 text-teal-700' : 'bg-slate-100 text-slate-500'}`}>
@@ -1784,7 +1784,7 @@ function CatalogScraperTab() {
                     <td className="px-3 py-2 text-slate-400 whitespace-nowrap">{fmt(log.finished_at)}</td>
                     <td className="px-3 py-2 font-semibold text-slate-700 tabular-nums">{log.items_found ?? 0}</td>
                     <td className="px-3 py-2 font-semibold text-emerald-600 tabular-nums">{log.items_added ?? 0}</td>
-                    <td className="px-3 py-2 font-semibold text-blue-600 tabular-nums">{log.items_updated ?? 0}</td>
+                    <td className="px-3 py-2 font-semibold text-teal-600 tabular-nums">{log.items_updated ?? 0}</td>
                   </tr>
                 ))}
               </tbody>
@@ -2011,7 +2011,7 @@ export default function Settings() {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-60 transition-colors min-w-28 justify-center flex-shrink-0"
+              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-teal-600 rounded-xl hover:bg-teal-700 disabled:opacity-60 transition-colors min-w-28 justify-center flex-shrink-0"
             >
               {saving
                 ? <><Loader2 size={14} className="animate-spin" /> Saving...</>

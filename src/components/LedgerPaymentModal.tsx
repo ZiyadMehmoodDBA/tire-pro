@@ -124,9 +124,9 @@ export default function LedgerPaymentModal({ entity, type, onClose, onPaymentRec
   const accentCls = isCustomer ? 'ring-teal-500' : 'ring-violet-500';
   const btnCls    = isCustomer
     ? 'bg-teal-600 hover:bg-teal-700'
-    : 'bg-violet-600 hover:bg-violet-700';
-  const iconBgCls = isCustomer ? 'bg-teal-50' : 'bg-violet-50';
-  const iconCls   = isCustomer ? 'text-teal-600' : 'text-violet-600';
+    : 'bg-teal-600 hover:bg-teal-700';
+  const iconBgCls = isCustomer ? 'bg-teal-50' : 'bg-teal-50';
+  const iconCls   = isCustomer ? 'text-teal-600' : 'text-teal-600';
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -144,7 +144,7 @@ export default function LedgerPaymentModal({ entity, type, onClose, onPaymentRec
               <p className="text-xs text-slate-400">{entity.name} · {entity.code}</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
             <X size={16} className="text-slate-500" />
           </button>
         </div>

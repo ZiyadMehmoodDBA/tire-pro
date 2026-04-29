@@ -229,7 +229,7 @@ export default function Reports() {
               <p className="text-xs text-slate-500 mt-0.5">Current stock units and value per brand</p>
             </div>
             {loading ? (
-              <div className="p-4 sm:p-5 space-y-3">{[1,2,3,4].map(i => <div key={i} className="h-10 bg-slate-100 rounded-lg animate-pulse" />)}</div>
+              <div className="p-4 space-y-2">{[1,2,3,4].map(i => <div key={i} className="h-10 bg-slate-100 rounded-lg animate-pulse" />)}</div>
             ) : brandData.length === 0 ? (
               <p className="text-sm text-slate-400 text-center py-8">No inventory data</p>
             ) : (
@@ -250,14 +250,14 @@ export default function Reports() {
                         const avgPrice = b.units > 0 ? b.revenue / b.units : 0;
                         return (
                           <tr key={b.brand} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="px-4 py-3.5 text-sm font-semibold text-slate-900">{b.brand}</td>
-                            <td className="px-4 py-3.5 text-sm text-slate-700">{b.units} pcs</td>
-                            <td className="px-4 py-3.5 text-sm font-bold text-slate-900">{formatCurrency(b.revenue)}</td>
-                            <td className="px-4 py-3.5 text-sm text-slate-600">{formatCurrency(avgPrice)}</td>
+                            <td className="px-4 py-3 text-sm font-semibold text-slate-900">{b.brand}</td>
+                            <td className="px-4 py-3 text-sm text-slate-700">{b.units} pcs</td>
+                            <td className="px-4 py-3 text-sm font-bold text-slate-900">{formatCurrency(b.revenue)}</td>
+                            <td className="px-4 py-3 text-sm text-slate-600">{formatCurrency(avgPrice)}</td>
                             <td className="px-4 py-3.5">
                               <div className="flex items-center gap-2">
                                 <div className="flex-1 h-2 bg-slate-100 rounded-full max-w-24">
-                                  <div className="h-full bg-blue-500 rounded-full" style={{ width: `${share}%` }} />
+                                  <div className="h-full bg-teal-500 rounded-full" style={{ width: `${share}%` }} />
                                 </div>
                                 <span className="text-sm font-medium text-slate-700">{share}%</span>
                               </div>
@@ -278,7 +278,7 @@ export default function Reports() {
                           <p className="text-xs text-slate-500 mt-0.5">{b.units} units · {formatCurrency(b.revenue)}</p>
                           <div className="mt-2 flex items-center gap-2">
                             <div className="flex-1 h-1.5 bg-slate-200 rounded-full">
-                              <div className="h-full bg-blue-500 rounded-full" style={{ width: `${share}%` }} />
+                              <div className="h-full bg-teal-500 rounded-full" style={{ width: `${share}%` }} />
                             </div>
                             <span className="text-xs font-semibold text-slate-600">{share}%</span>
                           </div>
@@ -340,7 +340,7 @@ export default function Reports() {
           </div>
 
           {salesLoading ? (
-            <div className="p-6 space-y-3">{[1,2,3,4,5].map(i => <div key={i} className="h-10 bg-slate-100 rounded-lg animate-pulse" />)}</div>
+            <div className="p-4 space-y-2">{[1,2,3,4,5].map(i => <div key={i} className="h-10 bg-slate-100 rounded-lg animate-pulse" />)}</div>
           ) : salesReport.length === 0 && salesFetched ? (
             <p className="text-center text-sm text-slate-400 py-12">No sales found for the selected date range.</p>
           ) : salesReport.length === 0 ? (
@@ -375,7 +375,7 @@ export default function Reports() {
                       const bal = Math.max(0, Number(s.total) - Number(s.amount_paid || 0));
                       return (
                         <tr key={s.id} className="hover:bg-slate-50/50 transition-colors">
-                          <td className="px-4 py-3 text-xs font-semibold text-blue-600">{s.invoice_no}</td>
+                          <td className="px-4 py-3 text-xs font-semibold text-teal-600">{s.invoice_no}</td>
                           <td className="px-4 py-3 text-xs text-slate-600">{formatDate(s.date)}</td>
                           <td className="px-4 py-3 text-xs font-medium text-slate-900 max-w-[140px] truncate">{s.customer_name}</td>
                           <td className="px-4 py-3 text-xs text-slate-600">{formatCurrency(s.subtotal)}</td>
@@ -388,7 +388,7 @@ export default function Reports() {
                           <td className="px-4 py-3">
                             <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${
                               s.status === 'paid'    ? 'bg-emerald-50 text-emerald-700' :
-                              s.status === 'partial' ? 'bg-blue-50 text-blue-700'      :
+                              s.status === 'partial' ? 'bg-teal-50 text-teal-700'      :
                               s.status === 'overdue' ? 'bg-red-50 text-red-700'        :
                               'bg-amber-50 text-amber-700'
                             }`}>{s.status}</span>
@@ -431,7 +431,7 @@ export default function Reports() {
             </div>
           </div>
           {loading ? (
-            <div className="p-6 space-y-3">{[1,2,3,4,5].map(i => <div key={i} className="h-10 bg-slate-100 rounded-lg animate-pulse" />)}</div>
+            <div className="p-4 space-y-2">{[1,2,3,4,5].map(i => <div key={i} className="h-10 bg-slate-100 rounded-lg animate-pulse" />)}</div>
           ) : tires.length === 0 ? (
             <p className="text-center text-sm text-slate-400 py-12">No inventory data.</p>
           ) : (
@@ -505,7 +505,7 @@ export default function Reports() {
             </div>
           </div>
           {loading ? (
-            <div className="p-6 space-y-3">{[1,2,3].map(i => <div key={i} className="h-10 bg-slate-100 rounded-lg animate-pulse" />)}</div>
+            <div className="p-4 space-y-2">{[1,2,3].map(i => <div key={i} className="h-10 bg-slate-100 rounded-lg animate-pulse" />)}</div>
           ) : lowStockTires.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-3 py-16 text-emerald-600">
               <Download size={32} className="opacity-30" />

@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { api } from '../api/client';
 import { cn } from '../lib/utils';
+import EmptyState from '../components/EmptyState';
 
 interface Branch {
   id: number;
@@ -216,7 +217,7 @@ export default function Organizations() {
         </div>
 
         {activeBranches.length === 0 ? (
-          <div className="text-center py-12 text-slate-400 text-sm">No branches found.</div>
+          <EmptyState message="No branches found." />
         ) : (
           <div className="divide-y divide-slate-100">
             {activeBranches.map(b => (
@@ -262,7 +263,7 @@ export default function Organizations() {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
               <h3 className="font-bold text-slate-800">{editBranch ? 'Edit Branch' : 'Add Branch'}</h3>
-              <button onClick={() => setShowBranchModal(false)} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400">
+              <button onClick={() => setShowBranchModal(false)} className="p-2 rounded-lg hover:bg-slate-100 text-slate-400">
                 <X size={16} />
               </button>
             </div>

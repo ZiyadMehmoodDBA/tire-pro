@@ -79,8 +79,8 @@ export default function AddEditCustomerModal({ customer, onClose, onSaved }: Pro
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 flex-shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-              <User size={15} className="text-blue-600" />
+            <div className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center">
+              <User size={15} className="text-teal-600" />
             </div>
             <h2 className="text-base font-bold text-slate-900">
               {isEdit ? 'Edit Customer' : 'New Customer'}
@@ -116,7 +116,7 @@ export default function AddEditCustomerModal({ customer, onClose, onSaved }: Pro
                     value={form.name}
                     onChange={e => set('name', e.target.value)}
                     placeholder="e.g. Ahmed Hassan"
-                    className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50"
+                    className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50"
                   />
                 </div>
                 <div>
@@ -128,7 +128,7 @@ export default function AddEditCustomerModal({ customer, onClose, onSaved }: Pro
                     value={form.phone}
                     onChange={e => set('phone', e.target.value)}
                     placeholder="+92-300-1234567"
-                    className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 font-mono"
+                    className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50 font-mono"
                   />
                   <p className="text-xs text-slate-400 mt-1">Must be unique — used to identify the customer</p>
                 </div>
@@ -139,7 +139,7 @@ export default function AddEditCustomerModal({ customer, onClose, onSaved }: Pro
                     value={form.email}
                     onChange={e => set('email', e.target.value)}
                     placeholder="ahmed@company.pk"
-                    className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50"
+                    className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50"
                   />
                 </div>
                 <div className="sm:col-span-2">
@@ -148,7 +148,7 @@ export default function AddEditCustomerModal({ customer, onClose, onSaved }: Pro
                     value={form.address}
                     onChange={e => set('address', e.target.value)}
                     placeholder="City, area or full address"
-                    className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50"
+                    className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50"
                   />
                 </div>
               </div>
@@ -170,7 +170,7 @@ export default function AddEditCustomerModal({ customer, onClose, onSaved }: Pro
                     onChange={e => set('vehicle_plate', e.target.value.toUpperCase())}
                     placeholder="e.g. LEA-1234"
                     maxLength={12}
-                    className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 font-mono uppercase tracking-widest"
+                    className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50 font-mono uppercase tracking-widest"
                   />
                 </div>
                 <div className="col-span-2">
@@ -182,7 +182,7 @@ export default function AddEditCustomerModal({ customer, onClose, onSaved }: Pro
                     value={form.vehicle_year}
                     onChange={e => set('vehicle_year', e.target.value)}
                     placeholder={String(THIS_YEAR)}
-                    className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 text-center"
+                    className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50 text-center"
                   />
                 </div>
                 <div className="col-span-2">
@@ -191,7 +191,7 @@ export default function AddEditCustomerModal({ customer, onClose, onSaved }: Pro
                     value={form.vehicle_make}
                     onChange={e => set('vehicle_make', e.target.value)}
                     placeholder="e.g. Toyota"
-                    className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50"
+                    className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50"
                   />
                 </div>
                 <div className="col-span-2">
@@ -200,7 +200,7 @@ export default function AddEditCustomerModal({ customer, onClose, onSaved }: Pro
                     value={form.vehicle_model}
                     onChange={e => set('vehicle_model', e.target.value)}
                     placeholder="e.g. Corolla"
-                    className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50"
+                    className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50"
                   />
                 </div>
               </div>
@@ -235,7 +235,7 @@ export default function AddEditCustomerModal({ customer, onClose, onSaved }: Pro
               Cancel
             </button>
             <button type="submit" disabled={loading || success}
-              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-60 min-w-36 justify-center">
+              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-teal-600 rounded-xl hover:bg-teal-700 transition-colors disabled:opacity-60 min-w-36 justify-center">
               {loading  ? <><Loader2 size={15} className="animate-spin" /> Saving…</>
               : success ? <><CheckCircle size={15} /> Saved!</>
               : isEdit  ? 'Save Changes'

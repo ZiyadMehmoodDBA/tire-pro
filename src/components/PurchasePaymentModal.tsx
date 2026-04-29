@@ -73,15 +73,15 @@ export default function PurchasePaymentModal({ po, onClose, onPaymentRecorded }:
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-violet-50 rounded-xl flex items-center justify-center">
-              <CreditCard size={18} className="text-violet-600" />
+            <div className="w-9 h-9 bg-teal-50 rounded-xl flex items-center justify-center">
+              <CreditCard size={18} className="text-teal-600" />
             </div>
             <div>
               <h2 className="text-sm font-bold text-slate-900">Record Payment</h2>
               <p className="text-xs text-slate-400">{po.po_no}</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
             <X size={16} className="text-slate-500" />
           </button>
         </div>
@@ -136,7 +136,7 @@ export default function PurchasePaymentModal({ po, onClose, onPaymentRecorded }:
                   value={amount}
                   onChange={e => setAmount(e.target.value)}
                   placeholder={String(balanceDue)}
-                  className="w-full pl-12 pr-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="w-full pl-12 pr-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500"
                   required
                 />
               </div>
@@ -159,14 +159,14 @@ export default function PurchasePaymentModal({ po, onClose, onPaymentRecorded }:
                 <input
                   type="date" value={paymentDate}
                   onChange={e => setPaymentDate(e.target.value)}
-                  className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500"
                 />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">Payment Method</label>
                 <select
                   value={method} onChange={e => setMethod(e.target.value)}
-                  className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                  className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
                 >
                   {PAYMENT_METHODS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
                 </select>
@@ -178,7 +178,7 @@ export default function PurchasePaymentModal({ po, onClose, onPaymentRecorded }:
               <input
                 type="text" value={referenceNo} onChange={e => setReferenceNo(e.target.value)}
                 placeholder="e.g. CHQ-12345 or TXN-9876"
-                className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500"
               />
             </div>
 
@@ -187,7 +187,7 @@ export default function PurchasePaymentModal({ po, onClose, onPaymentRecorded }:
               <input
                 type="text" value={notes} onChange={e => setNotes(e.target.value)}
                 placeholder="Any additional notes..."
-                className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500"
               />
             </div>
 
@@ -197,7 +197,7 @@ export default function PurchasePaymentModal({ po, onClose, onPaymentRecorded }:
                 Cancel
               </button>
               <button type="submit" disabled={loading}
-                className="flex-1 py-2.5 text-sm font-semibold text-white bg-violet-600 rounded-xl hover:bg-violet-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                className="flex-1 py-2.5 text-sm font-semibold text-white bg-teal-600 rounded-xl hover:bg-teal-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
                 {loading ? <Loader2 size={14} className="animate-spin" /> : <CreditCard size={14} />}
                 {loading ? 'Recording...' : 'Record Payment'}
               </button>
@@ -208,7 +208,7 @@ export default function PurchasePaymentModal({ po, onClose, onPaymentRecorded }:
         {success && (
           <div className="px-5 pb-5">
             <button onClick={onClose}
-              className="w-full py-2.5 text-sm font-semibold text-white bg-violet-600 rounded-xl hover:bg-violet-700 transition-colors">
+              className="w-full py-2.5 text-sm font-semibold text-white bg-teal-600 rounded-xl hover:bg-teal-700 transition-colors">
               Done
             </button>
           </div>

@@ -7,6 +7,7 @@ import { api } from '../api/client';
 import { formatCurrency } from '../lib/utils';
 import AddEditTireModal from '../components/AddEditTireModal';
 import ConfirmDialog from '../components/ConfirmDialog';
+import EmptyState from '../components/EmptyState';
 import ExcelImportModal from '../components/ExcelImportModal';
 import CatalogImportModal from '../components/CatalogImportModal';
 import { usePagination } from '../lib/usePagination';
@@ -79,7 +80,7 @@ export default function Inventory() {
         {[
           { label: 'Stock Value',  value: formatCurrency(totalValue), color: 'text-slate-900',
             help: 'Total inventory at cost price' },
-          { label: 'Total Units',  value: `${totalItems} pcs`,        color: 'text-blue-600',
+          { label: 'Total Units',  value: `${totalItems} pcs`,        color: 'text-teal-600',
             help: 'Sum of all units in warehouse' },
           { label: 'Low Stock',    value: `${lowStock} SKUs`,
             color: lowStock > 0 ? 'text-red-600' : 'text-emerald-600',
@@ -125,7 +126,7 @@ export default function Inventory() {
               <button
                 onClick={() => setAddModal(true)}
                 title="Add new tire SKU"
-                className="flex items-center gap-1.5 bg-emerald-600 text-white text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
+                className="flex items-center gap-1.5 bg-teal-600 text-white text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-2 rounded-lg hover:bg-teal-700 transition-colors"
               >
                 <Plus size={14} />
                 <span className="hidden sm:inline">Add SKU</span>
@@ -139,13 +140,13 @@ export default function Inventory() {
               <input
                 value={search} onChange={e => setSearch(e.target.value)}
                 placeholder="Search brand, model, size, or pattern…"
-                className="pl-8 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 w-full"
+                className="pl-8 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 w-full"
               />
             </div>
             <select
               value={filterType} onChange={e => setFilterType(e.target.value)}
               title="Filter by tire type"
-              className="text-sm bg-slate-50 border border-slate-200 rounded-lg px-2 sm:px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 flex-shrink-0"
+              className="text-sm bg-slate-50 border border-slate-200 rounded-lg px-2 sm:px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 flex-shrink-0"
             >
               {types.map(t => <option key={t} value={t}>{t === 'all' ? 'All Types' : t}</option>)}
             </select>
@@ -159,7 +160,7 @@ export default function Inventory() {
         )}
 
         {loading && !error && (
-          <div className="p-6 space-y-3">
+          <div className="p-4 space-y-2">
             {[1,2,3,4,5].map(i => <div key={i} className="h-12 bg-slate-100 rounded-lg animate-pulse" />)}
           </div>
         )}
@@ -221,7 +222,7 @@ export default function Inventory() {
 
                         {/* Type */}
                         <td className="px-4 py-3">
-                          <span className="text-xs font-medium bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full whitespace-nowrap">{tire.type}</span>
+                          <span className="text-xs font-medium bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full whitespace-nowrap">{tire.type}</span>
                         </td>
 
                         {/* Stock */}
@@ -265,7 +266,7 @@ export default function Inventory() {
                             <button
                               onClick={() => setEditTire(tire)}
                               title="Edit"
-                              className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              className="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
                             >
                               <Pencil size={14} />
                             </button>
@@ -308,7 +309,7 @@ export default function Inventory() {
                           )}
                           <p className="text-xs text-slate-500 mt-1 font-mono">
                             {tire.size}{spec ? ` ${spec}` : ''}
-                            <span className="font-sans text-blue-600 ml-1.5">{tire.type}</span>
+                            <span className="font-sans text-teal-600 ml-1.5">{tire.type}</span>
                           </p>
                           {tire.dot && (
                             <p className="text-[10px] text-slate-400 font-mono mt-0.5">DOT {tire.dot}</p>
@@ -316,7 +317,7 @@ export default function Inventory() {
                         </div>
                         <div className="flex items-center gap-1 flex-shrink-0">
                           <button onClick={() => setEditTire(tire)} title="Edit"
-                            className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                            className="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors">
                             <Pencil size={13} />
                           </button>
                           <button onClick={() => setDeleteTire(tire)} title="Delete"
@@ -353,14 +354,10 @@ export default function Inventory() {
             </div>
 
             {filtered.length === 0 && (
-              <div className="text-center py-12 text-slate-400">
-                <Package size={32} className="mx-auto mb-2 opacity-30" />
-                <p className="text-sm">
-                  {tires.length === 0
-                    ? 'No tire SKUs yet. Add your first tire.'
-                    : 'No items match your search.'}
-                </p>
-              </div>
+              <EmptyState
+                icon={Package}
+                message={tires.length === 0 ? 'No tire SKUs yet. Add your first tire.' : 'No items match your search.'}
+              />
             )}
           </>
         )}

@@ -15,7 +15,7 @@ function getStrength(pw: string): { level: 0 | 1 | 2 | 3; label: string; color: 
   const hasSpecial = /[^A-Za-z0-9]/.test(pw);
   const score = [hasUpper, hasLower, hasDigit, hasSpecial].filter(Boolean).length;
   if (pw.length >= 12 && score === 4) return { level: 3, label: 'Strong',   color: 'bg-emerald-500' };
-  if (score >= 3)                     return { level: 2, label: 'Good',     color: 'bg-blue-500'    };
+  if (score >= 3)                     return { level: 2, label: 'Good',     color: 'bg-teal-500'    };
   return                                     { level: 1, label: 'Fair',     color: 'bg-amber-400'   };
 }
 
@@ -162,7 +162,7 @@ export default function ChangePasswordModal({ onClose }: Props) {
                   {strength.label && (
                     <p className={`text-xs font-medium ${
                       strength.level === 3 ? 'text-emerald-600'
-                      : strength.level === 2 ? 'text-blue-600'
+                      : strength.level === 2 ? 'text-teal-600'
                       : 'text-amber-600'
                     }`}>
                       {strength.label}

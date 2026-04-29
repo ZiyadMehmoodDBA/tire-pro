@@ -12,6 +12,7 @@ import { usePagination } from '../lib/usePagination';
 import Pagination from '../components/Pagination';
 import AddEditCustomerModal from '../components/AddEditCustomerModal';
 import { useAutoRefresh } from '../lib/useAutoRefresh';
+import EmptyState from '../components/EmptyState';
 
 export default function Customers() {
   const [customers,      setCustomers]      = useState<any[]>([]);
@@ -80,10 +81,10 @@ export default function Customers() {
         </div>
         <div className="bg-white rounded-xl p-3 sm:p-4 border border-slate-100 shadow-sm">
           <div className="flex items-center gap-1.5 mb-1">
-            <TrendingUp size={12} className="text-blue-500" />
+            <TrendingUp size={12} className="text-teal-500" />
             <p className="text-xs text-slate-500 font-medium">Total Invoiced</p>
           </div>
-          <p className="text-sm sm:text-xl font-bold text-blue-600 truncate">{formatCurrency(totalInvoiced)}</p>
+          <p className="text-sm sm:text-xl font-bold text-teal-600 truncate">{formatCurrency(totalInvoiced)}</p>
           <p className="text-xs text-slate-400 mt-0.5 hidden sm:block">All sales issued</p>
         </div>
         <div className="bg-white rounded-xl p-3 sm:p-4 border border-slate-100 shadow-sm">
@@ -120,7 +121,7 @@ export default function Customers() {
               <input
                 value={search} onChange={e => setSearch(e.target.value)}
                 placeholder="Name, phone, plate..."
-                className="pl-8 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-52"
+                className="pl-8 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 w-full sm:w-52"
               />
             </div>
             <button onClick={() => setShowImport(true)} title="Import from Excel"
@@ -129,7 +130,7 @@ export default function Customers() {
               <span className="hidden sm:inline">Import Excel</span>
             </button>
             <button onClick={() => setModalCustomer(undefined)}
-              className="flex items-center gap-1.5 bg-blue-600 text-white text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap">
+              className="flex items-center gap-1.5 bg-teal-600 text-white text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-2 rounded-lg hover:bg-teal-700 transition-colors whitespace-nowrap">
               <Plus size={14} />
               <span className="hidden sm:inline">Add Customer</span>
               <span className="sm:hidden">Add</span>
@@ -168,12 +169,12 @@ export default function Customers() {
 
               return (
                 <div key={c.id}
-                  className="border border-slate-100 rounded-xl p-4 hover:shadow-md transition-shadow hover:border-blue-200 group relative bg-white"
+                  className="border border-slate-100 rounded-xl p-4 hover:shadow-md transition-shadow hover:border-teal-200 group relative bg-white"
                 >
                   {/* Action buttons */}
                   <div className="absolute top-3 right-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button onClick={() => setModalCustomer(c)} title="Edit customer"
-                      className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                      className="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors">
                       <Pencil size={13} />
                     </button>
                     <button onClick={() => setDeleteCustomer(c)} title="Delete customer"
@@ -184,7 +185,7 @@ export default function Customers() {
 
                   {/* Header */}
                   <div className="flex items-start gap-3 pr-14">
-                    <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center flex-shrink-0 text-white font-bold text-sm">
+                    <div className="w-10 h-10 bg-teal-600 rounded-xl flex items-center justify-center flex-shrink-0 text-white font-bold text-sm">
                       {(c.name || '?').charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -263,9 +264,10 @@ export default function Customers() {
             })}
 
             {filtered.length === 0 && !loading && (
-              <div className="col-span-full text-center py-12 text-slate-400 text-sm">
-                {customers.length === 0 ? 'No customers yet. Add your first customer.' : 'No customers match your search.'}
-              </div>
+              <EmptyState
+                message={customers.length === 0 ? 'No customers yet. Add your first customer.' : 'No customers match your search.'}
+                className="col-span-full"
+              />
             )}
           </div>
         )}

@@ -242,7 +242,7 @@ export default function AddEditTireModal({ tire, onClose, onSaved }: Props) {
                   <select
                     value={form.speed_index}
                     onChange={e => set('speed_index', e.target.value)}
-                    className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 text-center font-mono"
+                    className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50 text-center font-mono"
                   >
                     {SPEED_RATINGS.map(r => (
                       <option key={r} value={r}>{r || '—'}</option>
@@ -262,7 +262,7 @@ export default function AddEditTireModal({ tire, onClose, onSaved }: Props) {
                     onChange={e => set('dot', e.target.value.replace(/[^0-9A-Za-z\s]/g, '').toUpperCase())}
                     placeholder="e.g. 4521"
                     maxLength={20}
-                    className="w-40 text-sm border border-slate-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 font-mono tracking-widest"
+                    className="w-40 text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50 font-mono tracking-widest"
                   />
                   <p className="text-xs text-slate-400 leading-snug">
                     Last 4 digits of DOT code.<br />
@@ -283,7 +283,7 @@ export default function AddEditTireModal({ tire, onClose, onSaved }: Props) {
                   <select
                     value={form.type}
                     onChange={e => set('type', e.target.value)}
-                    className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50"
+                    className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50"
                   >
                     {tireTypes.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
@@ -294,7 +294,7 @@ export default function AddEditTireModal({ tire, onClose, onSaved }: Props) {
                     type="number" min={0}
                     value={form.stock}
                     onChange={e => set('stock', e.target.value)}
-                    className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 text-center"
+                    className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50 text-center"
                   />
                   <p className="text-xs text-slate-400 mt-1">Current qty on hand</p>
                 </div>
@@ -304,7 +304,7 @@ export default function AddEditTireModal({ tire, onClose, onSaved }: Props) {
                     type="number" min={0}
                     value={form.reorder_level}
                     onChange={e => set('reorder_level', e.target.value)}
-                    className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 text-center"
+                    className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50 text-center"
                   />
                   <p className="text-xs text-slate-400 mt-1">Low-stock alert level</p>
                 </div>
@@ -325,7 +325,7 @@ export default function AddEditTireModal({ tire, onClose, onSaved }: Props) {
                       type="number" min={0} step="0.01"
                       value={form.cost_price}
                       onChange={e => set('cost_price', e.target.value)}
-                      className="w-full text-sm border border-slate-200 rounded-lg pl-10 pr-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50"
+                      className="w-full text-sm border border-slate-200 rounded-xl pl-10 pr-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50"
                     />
                   </div>
                   <p className="text-xs text-slate-400 mt-1">Your purchase cost per unit</p>
@@ -338,7 +338,7 @@ export default function AddEditTireModal({ tire, onClose, onSaved }: Props) {
                       type="number" min={0} step="0.01"
                       value={form.sale_price}
                       onChange={e => set('sale_price', e.target.value)}
-                      className="w-full text-sm border border-slate-200 rounded-lg pl-10 pr-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50"
+                      className="w-full text-sm border border-slate-200 rounded-xl pl-10 pr-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50"
                     />
                   </div>
                   <p className="text-xs text-slate-400 mt-1">Default price on invoices</p>
@@ -374,7 +374,7 @@ export default function AddEditTireModal({ tire, onClose, onSaved }: Props) {
             </button>
             <button
               type="submit" disabled={loading || success}
-              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 transition-colors disabled:opacity-60 min-w-32 justify-center"
+              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-teal-600 rounded-xl hover:bg-teal-700 transition-colors disabled:opacity-60 min-w-32 justify-center"
             >
               {loading  ? <><Loader2 size={15} className="animate-spin" /> Saving…</>
               : success ? <><CheckCircle size={15} /> Saved!</>
