@@ -17,7 +17,7 @@ import { useFetch } from '../lib/useFetch';
 import EmptyState from '../components/EmptyState';
 
 export default function Customers() {
-  const { data: customers, setData: setCustomers, loading, refreshing, error, setError, refresh: fetchCustomers } = useFetch<any>(api.customers.list);
+  const { data: customers, loading, refreshing, error, refresh: fetchCustomers } = useFetch<any>(api.customers.list);
   const [search,         setSearch]         = useState('');
   // null = closed, undefined = add mode, object = edit mode
   const [modalCustomer,  setModalCustomer]  = useState<any | null | undefined>(null);

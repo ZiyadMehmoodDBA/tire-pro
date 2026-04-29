@@ -9,12 +9,12 @@ interface Props {
   onSaved: () => void;
 }
 
-const FIELDS = [
+const FIELDS: { field: string; label: string; placeholder: string; required?: boolean }[] = [
   { field: 'name',    label: 'Company Name',   placeholder: 'Bridgestone Pakistan Ltd.', required: true },
   { field: 'phone',   label: 'Phone / Fax',    placeholder: '+92-21-3456789' },
   { field: 'email',   label: 'Email Address',  placeholder: 'supply@company.pk' },
   { field: 'address', label: 'City / Address', placeholder: 'Karachi, Sindh' },
-] as const;
+];
 
 function blank(s?: any) {
   return {
@@ -78,7 +78,7 @@ export default function AddEditSupplierModal({ supplier, onClose, onSaved }: Pro
         <form onSubmit={handleSubmit} className="p-5 space-y-3">
           <ErrorBanner error={error} />
 
-          {FIELDS.map(({ field, label, placeholder, required }) => (
+          {FIELDS.map(({ field, label, placeholder, required = false }) => (
             <div key={field}>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 {label} {required && <span className="text-red-500">*</span>}

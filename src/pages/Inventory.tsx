@@ -18,7 +18,7 @@ import { useFetch } from '../lib/useFetch';
 import { useAsyncAction } from '../lib/useAsyncAction';
 
 export default function Inventory() {
-  const { data: tires, setData: setTires, loading, refreshing, error, setError, refresh: fetchTires } = useFetch<any>(api.inventory.list);
+  const { data: tires, loading, refreshing, error, refresh: fetchTires } = useFetch<any>(api.inventory.list);
   const deleteAction = useAsyncAction();
 
   const [search, setSearch]         = useState('');
@@ -207,7 +207,7 @@ export default function Inventory() {
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1.5">
                             <span className={`text-sm font-bold ${isLow ? 'text-red-600' : 'text-slate-900'}`}>{tire.stock}</span>
-                            {isLow && <AlertTriangle size={12} className="text-red-500" title={`Reorder at ${tire.reorder_level}`} />}
+                            {isLow && <AlertTriangle size={12} className="text-red-500" aria-label={`Reorder at ${tire.reorder_level}`} />}
                           </div>
                           <div className="w-16 h-1.5 bg-slate-100 rounded-full mt-1">
                             <div

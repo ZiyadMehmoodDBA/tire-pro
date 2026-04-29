@@ -5,7 +5,6 @@ import {
 } from 'lucide-react';
 import ErrorBanner from '../components/ErrorBanner';
 import { api } from '../api/client';
-import { cn } from '../lib/utils';
 import EmptyState from '../components/EmptyState';
 
 interface Branch {

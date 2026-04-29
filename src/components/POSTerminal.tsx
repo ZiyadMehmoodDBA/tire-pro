@@ -535,7 +535,7 @@ export default function POSTerminal({ onClose, onCreated }: Props) {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
-                    {cart.map((item, idx) => {
+                    {cart.map((item) => {
                       const lineTotal = item.qty * item.unitPrice * (1 - item.discount / 100);
                       const lowStock  = item.stock !== undefined && item.qty > item.stock;
                       return (

@@ -315,7 +315,7 @@ export default function Dashboard() {
                 axisLine={false} tickLine={false} width={32}
               />
               <Tooltip
-                formatter={(v: number) => formatCurrency(v)}
+                formatter={(v: any) => formatCurrency(Number(v) || 0)}
                 contentStyle={{ borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '11px' }}
               />
               <Area type="monotone" dataKey="revenue" stroke="#14b8a6" strokeWidth={2} fill="url(#gRevenue)" />
@@ -356,9 +356,9 @@ export default function Dashboard() {
                   {tireTypeData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                 </Pie>
                 <Tooltip
-                  formatter={(v: number, _name: string, props: any) => [
-                    `${v}% (${formatCurrency(props.payload.revenue)})`,
-                    props.payload.name,
+                  formatter={(v: any, _name: any, props: any) => [
+                    `${v}% (${formatCurrency(props?.payload?.revenue ?? 0)})`,
+                    props?.payload?.name ?? '',
                   ]}
                   contentStyle={{ borderRadius: '10px', fontSize: '11px' }}
                 />

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   BookOpen, Users, Truck, Search, RefreshCw, ArrowUpRight, ArrowDownLeft,
-  TrendingUp, TrendingDown, DollarSign, ChevronRight, X,
+  TrendingUp, DollarSign, X,
   FileText, CreditCard, ReceiptText, Phone, Mail, MapPin,
 } from 'lucide-react';
 import ErrorBanner from '../components/ErrorBanner';

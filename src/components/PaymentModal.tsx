@@ -1,6 +1,6 @@
 import { X, CreditCard, DollarSign, CheckCircle2, Loader2 } from 'lucide-react';
 import { api } from '../api/client';
-import { formatCurrency, formatDate } from '../lib/utils';
+import { formatCurrency } from '../lib/utils';
 import { usePaymentForm, PAYMENT_METHODS } from '../lib/usePaymentForm';
 import ErrorBanner from './ErrorBanner';
 

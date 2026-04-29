@@ -68,13 +68,6 @@ function getPasswordStrength(pw: string): { score: number; label: string; color:
   return              { score, label: 'Strong', color: 'bg-emerald-500' };
 }
 
-function decodeGoogleJwt(token: string): Record<string, string> | null {
-  try {
-    const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-    return JSON.parse(atob(base64));
-  } catch { return null; }
-}
-
 // Add VITE_GOOGLE_CLIENT_ID=<your_id> to a .env file in the project root to enable Google Sign-In
 const GOOGLE_CLIENT_ID = (import.meta.env as Record<string, string | undefined>).VITE_GOOGLE_CLIENT_ID;
 

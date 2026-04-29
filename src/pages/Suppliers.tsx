@@ -17,7 +17,7 @@ import { useFetch } from '../lib/useFetch';
 import AddEditSupplierModal from '../components/AddEditSupplierModal';
 
 export default function Suppliers() {
-  const { data: suppliers, setData: setSuppliers, loading, refreshing, error, setError, refresh: fetchSuppliers } = useFetch<any>(api.suppliers.list);
+  const { data: suppliers, loading, refreshing, error, refresh: fetchSuppliers } = useFetch<any>(api.suppliers.list);
   const [search,         setSearch]         = useState('');
   const [modalSupplier,  setModalSupplier]  = useState<any | null | undefined>(null);
   const [deleteSupplier, setDeleteSupplier] = useState<any>(null);

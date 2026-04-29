@@ -177,7 +177,7 @@ export default function Reports() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                   <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
                   <YAxis tickFormatter={v => `${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={30} />
-                  <Tooltip formatter={(v: number) => formatCurrency(v)} contentStyle={{ borderRadius: '10px', fontSize: '11px' }} />
+                  <Tooltip formatter={(v: any) => formatCurrency(Number(v) || 0)} contentStyle={{ borderRadius: '10px', fontSize: '11px' }} />
                   <Legend iconType="circle" iconSize={7} wrapperStyle={{ fontSize: '11px' }} />
                   <Bar dataKey="revenue"   name="Revenue"   fill="#3b82f6" radius={[3, 3, 0, 0]} />
                   <Bar dataKey="purchases" name="Purchases" fill="#8b5cf6" radius={[3, 3, 0, 0]} />
@@ -193,7 +193,7 @@ export default function Reports() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                   <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
                   <YAxis tickFormatter={v => `${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={30} />
-                  <Tooltip formatter={(v: number) => formatCurrency(v)} contentStyle={{ borderRadius: '10px', fontSize: '11px' }} />
+                  <Tooltip formatter={(v: any) => formatCurrency(Number(v) || 0)} contentStyle={{ borderRadius: '10px', fontSize: '11px' }} />
                   <Line type="monotone" dataKey="profit" name="Profit" stroke="#10b981" strokeWidth={2.5} dot={{ r: 3, fill: '#10b981' }} />
                 </LineChart>
               </ResponsiveContainer>
