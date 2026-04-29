@@ -1,18 +1,20 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import {
   Wrench, Plus, Search, Pencil, Trash2, RefreshCw,
-  AlertCircle, CheckCircle, XCircle, Loader2,
+  CheckCircle, XCircle, Loader2,
 } from 'lucide-react';
 import { api } from '../api/client';
 import { formatCurrency } from '../lib/utils';
 import AddEditServiceModal from '../components/AddEditServiceModal';
 import ConfirmDialog from '../components/ConfirmDialog';
-import { useAutoRefresh } from '../lib/useAutoRefresh';
 import { usePagination } from '../lib/usePagination';
 import Pagination from '../components/Pagination';
 import EmptyState from '../components/EmptyState';
+import ErrorBanner from '../components/ErrorBanner';
+import TableSkeleton from '../components/TableSkeleton';
+import { useFetch } from '../lib/useFetch';
+import { useAsyncAction } from '../lib/useAsyncAction';
 
-// Common tire-shop services for the one-click seed when the list is empty
 const QUICK_SEEDS = [
   { name: 'Tire Fitting',      sale_price: 300,   cost_price: 100, description: 'Mount and fit tyre to wheel rim',          category: 'Service', unit: 'job', is_active: true },
   { name: 'Wheel Balancing',   sale_price: 250,   cost_price: 80,  description: 'Dynamic wheel balancing with weights',     category: 'Service', unit: 'job', is_active: true },
@@ -21,51 +23,24 @@ const QUICK_SEEDS = [
   { name: 'Valve Replacement', sale_price: 100,   cost_price: 30,  description: 'Replace tyre valve stem',                 category: 'Service', unit: 'job', is_active: true },
 ];
 
-export default function Services() {
-  const [services, setServices]     = useState<any[]>([]);
-  const [loading, setLoading]       = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const hasLoaded = useRef(false);
-  const [error, setError]           = useState('');
-  const [search, setSearch]         = useState('');
+const servicesFn = () => api.products.list().then((all: any[]) => all.filter(p => p.category === 'Service'));
 
+export default function Services() {
+  const { data: services, loading, refreshing, error, setError, refresh: fetchServices } = useFetch<any>(servicesFn);
+  const deleteAction = useAsyncAction();
+
+  const [search, setSearch]         = useState('');
   const [addModal, setAddModal]     = useState(false);
   const [editSvc, setEditSvc]       = useState<any>(null);
   const [deleteSvc, setDeleteSvc]   = useState<any>(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
   const [seeding, setSeeding]       = useState(false);
   const [togglingId, setTogglingId] = useState<number | null>(null);
 
-  const fetchServices = useCallback(async () => {
-    if (!hasLoaded.current) setLoading(true);
-    setRefreshing(true); setError('');
-    try {
-      const all = await api.products.list();
-      setServices(all.filter((p: any) => p.category === 'Service'));
-      hasLoaded.current = true;
-    } catch (e: any) {
-      setError(e.message);
-    } finally {
-      setLoading(false); setRefreshing(false);
-    }
-  }, []);
-
-  useAutoRefresh(fetchServices);
-  useEffect(() => { fetchServices(); }, [fetchServices]);
-
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!deleteSvc) return;
-    setDeleteLoading(true);
-    try {
-      await api.products.delete(deleteSvc.id);
-      setDeleteSvc(null);
-      fetchServices();
-    } catch (e: any) {
-      setDeleteSvc(null);
-      setError(e.message);
-    } finally {
-      setDeleteLoading(false);
-    }
+    const svc = deleteSvc;
+    setDeleteSvc(null);
+    deleteAction.execute(() => api.products.delete(svc.id), fetchServices);
   };
 
   const toggleActive = async (svc: any) => {
@@ -83,9 +58,7 @@ export default function Services() {
   const seedDefaults = async () => {
     setSeeding(true);
     try {
-      for (const svc of QUICK_SEEDS) {
-        await api.products.create(svc);
-      }
+      for (const svc of QUICK_SEEDS) await api.products.create(svc);
       fetchServices();
     } catch (e: any) {
       setError(e.message);
@@ -113,9 +86,9 @@ export default function Services() {
       {/* Summary */}
       <div className="grid grid-cols-3 gap-3 sm:gap-4">
         {[
-          { label: 'Active',    value: `${activeCount}`,            color: 'text-teal-600', help: 'Available on invoices' },
-          { label: 'Inactive',  value: `${inactiveCount}`,          color: inactiveCount > 0 ? 'text-amber-500' : 'text-slate-400', help: 'Hidden from invoices' },
-          { label: 'Avg Price', value: formatCurrency(avgPrice),    color: 'text-slate-900',  help: 'Average sale price' },
+          { label: 'Active',    value: `${activeCount}`,         color: 'text-teal-600',  help: 'Available on invoices' },
+          { label: 'Inactive',  value: `${inactiveCount}`,       color: inactiveCount > 0 ? 'text-amber-500' : 'text-slate-400', help: 'Hidden from invoices' },
+          { label: 'Avg Price', value: formatCurrency(avgPrice), color: 'text-slate-900', help: 'Average sale price' },
         ].map(s => (
           <div key={s.label} className="bg-white rounded-xl p-3 sm:p-4 border border-slate-100 shadow-sm">
             <p className="text-xs text-slate-500 font-medium truncate">{s.label}</p>
@@ -155,23 +128,16 @@ export default function Services() {
           </div>
         </div>
 
-        {error && (
-          <div className="mx-4 sm:mx-5 mt-4 flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
-            <AlertCircle size={15} className="flex-shrink-0" /><span>{error}</span>
-          </div>
+        {(error || deleteAction.error) && (
+          <ErrorBanner error={error || deleteAction.error} className="mx-4 sm:mx-5 mt-4" />
         )}
 
-        {loading && (
-          <div className="p-4 space-y-2">
-            {[1,2,3,4,5].map(i => <div key={i} className="h-14 bg-slate-100 rounded-lg animate-pulse" />)}
-          </div>
-        )}
+        {loading && <TableSkeleton rows={5} rowHeight="h-14" />}
 
         {!loading && <Pagination {...paginationProps} position="top" />}
 
         {!loading && (
           <>
-            {/* Empty state with quick-seed */}
             {services.length === 0 && !error && (
               <div className="py-12 text-center px-6">
                 <div className="w-14 h-14 bg-teal-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -218,7 +184,6 @@ export default function Services() {
 
                         return (
                           <tr key={svc.id} className="hover:bg-slate-50/50 transition-colors group">
-                            {/* Service name + description */}
                             <td className="px-4 py-3.5">
                               <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -232,19 +197,13 @@ export default function Services() {
                                 </div>
                               </div>
                             </td>
-
-                            {/* Sale price */}
                             <td className="px-4 py-3.5">
                               <span className="text-sm font-bold text-slate-900">{formatCurrency(saleP)}</span>
                               <span className="ml-1 text-xs text-slate-400">/ job</span>
                             </td>
-
-                            {/* Cost */}
                             <td className="px-4 py-3.5 text-sm text-slate-500">
                               {costP > 0 ? formatCurrency(costP) : <span className="text-slate-300">—</span>}
                             </td>
-
-                            {/* Margin */}
                             <td className="px-4 py-3.5">
                               {margin !== null ? (
                                 <span className={`text-sm font-semibold ${Number(margin) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
@@ -254,8 +213,6 @@ export default function Services() {
                                 <span className="text-slate-300 text-sm">—</span>
                               )}
                             </td>
-
-                            {/* Active toggle */}
                             <td className="px-4 py-3.5">
                               <button
                                 onClick={() => toggleActive(svc)}
@@ -269,14 +226,10 @@ export default function Services() {
                               >
                                 {isToggling
                                   ? <Loader2 size={11} className="animate-spin" />
-                                  : svc.is_active
-                                    ? <CheckCircle size={11} />
-                                    : <XCircle size={11} />}
+                                  : svc.is_active ? <CheckCircle size={11} /> : <XCircle size={11} />}
                                 {svc.is_active ? 'Active' : 'Inactive'}
                               </button>
                             </td>
-
-                            {/* Actions */}
                             <td className="px-4 py-3.5">
                               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <button onClick={() => setEditSvc(svc)} title="Edit"
@@ -350,9 +303,7 @@ export default function Services() {
                               onClick={() => toggleActive(svc)}
                               disabled={togglingId === svc.id}
                               className={`ml-auto flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${
-                                svc.is_active
-                                  ? 'bg-emerald-50 text-emerald-700'
-                                  : 'bg-slate-100 text-slate-500'
+                                svc.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'
                               }`}
                             >
                               {togglingId === svc.id
@@ -395,7 +346,7 @@ export default function Services() {
           message={`Delete "${deleteSvc.name}"? This cannot be undone. Services used in existing sales or purchases cannot be deleted.`}
           confirmLabel="Delete Service"
           variant="danger"
-          loading={deleteLoading}
+          loading={deleteAction.loading}
           onConfirm={handleDelete}
           onCancel={() => setDeleteSvc(null)}
         />

@@ -1,15 +1,9 @@
 import { useState, useEffect } from 'react';
-import { X, CreditCard, AlertCircle, CheckCircle2, Loader2, DollarSign, ChevronDown } from 'lucide-react';
+import { X, CreditCard, CheckCircle2, Loader2, DollarSign, ChevronDown } from 'lucide-react';
 import { api } from '../api/client';
+import ErrorBanner from './ErrorBanner';
 import { formatCurrency, formatDate } from '../lib/utils';
-
-const PAYMENT_METHODS = [
-  { value: 'cash',          label: 'Cash' },
-  { value: 'bank_transfer', label: 'Bank Transfer' },
-  { value: 'cheque',        label: 'Cheque' },
-  { value: 'online',        label: 'Online Payment' },
-  { value: 'other',         label: 'Other' },
-];
+import { usePaymentForm, PAYMENT_METHODS } from '../lib/usePaymentForm';
 
 interface LedgerPaymentModalProps {
   entity: { id: number; name: string; code: string };
@@ -36,14 +30,7 @@ export default function LedgerPaymentModal({ entity, type, onClose, onPaymentRec
   const [docsError,   setDocsError]   = useState('');
 
   const [selectedId,  setSelectedId]  = useState<number | ''>('');
-  const [amount,      setAmount]      = useState('');
-  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().slice(0, 10));
-  const [method,      setMethod]      = useState('cash');
-  const [referenceNo, setReferenceNo] = useState('');
-  const [notes,       setNotes]       = useState('');
-  const [loading,     setLoading]     = useState(false);
-  const [error,       setError]       = useState('');
-  const [success,     setSuccess]     = useState('');
+  const { amount, setAmount, paymentDate, setPaymentDate, method, setMethod, referenceNo, setReferenceNo, notes, setNotes, loading, setLoading, error, setError, success, setSuccess } = usePaymentForm('');
 
   useEffect(() => {
     (async () => {
@@ -156,9 +143,7 @@ export default function LedgerPaymentModal({ entity, type, onClose, onPaymentRec
               <span className="text-sm">Loading unpaid {isCustomer ? 'invoices' : 'purchase orders'}…</span>
             </div>
           ) : docsError ? (
-            <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
-              <AlertCircle size={14} /><span>{docsError}</span>
-            </div>
+            <ErrorBanner error={docsError} />
           ) : docs.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-24 text-slate-400 gap-2">
               <CheckCircle2 size={24} className="text-emerald-400" />
@@ -177,11 +162,7 @@ export default function LedgerPaymentModal({ entity, type, onClose, onPaymentRec
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
-              {error && (
-                <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
-                  <AlertCircle size={14} className="flex-shrink-0" /><span>{error}</span>
-                </div>
-              )}
+              <ErrorBanner error={error} />
 
               {/* Invoice / PO selector */}
               <div>

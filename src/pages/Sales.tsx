@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useAsyncAction } from '../lib/useAsyncAction';
 import { Plus, Search, Eye, Download, Printer, RefreshCw, AlertCircle, Trash2, ChevronDown, Loader2, FileSpreadsheet, CreditCard, Ban } from 'lucide-react';
 import { api } from '../api/client';
 import { formatCurrency, formatDate } from '../lib/utils';
@@ -9,8 +10,9 @@ import InvoiceViewModal from '../components/InvoiceViewModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import PaymentModal from '../components/PaymentModal';
 import { printInvoice, downloadInvoice } from '../lib/invoicePdf';
-import { useAutoRefresh } from '../lib/useAutoRefresh';
+import { useFetch } from '../lib/useFetch';
 import { usePagination } from '../lib/usePagination';
+import { calcSaleSummary } from '../lib/calculations';
 import Pagination from '../components/Pagination';
 import EmptyState from '../components/EmptyState';
 
@@ -31,11 +33,6 @@ const STATUS_OPTIONS = [
 
 export default function Sales() {
   const isAdmin = getUserRole() === 'org_admin';
-  const [sales, setSales]         = useState<any[]>([]);
-  const [loading, setLoading]     = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const hasLoaded = useRef(false);
-  const [error, setError]         = useState('');
   const [search, setSearch]       = useState('');
   const [filter, setFilter]       = useState('all');
   const [dateFrom, setDateFrom]   = useState('');
@@ -46,25 +43,18 @@ export default function Sales() {
 
   const [showImport, setShowImport] = useState(false);
   const [deleteSale, setDeleteSale]       = useState<any>(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
+  const deleteAction = useAsyncAction();
   const [voidSale, setVoidSale]           = useState<any>(null);
-  const [voidLoading, setVoidLoading]     = useState(false);
+  const voidAction = useAsyncAction();
   const [statusMenu, setStatusMenu]       = useState<number | null>(null);
   const [statusLoading, setStatusLoading] = useState<number | null>(null);
   const [paymentSale,  setPaymentSale]    = useState<any>(null);
 
-  const fetchSales = useCallback(async () => {
-    if (!hasLoaded.current) setLoading(true);
-    setRefreshing(true); setError('');
-    try {
-      setSales(await api.sales.listFiltered({ from: dateFrom || undefined, to: dateTo || undefined }));
-      hasLoaded.current = true;
-    } catch (e: any) { setError(e.message); }
-    finally { setLoading(false); setRefreshing(false); }
-  }, [dateFrom, dateTo]);
-
-  useAutoRefresh(fetchSales);
-  useEffect(() => { fetchSales(); }, [fetchSales]);
+  const salesApiFn = useCallback(
+    () => api.sales.listFiltered({ from: dateFrom || undefined, to: dateTo || undefined }),
+    [dateFrom, dateTo]
+  );
+  const { data: sales, setData: setSales, loading, refreshing, error, setError, refresh: fetchSales } = useFetch<any>(salesApiFn);
 
   // Close status menu on outside click
   useEffect(() => {
@@ -108,34 +98,24 @@ export default function Sales() {
     }
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!deleteSale) return;
-    setDeleteLoading(true);
-    try {
-      await api.sales.delete(deleteSale.id);
-      setDeleteSale(null);
-      fetchSales();
-    } catch (e: any) {
-      setDeleteSale(null);
-      setError(e.message);
-    } finally {
-      setDeleteLoading(false);
-    }
+    const sale = deleteSale;
+    setDeleteSale(null);
+    deleteAction.execute(
+      () => api.sales.delete(sale.id),
+      fetchSales
+    );
   };
 
-  const handleVoid = async () => {
+  const handleVoid = () => {
     if (!voidSale) return;
-    setVoidLoading(true);
-    try {
-      await api.sales.void(voidSale.id);
-      setVoidSale(null);
-      fetchSales();
-    } catch (e: any) {
-      setVoidSale(null);
-      setError(e.message);
-    } finally {
-      setVoidLoading(false);
-    }
+    const sale = voidSale;
+    setVoidSale(null);
+    voidAction.execute(
+      () => api.sales.void(sale.id),
+      fetchSales
+    );
   };
 
   const handlePaymentRecorded = (result: any) => {
@@ -154,17 +134,14 @@ export default function Sales() {
   });
   const { paged, paginationProps } = usePagination(filtered);
 
-  const activeSales = filtered.filter(s => s.status !== 'voided');
-  const total     = activeSales.reduce((sum, s) => sum + Number(s.total), 0);
-  const collected = activeSales.reduce((sum, s) => sum + Number(s.amount_paid || 0), 0);
-  const pending   = activeSales.reduce((sum, s) => sum + Math.max(0, Number(s.total) - Number(s.amount_paid || 0)), 0);
+  const { total, collected, pending, count } = calcSaleSummary(filtered);
 
   return (
     <div className="p-4 sm:p-6 space-y-4 sm:space-y-5">
       {/* Summary */}
       <div className="grid grid-cols-3 gap-3 sm:gap-4">
         {[
-          { label: 'Total Sales',  value: formatCurrency(total),     color: 'text-slate-900',   help: `${activeSales.length} invoices` },
+          { label: 'Total Sales',  value: formatCurrency(total),     color: 'text-slate-900',   help: `${count} invoices` },
           { label: 'Collected',    value: formatCurrency(collected),  color: 'text-emerald-600', help: 'Total amount received' },
           { label: 'Outstanding',  value: formatCurrency(pending),    color: 'text-amber-600',   help: 'Balance due across all invoices' },
         ].map(s => (
@@ -415,7 +392,7 @@ export default function Sales() {
           message={`Permanently delete invoice ${deleteSale.invoice_no} for ${deleteSale.customer_name}? Stock will be restored. This cannot be undone.`}
           confirmLabel="Delete Invoice"
           variant="danger"
-          loading={deleteLoading}
+          loading={deleteAction.loading}
           onConfirm={handleDelete}
           onCancel={() => setDeleteSale(null)}
         />
@@ -426,7 +403,7 @@ export default function Sales() {
           message={`Void invoice ${voidSale.invoice_no} for ${voidSale.customer_name}? Stock will be restored and the invoice will be marked as voided. The record is preserved for audit purposes.`}
           confirmLabel="Void Invoice"
           variant="warning"
-          loading={voidLoading}
+          loading={voidAction.loading}
           onConfirm={handleVoid}
           onCancel={() => setVoidSale(null)}
         />

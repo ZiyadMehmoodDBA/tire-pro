@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState } from 'react';
 import {
   Search, Plus, AlertTriangle, CheckCircle, Package,
-  RefreshCw, AlertCircle, Pencil, Trash2, FileSpreadsheet, Download,
+  RefreshCw, Pencil, Trash2, FileSpreadsheet, Download,
 } from 'lucide-react';
 import { api } from '../api/client';
 import { formatCurrency } from '../lib/utils';
@@ -12,48 +12,32 @@ import ExcelImportModal from '../components/ExcelImportModal';
 import CatalogImportModal from '../components/CatalogImportModal';
 import { usePagination } from '../lib/usePagination';
 import Pagination from '../components/Pagination';
-import { useAutoRefresh } from '../lib/useAutoRefresh';
+import ErrorBanner from '../components/ErrorBanner';
+import TableSkeleton from '../components/TableSkeleton';
+import { useFetch } from '../lib/useFetch';
+import { useAsyncAction } from '../lib/useAsyncAction';
 
 export default function Inventory() {
-  const [tires, setTires]           = useState<any[]>([]);
-  const [loading, setLoading]       = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const hasLoaded = useRef(false);
-  const [error, setError]           = useState('');
+  const { data: tires, setData: setTires, loading, refreshing, error, setError, refresh: fetchTires } = useFetch<any>(api.inventory.list);
+  const deleteAction = useAsyncAction();
+
   const [search, setSearch]         = useState('');
   const [filterType, setFilterType] = useState('all');
 
   const [addModal, setAddModal]     = useState(false);
   const [editTire, setEditTire]     = useState<any>(null);
   const [deleteTire, setDeleteTire] = useState<any>(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
   const [showImport, setShowImport]             = useState(false);
   const [showCatalogImport, setShowCatalogImport] = useState(false);
 
-  const fetchTires = useCallback(async () => {
-    if (!hasLoaded.current) setLoading(true);
-    setRefreshing(true); setError('');
-    try { setTires(await api.inventory.list()); hasLoaded.current = true; }
-    catch (e: any) { setError(e.message); }
-    finally { setLoading(false); setRefreshing(false); }
-  }, []);
-
-  useAutoRefresh(fetchTires);
-  useEffect(() => { fetchTires(); }, [fetchTires]);
-
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!deleteTire) return;
-    setDeleteLoading(true);
-    try {
-      await api.inventory.delete(deleteTire.id);
-      setDeleteTire(null);
-      fetchTires();
-    } catch (e: any) {
-      setDeleteTire(null);
-      setError(e.message);
-    } finally {
-      setDeleteLoading(false);
-    }
+    const tire = deleteTire;
+    setDeleteTire(null);
+    deleteAction.execute(
+      () => api.inventory.delete(tire.id),
+      fetchTires,
+    );
   };
 
   const types    = ['all', ...Array.from(new Set(tires.map((t: any) => t.type).filter(Boolean)))];
@@ -153,17 +137,11 @@ export default function Inventory() {
           </div>
         </div>
 
-        {error && (
-          <div className="mx-4 sm:mx-5 mt-4 flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
-            <AlertCircle size={15} className="flex-shrink-0" /><span>{error}</span>
-          </div>
+        {(error || deleteAction.error) && (
+          <ErrorBanner error={error || deleteAction.error} className="mx-4 sm:mx-5 mt-4" />
         )}
 
-        {loading && !error && (
-          <div className="p-4 space-y-2">
-            {[1,2,3,4,5].map(i => <div key={i} className="h-12 bg-slate-100 rounded-lg animate-pulse" />)}
-          </div>
-        )}
+        {loading && !error && <TableSkeleton rows={5} />}
 
         {!loading && <Pagination {...paginationProps} position="top" />}
 
@@ -399,7 +377,7 @@ export default function Inventory() {
           message={`Delete "${deleteTire.brand} ${deleteTire.model} ${deleteTire.size}"? This cannot be undone. Tires used in existing sales or purchases cannot be deleted.`}
           confirmLabel="Delete SKU"
           variant="danger"
-          loading={deleteLoading}
+          loading={deleteAction.loading}
           onConfirm={handleDelete}
           onCancel={() => setDeleteTire(null)}
         />

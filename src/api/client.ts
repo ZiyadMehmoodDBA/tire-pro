@@ -1,5 +1,6 @@
 import { cacheSettingsMap } from '../lib/appSettings';
 import { getAccessToken, getRefreshToken, setAccessToken, clearTokens } from '../lib/auth';
+import type { Sale, Purchase, Customer, Supplier, TireSku, Payment, User, Branch, Organization } from '../types/models';
 
 // Registered by App.tsx so the client can trigger logout without a circular dep
 let _onLogout: (() => void) | null = null;
@@ -126,39 +127,39 @@ export const api = {
     },
   },
   organizations: {
-    list:   ()                      => request<any[]>('/organizations'),
+    list:   ()                      => request<Organization[]>('/organizations'),
     get:    (id: number)            => request<any>(`/organizations/${id}`),
     create: (data: any)             => request<any>('/organizations', { method: 'POST', body: JSON.stringify(data) }),
     update: (id: number, data: any) => request<any>(`/organizations/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   },
   branches: {
-    list:   ()                      => request<any[]>('/branches'),
+    list:   ()                      => request<Branch[]>('/branches'),
     get:    (id: number)            => request<any>(`/branches/${id}`),
     create: (data: any)             => request<any>('/branches', { method: 'POST', body: JSON.stringify(data) }),
     update: (id: number, data: any) => request<any>(`/branches/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id: number)            => request<any>(`/branches/${id}`, { method: 'DELETE' }),
   },
   customers: {
-    list:   ()                      => request<any[]>('/customers'),
-    get:    (id: number)            => request<any>(`/customers/${id}`),
-    create: (data: any)             => request<any>('/customers', { method: 'POST', body: JSON.stringify(data) }),
-    update: (id: number, data: any) => request<any>(`/customers/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    list:   ()                      => request<Customer[]>('/customers'),
+    get:    (id: number)            => request<Customer>(`/customers/${id}`),
+    create: (data: any)             => request<Customer>('/customers', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: number, data: any) => request<Customer>(`/customers/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id: number)            => request<any>(`/customers/${id}`, { method: 'DELETE' }),
     bulk:   (data: any)             => request<any>('/customers/bulk', { method: 'POST', body: JSON.stringify(data) }),
   },
   suppliers: {
-    list:   ()                      => request<any[]>('/suppliers'),
-    get:    (id: number)            => request<any>(`/suppliers/${id}`),
-    create: (data: any)             => request<any>('/suppliers', { method: 'POST', body: JSON.stringify(data) }),
-    update: (id: number, data: any) => request<any>(`/suppliers/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    list:   ()                      => request<Supplier[]>('/suppliers'),
+    get:    (id: number)            => request<Supplier>(`/suppliers/${id}`),
+    create: (data: any)             => request<Supplier>('/suppliers', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: number, data: any) => request<Supplier>(`/suppliers/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id: number)            => request<any>(`/suppliers/${id}`, { method: 'DELETE' }),
     bulk:   (data: any)             => request<any>('/suppliers/bulk', { method: 'POST', body: JSON.stringify(data) }),
   },
   inventory: {
-    list:   ()                      => request<any[]>('/inventory'),
-    get:    (id: number)            => request<any>(`/inventory/${id}`),
-    create: (data: any)             => request<any>('/inventory', { method: 'POST', body: JSON.stringify(data) }),
-    update: (id: number, data: any) => request<any>(`/inventory/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    list:   ()                      => request<TireSku[]>('/inventory'),
+    get:    (id: number)            => request<TireSku>(`/inventory/${id}`),
+    create: (data: any)             => request<TireSku>('/inventory', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: number, data: any) => request<TireSku>(`/inventory/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id: number)            => request<any>(`/inventory/${id}`, { method: 'DELETE' }),
     bulk:           (data: any)             => request<any>('/inventory/bulk', { method: 'POST', body: JSON.stringify(data) }),
     catalogBrands:  ()                      => request<string[]>('/inventory/catalog-brands'),
@@ -168,16 +169,16 @@ export const api = {
     }),
   },
   sales: {
-    list:         ()             => request<any[]>('/sales'),
+    list:         ()             => request<Sale[]>('/sales'),
     listFiltered: (params?: { from?: string; to?: string }) => {
       const qs = new URLSearchParams();
       if (params?.from) qs.set('from', params.from);
       if (params?.to)   qs.set('to',   params.to);
       const suffix = qs.toString() ? `?${qs}` : '';
-      return request<any[]>(`/sales${suffix}`);
+      return request<Sale[]>(`/sales${suffix}`);
     },
-    get:          (id: number)   => request<any>(`/sales/${id}`),
-    create:       (data: any)    => request<any>('/sales', { method: 'POST', body: JSON.stringify(data) }),
+    get:          (id: number)   => request<Sale>(`/sales/${id}`),
+    create:       (data: any)    => request<Sale>('/sales', { method: 'POST', body: JSON.stringify(data) }),
     updateStatus: (id: number, status: string) =>
       request<any>(`/sales/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
     void:         (id: number)   => request<any>(`/sales/${id}/void`, { method: 'POST' }),
@@ -187,9 +188,9 @@ export const api = {
     dashboardStats: ()           => request<any>('/sales/stats/dashboard'),
   },
   purchases: {
-    list:         ()             => request<any[]>('/purchases'),
-    get:          (id: number)   => request<any>(`/purchases/${id}`),
-    create:       (data: any)    => request<any>('/purchases', { method: 'POST', body: JSON.stringify(data) }),
+    list:         ()             => request<Purchase[]>('/purchases'),
+    get:          (id: number)   => request<Purchase>(`/purchases/${id}`),
+    create:       (data: any)    => request<Purchase>('/purchases', { method: 'POST', body: JSON.stringify(data) }),
     updateStatus: (id: number, status: string) =>
       request<any>(`/purchases/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
     delete:       (id: number)   => request<any>(`/purchases/${id}`, { method: 'DELETE' }),
@@ -258,14 +259,14 @@ export const api = {
   },
   payments: {
     recordSalePayment:      (data: any)          => request<any>('/payments/sale', { method: 'POST', body: JSON.stringify(data) }),
-    getSalePayments:        (saleId: number)      => request<any[]>(`/payments/sale/${saleId}`),
+    getSalePayments:        (saleId: number)      => request<Payment[]>(`/payments/sale/${saleId}`),
     deleteSalePayment:      (id: number)          => request<any>(`/payments/sale/${id}`, { method: 'DELETE' }),
     recordPurchasePayment:  (data: any)          => request<any>('/payments/purchase', { method: 'POST', body: JSON.stringify(data) }),
-    getPurchasePayments:    (purchaseId: number)  => request<any[]>(`/payments/purchase/${purchaseId}`),
+    getPurchasePayments:    (purchaseId: number)  => request<Payment[]>(`/payments/purchase/${purchaseId}`),
     deletePurchasePayment:  (id: number)          => request<any>(`/payments/purchase/${id}`, { method: 'DELETE' }),
   },
   users: {
-    list:      ()                       => request<any[]>('/users'),
+    list:      ()                       => request<User[]>('/users'),
     create:    (data: any)              => request<any>('/users', { method: 'POST', body: JSON.stringify(data) }),
     update:    (id: number, data: any)  => request<any>(`/users/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     setStatus: (id: number, active: boolean) =>

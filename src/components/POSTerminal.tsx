@@ -4,6 +4,7 @@ import {
   Loader2, CheckCircle, Printer, Banknote, CreditCard, Shuffle,
   AlertCircle, ChevronDown, ChevronUp, Car, Award, ChevronRight, UserPlus,
 } from 'lucide-react';
+import ErrorBanner from './ErrorBanner';
 import { api } from '../api/client';
 import { formatCurrency } from '../lib/utils';
 import { getCachedSettings } from '../lib/appSettings';
@@ -769,12 +770,7 @@ export default function POSTerminal({ onClose, onCreated }: Props) {
             </div>
 
             {/* Error */}
-            {error && (
-              <div className="mx-5 mt-3 flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl px-3 py-2.5 text-xs text-red-700">
-                <AlertCircle size={13} className="flex-shrink-0 mt-0.5" />
-                <span>{error}</span>
-              </div>
-            )}
+            <ErrorBanner error={error} className="mx-5 mt-3" />
 
             {/* Checkout button */}
             <div className="px-5 py-4 mt-auto flex-shrink-0">

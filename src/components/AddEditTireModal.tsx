@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Loader2, CheckCircle, Package } from 'lucide-react';
 import { api } from '../api/client';
+import ErrorBanner from './ErrorBanner';
 import { formatCurrency } from '../lib/utils';
 import { getCachedSettings } from '../lib/appSettings';
 import ComboboxInput from './ComboboxInput';
@@ -154,11 +155,7 @@ export default function AddEditTireModal({ tire, onClose, onSaved }: Props) {
 
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
           <div className="overflow-y-auto flex-1 px-5 py-4 space-y-5">
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 font-medium">
-                {error}
-              </div>
-            )}
+            <ErrorBanner error={error} />
 
             {/* ── Identification ─────────────────────────────────── */}
             <fieldset>

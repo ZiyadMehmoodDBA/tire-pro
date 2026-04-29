@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { X, Download, Upload, FileSpreadsheet, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import ErrorBanner from './ErrorBanner';
 import * as XLSX from 'xlsx';
 import { api } from '../api/client';
 
@@ -303,11 +304,7 @@ export default function ExcelImportModal({ entity, onClose, onImported }: Props)
               {/* Step 2 — Upload */}
               <div>
                 <p className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-2">Step 2 — Upload File</p>
-                {parseError && (
-                  <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 mb-3">
-                    <AlertCircle size={15} className="flex-shrink-0 mt-0.5" />{parseError}
-                  </div>
-                )}
+                <ErrorBanner error={parseError} className="mb-3" />
                 <div
                   className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors
                     ${dragging ? `${accent.border} ${accent.light}` : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`}
@@ -343,11 +340,7 @@ export default function ExcelImportModal({ entity, onClose, onImported }: Props)
                 </button>
               </div>
 
-              {parseError && (
-                <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
-                  <AlertCircle size={15} className="flex-shrink-0 mt-0.5" />{parseError}
-                </div>
-              )}
+              <ErrorBanner error={parseError} />
 
               {/* Preview table */}
               <div className="overflow-x-auto rounded-xl border border-slate-100">

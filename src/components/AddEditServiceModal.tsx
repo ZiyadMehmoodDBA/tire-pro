@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X, Loader2, CheckCircle, Wrench } from 'lucide-react';
 import { api } from '../api/client';
+import ErrorBanner from './ErrorBanner';
 import { formatCurrency } from '../lib/utils';
 import { getCachedSettings } from '../lib/appSettings';
 
@@ -85,11 +86,7 @@ export default function AddEditServiceModal({ service, onClose, onSaved }: Props
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
           <div className="overflow-y-auto flex-1 px-5 py-4 space-y-4">
 
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
-                {error}
-              </div>
-            )}
+            <ErrorBanner error={error} />
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">

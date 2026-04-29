@@ -1,7 +1,9 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState } from 'react';
+import { calcContactSummary, calcPaymentPct } from '../lib/calculations';
+import { useAsyncAction } from '../lib/useAsyncAction';
 import {
   Search, Plus, Phone, Mail, MapPin, Truck, RefreshCw, AlertCircle,
-  Loader2, Pencil, Trash2, X, CheckCircle, FileSpreadsheet,
+  Pencil, Trash2, FileSpreadsheet,
   ShoppingBag, CreditCard, Scale,
 } from 'lucide-react';
 import { api } from '../api/client';
@@ -11,37 +13,16 @@ import ExcelImportModal from '../components/ExcelImportModal';
 import EmptyState from '../components/EmptyState';
 import { usePagination } from '../lib/usePagination';
 import Pagination from '../components/Pagination';
-import { useAutoRefresh } from '../lib/useAutoRefresh';
+import { useFetch } from '../lib/useFetch';
+import AddEditSupplierModal from '../components/AddEditSupplierModal';
 
 export default function Suppliers() {
-  const [suppliers,      setSuppliers]      = useState<any[]>([]);
-  const [loading,        setLoading]        = useState(true);
-  const [refreshing,     setRefreshing]     = useState(false);
-  const hasLoaded = useRef(false);
-  const [error,          setError]          = useState('');
+  const { data: suppliers, setData: setSuppliers, loading, refreshing, error, setError, refresh: fetchSuppliers } = useFetch<any>(api.suppliers.list);
   const [search,         setSearch]         = useState('');
-  const [showAdd,        setShowAdd]        = useState(false);
-  const [form,           setForm]           = useState({ name: '', phone: '', email: '', address: '' });
-  const [saving,         setSaving]         = useState(false);
-  const [formErr,        setFormErr]        = useState('');
-  const [editSupplier,   setEditSupplier]   = useState<any>(null);
-  const [editForm,       setEditForm]       = useState({ name: '', phone: '', email: '', address: '' });
-  const [editSaving,     setEditSaving]     = useState(false);
-  const [editErr,        setEditErr]        = useState('');
+  const [modalSupplier,  setModalSupplier]  = useState<any | null | undefined>(null);
   const [deleteSupplier, setDeleteSupplier] = useState<any>(null);
-  const [deleteLoading,  setDeleteLoading]  = useState(false);
+  const deleteAction = useAsyncAction();
   const [showImport,     setShowImport]     = useState(false);
-
-  const fetchSuppliers = useCallback(async () => {
-    if (!hasLoaded.current) setLoading(true);
-    setRefreshing(true); setError('');
-    try { setSuppliers(await api.suppliers.list()); hasLoaded.current = true; }
-    catch (e: any) { setError(e.message); }
-    finally { setLoading(false); setRefreshing(false); }
-  }, []);
-
-  useAutoRefresh(fetchSuppliers);
-  useEffect(() => { fetchSuppliers(); }, [fetchSuppliers]);
 
   const filtered = suppliers.filter(s =>
     (s.name  || '').toLowerCase().includes(search.toLowerCase()) ||
@@ -50,60 +31,16 @@ export default function Suppliers() {
   );
   const { paged, paginationProps } = usePagination(filtered);
 
-  const totalInvoiced = suppliers.reduce((s, c) => s + Number(c.total_invoiced || 0), 0);
-  const totalPaid     = suppliers.reduce((s, c) => s + Number(c.total_paid     || 0), 0);
-  const totalBalance  = suppliers.reduce((s, c) => s + Number(c.balance_due    || 0), 0);
+  const { totalInvoiced, totalPaid, totalBalance } = calcContactSummary(suppliers);
 
-  const handleAdd = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.name.trim()) return setFormErr('Name is required');
-    setSaving(true); setFormErr('');
-    try {
-      await api.suppliers.create(form);
-      setShowAdd(false);
-      setForm({ name: '', phone: '', email: '', address: '' });
-      fetchSuppliers();
-    } catch (e: any) {
-      setFormErr(e.message);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const openEdit = (s: any) => {
-    setEditSupplier(s);
-    setEditForm({ name: s.name || '', phone: s.phone || '', email: s.email || '', address: s.address || '' });
-    setEditErr('');
-  };
-
-  const handleEdit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editForm.name.trim()) return setEditErr('Name is required');
-    setEditSaving(true); setEditErr('');
-    try {
-      await api.suppliers.update(editSupplier.id, editForm);
-      setEditSupplier(null);
-      fetchSuppliers();
-    } catch (e: any) {
-      setEditErr(e.message);
-    } finally {
-      setEditSaving(false);
-    }
-  };
-
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!deleteSupplier) return;
-    setDeleteLoading(true);
-    try {
-      await api.suppliers.delete(deleteSupplier.id);
-      setDeleteSupplier(null);
-      fetchSuppliers();
-    } catch (e: any) {
-      setDeleteSupplier(null);
-      setError(e.message);
-    } finally {
-      setDeleteLoading(false);
-    }
+    const supplier = deleteSupplier;
+    setDeleteSupplier(null);
+    deleteAction.execute(
+      () => api.suppliers.delete(supplier.id),
+      fetchSuppliers
+    );
   };
 
   return (
@@ -163,7 +100,7 @@ export default function Suppliers() {
               <FileSpreadsheet size={14} />
               <span className="hidden sm:inline">Import Excel</span>
             </button>
-            <button onClick={() => setShowAdd(v => !v)} title="Add new supplier"
+            <button onClick={() => setModalSupplier(undefined)} title="Add new supplier"
               className="flex items-center gap-1.5 bg-teal-600 text-white text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-2 rounded-lg hover:bg-teal-700 transition-colors whitespace-nowrap">
               <Plus size={14} />
               <span className="hidden sm:inline">Add Supplier</span>
@@ -171,48 +108,6 @@ export default function Suppliers() {
             </button>
           </div>
         </div>
-
-        {/* Add form */}
-        {showAdd && (
-          <form onSubmit={handleAdd} className="m-4 sm:m-5 p-4 bg-teal-50 rounded-xl border border-teal-100 space-y-3">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-bold text-slate-900">New Supplier</p>
-              <button type="button" onClick={() => { setShowAdd(false); setFormErr(''); }}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-teal-100 transition-colors">
-                <X size={16} />
-              </button>
-            </div>
-            {formErr && <p className="text-xs text-red-600 font-medium">{formErr}</p>}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {[
-                { field: 'name',    label: 'Company Name',   placeholder: 'Bridgestone Pakistan Ltd.', required: true },
-                { field: 'phone',   label: 'Phone / Fax',    placeholder: '+92-21-3456789' },
-                { field: 'email',   label: 'Email Address',  placeholder: 'supply@company.pk' },
-                { field: 'address', label: 'City / Address', placeholder: 'Karachi, Sindh' },
-              ].map(({ field, label, placeholder, required }) => (
-                <div key={field}>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">
-                    {label} {required && <span className="text-red-500">*</span>}
-                  </label>
-                  <input
-                    value={(form as any)[field]}
-                    onChange={e => setForm(f => ({ ...f, [field]: e.target.value }))}
-                    placeholder={placeholder}
-                    className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
-                  />
-                </div>
-              ))}
-            </div>
-            <div className="flex gap-2 justify-end pt-1">
-              <button type="button" onClick={() => { setShowAdd(false); setFormErr(''); }}
-                className="px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">Cancel</button>
-              <button type="submit" disabled={saving}
-                className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-teal-600 rounded-lg hover:bg-teal-700 transition-colors disabled:opacity-60">
-                {saving ? <><Loader2 size={13} className="animate-spin" />Saving...</> : 'Save Supplier'}
-              </button>
-            </div>
-          </form>
-        )}
 
         {error && (
           <div className="mx-4 sm:mx-5 mt-4 flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
@@ -233,7 +128,7 @@ export default function Suppliers() {
               const invoiced  = Number(s.total_invoiced || 0);
               const paid      = Number(s.total_paid     || 0);
               const balance   = Number(s.balance_due    || 0);
-              const paidPct   = invoiced > 0 ? Math.min(100, Math.round((paid / invoiced) * 100)) : 100;
+              const paidPct   = calcPaymentPct(invoiced, paid);
               const isSettled = balance <= 0.005;
 
               return (
@@ -242,7 +137,7 @@ export default function Suppliers() {
                 >
                   {/* Action buttons */}
                   <div className="absolute top-3 right-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => openEdit(s)} title="Edit supplier"
+                    <button onClick={() => setModalSupplier(s)} title="Edit supplier"
                       className="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors">
                       <Pencil size={13} />
                     </button>
@@ -328,47 +223,12 @@ export default function Suppliers() {
         <Pagination {...paginationProps} position="bottom" />
       </div>
 
-      {/* Edit modal */}
-      {editSupplier && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-              <h2 className="text-base font-bold text-slate-900">Edit Supplier</h2>
-              <button onClick={() => setEditSupplier(null)} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
-                <X size={16} className="text-slate-500" />
-              </button>
-            </div>
-            <form onSubmit={handleEdit} className="p-5 space-y-3">
-              {editErr && <p className="text-xs text-red-600 font-medium bg-red-50 px-3 py-2 rounded-lg">{editErr}</p>}
-              {[
-                { field: 'name',    label: 'Company Name',   placeholder: 'Bridgestone Pakistan Ltd.', required: true },
-                { field: 'phone',   label: 'Phone / Fax',    placeholder: '+92-21-3456789' },
-                { field: 'email',   label: 'Email Address',  placeholder: 'supply@company.pk' },
-                { field: 'address', label: 'City / Address', placeholder: 'Karachi, Sindh' },
-              ].map(({ field, label, placeholder, required }) => (
-                <div key={field}>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    {label} {required && <span className="text-red-500">*</span>}
-                  </label>
-                  <input
-                    value={(editForm as any)[field]}
-                    onChange={e => setEditForm(f => ({ ...f, [field]: e.target.value }))}
-                    placeholder={placeholder}
-                    className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50"
-                  />
-                </div>
-              ))}
-              <div className="flex gap-2 justify-end pt-1">
-                <button type="button" onClick={() => setEditSupplier(null)}
-                  className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors">Cancel</button>
-                <button type="submit" disabled={editSaving}
-                  className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-teal-600 rounded-lg hover:bg-teal-700 transition-colors disabled:opacity-60">
-                  {editSaving ? <><Loader2 size={13} className="animate-spin" />Saving...</> : <><CheckCircle size={13} />Save Changes</>}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+      {modalSupplier !== null && (
+        <AddEditSupplierModal
+          supplier={modalSupplier}
+          onClose={() => setModalSupplier(null)}
+          onSaved={fetchSuppliers}
+        />
       )}
 
       {showImport && (
@@ -381,7 +241,7 @@ export default function Suppliers() {
           message={`Delete "${deleteSupplier.name}"? Suppliers with existing purchase orders cannot be deleted.`}
           confirmLabel="Delete Supplier"
           variant="danger"
-          loading={deleteLoading}
+          loading={deleteAction.loading}
           onConfirm={handleDelete}
           onCancel={() => setDeleteSupplier(null)}
         />

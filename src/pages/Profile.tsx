@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import {
   ArrowLeft, User, Mail, Phone, MapPin, Briefcase, Building2,
-  GitBranch, Calendar, AlertCircle, Loader2, CheckCircle, KeyRound, Save,
+  GitBranch, Calendar, Loader2, CheckCircle, KeyRound, Save,
 } from 'lucide-react';
+import ErrorBanner from '../components/ErrorBanner';
 import { api } from '../api/client';
 import ChangePasswordModal from '../components/ChangePasswordModal';
 
@@ -142,12 +143,7 @@ export default function Profile({ onBack, onUpdated }: Props) {
           Back
         </button>
 
-        {error && (
-          <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
-            <AlertCircle size={15} className="shrink-0" />
-            {error}
-          </div>
-        )}
+        <ErrorBanner error={error} />
 
         <form onSubmit={handleSave} className="space-y-5">
 

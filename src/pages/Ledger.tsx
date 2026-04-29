@@ -1,13 +1,15 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   BookOpen, Users, Truck, Search, RefreshCw, ArrowUpRight, ArrowDownLeft,
-  TrendingUp, TrendingDown, DollarSign, AlertCircle, ChevronRight, X,
+  TrendingUp, TrendingDown, DollarSign, ChevronRight, X,
   FileText, CreditCard, ReceiptText, Phone, Mail, MapPin,
 } from 'lucide-react';
+import ErrorBanner from '../components/ErrorBanner';
 import { api } from '../api/client';
 import { formatCurrency, formatDate } from '../lib/utils';
 import LedgerPaymentModal from '../components/LedgerPaymentModal';
 import { useAutoRefresh } from '../lib/useAutoRefresh';
+import { calcPaymentPct } from '../lib/calculations';
 import EmptyState from '../components/EmptyState';
 
 type Tab = 'receivables' | 'payables';
@@ -58,7 +60,6 @@ export default function Ledger() {
   const [summary,       setSummary]       = useState<any>(null);
   const [loading,       setLoading]       = useState(true);
   const [refreshing,    setRefreshing]    = useState(false);
-  const hasLoaded = useRef(false);
   const [error,         setError]         = useState('');
   const [search,        setSearch]        = useState('');
   const [selected,      setSelected]      = useState<LedgerEntity | null>(null);
@@ -67,7 +68,6 @@ export default function Ledger() {
   const [showPayModal,  setShowPayModal]  = useState(false);
 
   const fetchAll = useCallback(async () => {
-    if (!hasLoaded.current) setLoading(true);
     setRefreshing(true); setError('');
     try {
       const [cust, supp, summ] = await Promise.all([
@@ -78,7 +78,6 @@ export default function Ledger() {
       setCustomers(cust);
       setSuppliers(supp);
       setSummary(summ);
-      hasLoaded.current = true;
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -172,11 +171,7 @@ export default function Ledger() {
         </div>
       )}
 
-      {error && (
-        <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
-          <AlertCircle size={15} /><span>{error}</span>
-        </div>
-      )}
+      <ErrorBanner error={error} />
 
       {/* ── Main Panel ─────────────────────────────────────────────────────── */}
       <div className="flex gap-4" style={{ minHeight: '520px' }}>
@@ -271,12 +266,12 @@ export default function Ledger() {
                             <div
                               className="bg-teal-500 h-1.5 rounded-full"
                               style={{
-                                width: `${Math.min(100, (entity.total_paid / Math.max(1, Number(entity.total_invoiced || entity.total_purchased || 1))) * 100).toFixed(0)}%`
+                                width: `${calcPaymentPct(Number(entity.total_invoiced || entity.total_purchased || 0), entity.total_paid)}%`
                               }}
                             />
                           </div>
                           <span className="text-[10px] text-slate-400 flex-shrink-0">
-                            {Math.min(100, Math.round((entity.total_paid / Math.max(1, Number(entity.total_invoiced || entity.total_purchased || 1))) * 100))}% paid
+                            {calcPaymentPct(Number(entity.total_invoiced || entity.total_purchased || 0), entity.total_paid)}% paid
                           </span>
                         </div>
                       )}

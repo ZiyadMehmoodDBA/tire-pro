@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell,
@@ -11,6 +11,7 @@ import { api } from '../api/client';
 import { formatCurrency, formatDate } from '../lib/utils';
 import { useAutoRefresh } from '../lib/useAutoRefresh';
 import { getCachedSettings } from '../lib/appSettings';
+import TableSkeleton from '../components/TableSkeleton';
 
 const BASE_MONTHS = [
   { month: 'Jan' }, { month: 'Feb' }, { month: 'Mar' },
@@ -37,10 +38,8 @@ export default function Dashboard() {
   const [dashStats,    setDashStats]    = useState<any>(null);
   const [loading,      setLoading]      = useState(true);
   const [refreshing,   setRefreshing]   = useState(false);
-  const hasLoaded = useRef(false);
 
   const fetchAll = async () => {
-    if (!hasLoaded.current) setLoading(true);
     setRefreshing(true);
     const [sRes, pRes, tRes, ttRes, fRes, dsRes] = await Promise.allSettled([
       api.sales.list(),
@@ -70,7 +69,6 @@ export default function Dashboard() {
 
     setLoading(false);
     setRefreshing(false);
-    hasLoaded.current = true;
   };
 
   const { secondsLeft } = useAutoRefresh(fetchAll);
@@ -106,12 +104,6 @@ export default function Dashboard() {
     pending: 'bg-amber-50 text-amber-700',
     overdue: 'bg-red-50 text-red-700',
   };
-
-  const Skeleton = () => (
-    <div className="space-y-2">
-      {[1, 2, 3].map(i => <div key={i} className="h-10 bg-slate-100 rounded-lg animate-pulse" />)}
-    </div>
-  );
 
   return (
     <div className="p-4 sm:p-6 space-y-4 sm:space-y-5">
@@ -402,7 +394,7 @@ export default function Dashboard() {
             </span>
           </div>
           <div className="p-3 sm:p-4">
-            {loading ? <Skeleton /> : (
+            {loading ? <TableSkeleton rows={3} rowHeight="h-10" /> : (
               <div className="space-y-0.5">
                 {recentSales.length === 0 && (
                   <p className="text-sm text-slate-400 text-center py-8">No sales yet. Create your first invoice.</p>
@@ -445,7 +437,7 @@ export default function Dashboard() {
             </span>
           </div>
           <div className="p-3 sm:p-4">
-            {loading ? <Skeleton /> : (
+            {loading ? <TableSkeleton rows={3} rowHeight="h-10" /> : (
               <div className="space-y-0.5">
                 {lowStock.length === 0 && (
                   <div className="flex items-center justify-center gap-2.5 py-8 text-emerald-600">
@@ -485,7 +477,7 @@ export default function Dashboard() {
             </span>
           </div>
           <div className="p-3 sm:p-4">
-            {loading ? <Skeleton /> : (
+            {loading ? <TableSkeleton rows={3} rowHeight="h-10" /> : (
               <div className="space-y-0.5">
                 {(!dashStats?.top_skus || dashStats.top_skus.length === 0) && (
                   <p className="text-sm text-slate-400 text-center py-8">No tire sales in the last 30 days.</p>

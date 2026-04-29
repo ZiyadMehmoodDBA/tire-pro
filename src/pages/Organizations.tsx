@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   Building2, GitBranch, Plus, Edit2, Trash2, CheckCircle,
-  AlertCircle, Loader2, X, Phone, Mail, MapPin, Tag,
+  Loader2, X, Phone, Mail, MapPin, Tag,
 } from 'lucide-react';
+import ErrorBanner from '../components/ErrorBanner';
 import { api } from '../api/client';
 import { cn } from '../lib/utils';
 import EmptyState from '../components/EmptyState';
@@ -136,9 +137,7 @@ export default function Organizations() {
 
   if (error) return (
     <div className="p-6">
-      <div className="flex items-center gap-2 text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-        <AlertCircle size={16} /> {error}
-      </div>
+      <ErrorBanner error={error} />
     </div>
   );
 
@@ -287,11 +286,7 @@ export default function Organizations() {
                 </div>
               ))}
 
-              {formError && (
-                <div className="flex items-center gap-2 text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
-                  <AlertCircle size={13} /> {formError}
-                </div>
-              )}
+              <ErrorBanner error={formError} />
             </div>
             <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-100 bg-slate-50">
               <button onClick={() => setShowBranchModal(false)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">

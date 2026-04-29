@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  ClipboardList, RefreshCw, AlertCircle, ChevronDown, ChevronRight,
+  ClipboardList, RefreshCw, ChevronDown, ChevronRight,
   Plus, Pencil, Trash2, RotateCcw, Filter,
 } from 'lucide-react';
+import ErrorBanner from '../components/ErrorBanner';
 import { api } from '../api/client';
 import { useAutoRefresh } from '../lib/useAutoRefresh';
 import EmptyState from '../components/EmptyState';
@@ -300,11 +301,7 @@ export default function AuditLog() {
       </div>
 
       {/* Error */}
-      {error && (
-        <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
-          <AlertCircle size={15} /> {error}
-        </div>
-      )}
+      <ErrorBanner error={error} />
 
       {/* Table */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">

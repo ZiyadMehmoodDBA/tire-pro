@@ -1,4 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState } from 'react';
+import { calcContactSummary, calcPaymentPct } from '../lib/calculations';
+import { useAsyncAction } from '../lib/useAsyncAction';
 import {
   Search, Plus, Phone, Mail, MapPin, RefreshCw, AlertCircle,
   TrendingUp, CreditCard, Scale, FileSpreadsheet, Car,
@@ -11,32 +13,17 @@ import ExcelImportModal from '../components/ExcelImportModal';
 import { usePagination } from '../lib/usePagination';
 import Pagination from '../components/Pagination';
 import AddEditCustomerModal from '../components/AddEditCustomerModal';
-import { useAutoRefresh } from '../lib/useAutoRefresh';
+import { useFetch } from '../lib/useFetch';
 import EmptyState from '../components/EmptyState';
 
 export default function Customers() {
-  const [customers,      setCustomers]      = useState<any[]>([]);
-  const [loading,        setLoading]        = useState(true);
-  const [refreshing,     setRefreshing]     = useState(false);
-  const hasLoaded = useRef(false);
-  const [error,          setError]          = useState('');
+  const { data: customers, setData: setCustomers, loading, refreshing, error, setError, refresh: fetchCustomers } = useFetch<any>(api.customers.list);
   const [search,         setSearch]         = useState('');
   // null = closed, undefined = add mode, object = edit mode
   const [modalCustomer,  setModalCustomer]  = useState<any | null | undefined>(null);
   const [deleteCustomer, setDeleteCustomer] = useState<any>(null);
-  const [deleteLoading,  setDeleteLoading]  = useState(false);
+  const deleteAction = useAsyncAction();
   const [showImport,     setShowImport]     = useState(false);
-
-  const fetchCustomers = useCallback(async () => {
-    if (!hasLoaded.current) setLoading(true);
-    setRefreshing(true); setError('');
-    try { setCustomers(await api.customers.list()); hasLoaded.current = true; }
-    catch (e: any) { setError(e.message); }
-    finally { setLoading(false); setRefreshing(false); }
-  }, []);
-
-  useAutoRefresh(fetchCustomers);
-  useEffect(() => { fetchCustomers(); }, [fetchCustomers]);
 
   const q = search.toLowerCase();
   const filtered = customers.filter(c =>
@@ -50,23 +37,16 @@ export default function Customers() {
   );
   const { paged, paginationProps } = usePagination(filtered);
 
-  const totalInvoiced = customers.reduce((s, c) => s + Number(c.total_invoiced || 0), 0);
-  const totalPaid     = customers.reduce((s, c) => s + Number(c.total_paid     || 0), 0);
-  const totalBalance  = customers.reduce((s, c) => s + Number(c.balance_due    || 0), 0);
+  const { totalInvoiced, totalPaid, totalBalance } = calcContactSummary(customers);
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!deleteCustomer) return;
-    setDeleteLoading(true);
-    try {
-      await api.customers.delete(deleteCustomer.id);
-      setDeleteCustomer(null);
-      fetchCustomers();
-    } catch (e: any) {
-      setDeleteCustomer(null);
-      setError(e.message);
-    } finally {
-      setDeleteLoading(false);
-    }
+    const customer = deleteCustomer;
+    setDeleteCustomer(null);
+    deleteAction.execute(
+      () => api.customers.delete(customer.id),
+      fetchCustomers
+    );
   };
 
   return (
@@ -157,7 +137,7 @@ export default function Customers() {
               const invoiced  = Number(c.total_invoiced || 0);
               const paid      = Number(c.total_paid     || 0);
               const balance   = Number(c.balance_due    || 0);
-              const paidPct   = invoiced > 0 ? Math.min(100, Math.round((paid / invoiced) * 100)) : 100;
+              const paidPct   = calcPaymentPct(invoiced, paid);
               const isSettled = balance <= 0.005;
 
               const vehicleParts = [
@@ -294,7 +274,7 @@ export default function Customers() {
           message={`Delete "${deleteCustomer.name}"? Customers with existing sales cannot be deleted.`}
           confirmLabel="Delete Customer"
           variant="danger"
-          loading={deleteLoading}
+          loading={deleteAction.loading}
           onConfirm={handleDelete}
           onCancel={() => setDeleteCustomer(null)}
         />

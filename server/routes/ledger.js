@@ -18,7 +18,7 @@ router.get('/summary', async (req, res) => {
           COUNT(CASE WHEN s.status IN ('pending','overdue') THEN 1 END) AS unpaid_count,
           COUNT(CASE WHEN s.status = 'partial' THEN 1 END) AS partial_count
         FROM sales s
-        WHERE s.organization_id = @orgId
+        WHERE s.organization_id = @orgId AND s.status != 'voided'
       `);
 
     const payRes = await pool.request()
@@ -68,7 +68,7 @@ router.get('/customers', async (req, res) => {
           COUNT(CASE WHEN s.status = 'partial' THEN 1 END)    AS partial_count,
           MAX(s.date)                                           AS last_transaction
         FROM customers c
-        LEFT JOIN sales s ON s.customer_id = c.id AND s.organization_id = @orgId
+        LEFT JOIN sales s ON s.customer_id = c.id AND s.organization_id = @orgId AND s.status != 'voided'
         WHERE c.organization_id = @orgId
         GROUP BY c.id, c.code, c.name, c.phone, c.email, c.address
         ORDER BY balance DESC, c.name ASC
@@ -132,7 +132,7 @@ router.get('/customer/:id/statement', async (req, res) => {
             CAST(0 AS DECIMAL(18,2)) AS credit,
             s.created_at    AS sort_ts
           FROM sales s
-          WHERE s.customer_id = @customer_id AND s.organization_id = @orgId
+          WHERE s.customer_id = @customer_id AND s.organization_id = @orgId AND s.status != 'voided'
 
           UNION ALL
 

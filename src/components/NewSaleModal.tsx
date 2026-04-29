@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Plus, Trash2, Loader2, CheckCircle, UserPlus } from 'lucide-react';
 import { api } from '../api/client';
+import ErrorBanner from './ErrorBanner';
 import { formatCurrency } from '../lib/utils';
 import { getCachedSettings } from '../lib/appSettings';
 import ComboboxInput from './ComboboxInput';
@@ -222,11 +223,7 @@ export default function NewSaleModal({ onClose, onCreated }: NewSaleModalProps) 
 
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
           <div className="overflow-y-auto flex-1 px-5 py-4 space-y-4">
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 font-medium">
-                {error}
-              </div>
-            )}
+            <ErrorBanner error={error} />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>

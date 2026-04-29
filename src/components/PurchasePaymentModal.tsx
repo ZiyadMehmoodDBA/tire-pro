@@ -1,15 +1,8 @@
-import { useState } from 'react';
-import { X, CreditCard, DollarSign, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { X, CreditCard, DollarSign, CheckCircle2, Loader2 } from 'lucide-react';
 import { api } from '../api/client';
 import { formatCurrency } from '../lib/utils';
-
-const PAYMENT_METHODS = [
-  { value: 'cash',          label: 'Cash' },
-  { value: 'bank_transfer', label: 'Bank Transfer' },
-  { value: 'cheque',        label: 'Cheque' },
-  { value: 'online',        label: 'Online Payment' },
-  { value: 'other',         label: 'Other' },
-];
+import { usePaymentForm, PAYMENT_METHODS } from '../lib/usePaymentForm';
+import ErrorBanner from './ErrorBanner';
 
 interface PurchasePaymentModalProps {
   po: {
@@ -30,14 +23,7 @@ export default function PurchasePaymentModal({ po, onClose, onPaymentRecorded }:
   const paidAmt    = Number(po.amount_paid || 0);
   const balanceDue = parseFloat((totalAmt - paidAmt).toFixed(2));
 
-  const [amount,      setAmount]      = useState(balanceDue > 0 ? String(balanceDue) : '');
-  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().slice(0, 10));
-  const [method,      setMethod]      = useState('cash');
-  const [referenceNo, setReferenceNo] = useState('');
-  const [notes,       setNotes]       = useState('');
-  const [loading,     setLoading]     = useState(false);
-  const [error,       setError]       = useState('');
-  const [success,     setSuccess]     = useState('');
+  const { amount, setAmount, paymentDate, setPaymentDate, method, setMethod, referenceNo, setReferenceNo, notes, setNotes, loading, setLoading, error, setError, success, setSuccess } = usePaymentForm(balanceDue > 0 ? String(balanceDue) : '');
 
   const amountNum  = parseFloat(amount) || 0;
   const newTotal   = parseFloat((paidAmt + amountNum).toFixed(2));
@@ -118,11 +104,7 @@ export default function PurchasePaymentModal({ po, onClose, onPaymentRecorded }:
         {/* Form */}
         {!success && (
           <form onSubmit={handleSubmit} className="p-5 space-y-4">
-            {error && (
-              <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
-                <AlertCircle size={15} className="flex-shrink-0" /><span>{error}</span>
-              </div>
-            )}
+            <ErrorBanner error={error} />
 
             {/* Amount */}
             <div>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X, Loader2, CheckCircle, User, Car } from 'lucide-react';
 import { api } from '../api/client';
+import ErrorBanner from './ErrorBanner';
 
 interface Props {
   customer?: any;   // undefined → add mode
@@ -95,11 +96,7 @@ export default function AddEditCustomerModal({ customer, onClose, onSaved }: Pro
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
           <div className="overflow-y-auto flex-1 px-5 py-4 space-y-5">
 
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
-                {error}
-              </div>
-            )}
+            <ErrorBanner error={error} />
 
             {/* ── Identity ──────────────────────────────────────── */}
             <fieldset>

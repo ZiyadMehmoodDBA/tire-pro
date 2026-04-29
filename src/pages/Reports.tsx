@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useFetch } from '../lib/useFetch';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   LineChart, Line, Legend
 } from 'recharts';
-import { RefreshCw, AlertCircle, FileText, FileSpreadsheet, Download, AlertTriangle } from 'lucide-react';
+import { RefreshCw, FileText, FileSpreadsheet, Download, AlertTriangle } from 'lucide-react';
+import ErrorBanner from '../components/ErrorBanner';
 import { api } from '../api/client';
-import { useAutoRefresh } from '../lib/useAutoRefresh';
 import { formatCurrency, formatDate } from '../lib/utils';
 import {
   exportSalesReportPDF, exportSalesReportExcel,
@@ -27,17 +28,20 @@ const TABS: { id: TabId; label: string }[] = [
 
 export default function Reports() {
   const [activeTab, setActiveTab]   = useState<TabId>('pnl');
-  const [sales,     setSales]       = useState<any[]>([]);
-  const [purchases, setPurchases]   = useState<any[]>([]);
-  const [tires,     setTires]       = useState<any[]>([]);
-  const [loading,   setLoading]     = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const hasLoaded      = useRef(false);
+
+  const { data: sales,     loading: salesLoad,  refreshing: salesRef,  error: salesErr,  setError, refresh: refreshSales } = useFetch<any>(api.sales.list);
+  const { data: purchases, loading: purchLoad,  refreshing: purchRef,  error: purchErr,  refresh: refreshPurchases } = useFetch<any>(api.purchases.list);
+  const { data: tires,     loading: tiresLoad,  refreshing: tiresRef,  error: tiresErr,  refresh: refreshTires }     = useFetch<any>(api.inventory.list);
+
+  const loading    = salesLoad  || purchLoad  || tiresLoad;
+  const refreshing = salesRef   || purchRef   || tiresRef;
+  const error      = salesErr   || purchErr   || tiresErr;
+  const fetchAll   = () => { refreshSales(); refreshPurchases(); refreshTires(); };
+
   const stockTopRef    = useRef<HTMLDivElement>(null);
   const salesTopRef    = useRef<HTMLDivElement>(null);
   const lowstockTopRef = useRef<HTMLDivElement>(null);
   const brandTopRef    = useRef<HTMLDivElement>(null);
-  const [error, setError] = useState('');
 
   // Sales report state
   const [salesFrom,    setSalesFrom]    = useState('');
@@ -45,28 +49,6 @@ export default function Reports() {
   const [salesReport,  setSalesReport]  = useState<any[]>([]);
   const [salesLoading, setSalesLoading] = useState(false);
   const [salesFetched, setSalesFetched] = useState(false);
-
-  const fetchAll = useCallback(async () => {
-    if (!hasLoaded.current) setLoading(true);
-    setRefreshing(true); setError('');
-    try {
-      const [s, p, t] = await Promise.all([
-        api.sales.list(),
-        api.purchases.list(),
-        api.inventory.list(),
-      ]);
-      setSales(s); setPurchases(p); setTires(t);
-      hasLoaded.current = true;
-    } catch (e: any) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
-
-  useAutoRefresh(fetchAll);
-  useEffect(() => { fetchAll(); }, [fetchAll]);
 
   const fetchSalesReport = useCallback(async () => {
     setSalesLoading(true);
@@ -166,11 +148,7 @@ export default function Reports() {
         </button>
       </div>
 
-      {error && (
-        <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
-          <AlertCircle size={15} className="flex-shrink-0" /><span>Error: {error}</span>
-        </div>
-      )}
+      <ErrorBanner error={error} />
 
       {/* ── P&L Summary tab ─────────────────────────────────────────────────── */}
       {activeTab === 'pnl' && (

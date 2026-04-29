@@ -1,9 +1,11 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState } from 'react';
+import { calcPurchaseSummary } from '../lib/calculations';
+import { useAsyncAction } from '../lib/useAsyncAction';
 import { Plus, Search, Eye, RefreshCw, AlertCircle, Trash2, PackageCheck, XCircle, Loader2, FileSpreadsheet, CreditCard } from 'lucide-react';
 import { api } from '../api/client';
 import { formatCurrency, formatDate } from '../lib/utils';
 import GRNModal from '../components/GRNModal';
-import { useAutoRefresh } from '../lib/useAutoRefresh';
+import { useFetch } from '../lib/useFetch';
 import { usePagination } from '../lib/usePagination';
 import Pagination from '../components/Pagination';
 import POViewModal from '../components/POViewModal';
@@ -19,11 +21,7 @@ const statusColor: Record<string, string> = {
 };
 
 export default function Purchases() {
-  const [purchases, setPurchases] = useState<any[]>([]);
-  const [loading, setLoading]     = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const hasLoaded = useRef(false);
-  const [error, setError]         = useState('');
+  const { data: purchases, setData: setPurchases, loading, refreshing, error, setError, refresh: fetchPurchases } = useFetch<any>(api.purchases.list);
   const [search, setSearch]       = useState('');
   const [filter, setFilter]       = useState('all');
   const [showModal, setShowModal] = useState(false);
@@ -33,21 +31,10 @@ export default function Purchases() {
   const [paymentPO, setPaymentPO] = useState<any>(null);
   const [showImport, setShowImport] = useState(false);
   const [deletePO, setDeletePO]           = useState<any>(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
+  const deleteAction = useAsyncAction();
   const [receiveConfirm, setReceiveConfirm] = useState<any>(null);
   const [cancelConfirm, setCancelConfirm]   = useState<any>(null);
   const [actionLoading, setActionLoading]   = useState<number | null>(null);
-
-  const fetchPurchases = useCallback(async () => {
-    if (!hasLoaded.current) setLoading(true);
-    setRefreshing(true); setError('');
-    try { setPurchases(await api.purchases.list()); hasLoaded.current = true; }
-    catch (e: any) { setError(e.message); }
-    finally { setLoading(false); setRefreshing(false); }
-  }, []);
-
-  useAutoRefresh(fetchPurchases);
-  useEffect(() => { fetchPurchases(); }, [fetchPurchases]);
 
   const handleView = async (id: number) => {
     setLoadingId(id);
@@ -84,19 +71,14 @@ export default function Purchases() {
     }
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!deletePO) return;
-    setDeleteLoading(true);
-    try {
-      await api.purchases.delete(deletePO.id);
-      setDeletePO(null);
-      fetchPurchases();
-    } catch (e: any) {
-      setDeletePO(null);
-      setError(e.message);
-    } finally {
-      setDeleteLoading(false);
-    }
+    const po = deletePO;
+    setDeletePO(null);
+    deleteAction.execute(
+      () => api.purchases.delete(po.id),
+      fetchPurchases
+    );
   };
 
   const filtered = purchases.filter(p => {
@@ -108,10 +90,7 @@ export default function Purchases() {
   });
   const { paged, paginationProps } = usePagination(filtered);
 
-  const totalPurchased = filtered.reduce((s, p) => s + Number(p.total), 0);
-  const totalPaid      = filtered.reduce((s, p) => s + Number(p.amount_paid || 0), 0);
-  const totalOutstanding = parseFloat((totalPurchased - totalPaid).toFixed(2));
-  const pending        = filtered.filter(p => p.status === 'pending').reduce((s, p) => s + Number(p.total), 0);
+  const { totalPurchased, totalPaid, totalOutstanding, pendingDelivery: pending } = calcPurchaseSummary(filtered);
 
   return (
     <div className="p-4 sm:p-6 space-y-4 sm:space-y-5">
@@ -354,7 +333,7 @@ export default function Purchases() {
           message={`Delete PO ${deletePO.po_no}? If received, stock will be reversed. This cannot be undone.`}
           confirmLabel="Delete PO"
           variant="danger"
-          loading={deleteLoading}
+          loading={deleteAction.loading}
           onConfirm={handleDelete}
           onCancel={() => setDeletePO(null)}
         />

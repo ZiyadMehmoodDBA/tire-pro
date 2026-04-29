@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X, KeyRound, Eye, EyeOff, Loader2, CheckCircle, ShieldCheck } from 'lucide-react';
 import { api } from '../api/client';
+import ErrorBanner from './ErrorBanner';
 import { setTokens } from '../lib/auth';
 
 interface Props {
@@ -91,11 +92,7 @@ export default function ChangePasswordModal({ onClose }: Props) {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="px-5 py-5 space-y-4">
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 font-medium">
-                {error}
-              </div>
-            )}
+            <ErrorBanner error={error} />
 
             {/* Security notice */}
             <div className="flex items-start gap-2.5 bg-slate-50 rounded-xl px-3.5 py-3 border border-slate-100">
