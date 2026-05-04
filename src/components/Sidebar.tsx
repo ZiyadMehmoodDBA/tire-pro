@@ -274,19 +274,19 @@ export default function Sidebar({
             )}
           </button>
 
-          {/* Collapse toggle — desktop only */}
-          <button
-            onClick={() => onCollapsedChange(!collapsed)}
-            className={cn(
-              'hidden lg:flex w-full items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all',
-              collapsed && 'justify-center px-0'
-            )}
-          >
-            {collapsed ? <ChevronRight size={17} /> : <ChevronLeft size={17} />}
-            {!collapsed && <span>Collapse</span>}
-          </button>
         </div>
       </aside>
+
+      {/* Collapse toggle — fixed, floating on sidebar right edge, desktop only */}
+      <button
+        onClick={() => onCollapsedChange(!collapsed)}
+        className={cn(
+          'hidden lg:flex fixed top-[60px] z-[60] w-6 h-6 bg-white border border-slate-200 rounded-full shadow-md items-center justify-center text-slate-400 hover:text-teal-600 hover:border-teal-300 transition-all duration-300',
+          collapsed ? 'left-[60px]' : 'left-[244px]'
+        )}
+      >
+        {collapsed ? <ChevronRight size={13} /> : <ChevronLeft size={13} />}
+      </button>
     </>
   );
 }

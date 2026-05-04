@@ -67,10 +67,12 @@ export default function Invoices() {
     finally { setActionLoading(null); }
   };
 
-  const filtered = sales.filter(s =>
-    (s.customer_name || '').toLowerCase().includes(search.toLowerCase()) ||
-    (s.invoice_no    || '').toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = sales
+    .filter(s =>
+      (s.customer_name || '').toLowerCase().includes(search.toLowerCase()) ||
+      (s.invoice_no    || '').toLowerCase().includes(search.toLowerCase())
+    )
+    .sort((a, b) => (a.status === 'overdue' ? -1 : b.status === 'overdue' ? 1 : 0));
   const { paged, paginationProps } = usePagination(filtered);
 
   return (
@@ -129,7 +131,13 @@ export default function Invoices() {
                   <button
                     key={inv.id}
                     onClick={() => handleSelect(inv.id)}
-                    className={`w-full text-left px-4 py-3.5 border-b border-slate-50 hover:bg-slate-50 transition-colors ${selectedId === inv.id ? 'bg-teal-50 border-l-2 border-l-teal-500' : ''}`}
+                    className={`w-full text-left px-4 py-3.5 border-b border-slate-50 transition-colors ${
+                      selectedId === inv.id
+                        ? 'bg-teal-50 border-l-2 border-l-teal-500'
+                        : inv.status === 'overdue'
+                          ? 'bg-red-50 border-l-2 border-l-red-400 hover:bg-red-100'
+                          : 'hover:bg-slate-50'
+                    }`}
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-xs sm:text-sm font-semibold text-teal-600">{inv.invoice_no}</span>

@@ -126,12 +126,14 @@ export default function Sales() {
     ));
   };
 
-  const filtered = sales.filter(s => {
-    const matchSearch = (s.customer_name || '').toLowerCase().includes(search.toLowerCase()) ||
-      (s.invoice_no || '').toLowerCase().includes(search.toLowerCase());
-    const matchFilter = filter === 'all' || s.status === filter;
-    return matchSearch && matchFilter;
-  });
+  const filtered = sales
+    .filter(s => {
+      const matchSearch = (s.customer_name || '').toLowerCase().includes(search.toLowerCase()) ||
+        (s.invoice_no || '').toLowerCase().includes(search.toLowerCase());
+      const matchFilter = filter === 'all' || s.status === filter;
+      return matchSearch && matchFilter;
+    })
+    .sort((a, b) => (a.status === 'overdue' ? -1 : b.status === 'overdue' ? 1 : 0));
   const { paged, paginationProps } = usePagination(filtered);
 
   const { total, collected, pending, count } = calcSaleSummary(filtered);
@@ -251,9 +253,10 @@ export default function Sales() {
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {paged.map(sale => {
-                  const isVoided = sale.status === 'voided';
+                  const isVoided  = sale.status === 'voided';
+                  const isOverdue = sale.status === 'overdue';
                   return (
-                    <tr key={sale.id} className={`hover:bg-slate-50 transition-colors ${isVoided ? 'opacity-60' : ''}`}>
+                    <tr key={sale.id} className={`transition-colors ${isVoided ? 'opacity-60 hover:bg-slate-50' : isOverdue ? 'bg-red-50 hover:bg-red-100 border-l-2 border-l-red-400' : 'hover:bg-slate-50'}`}>
                       <td className="px-3 sm:px-4 py-3 sm:py-3.5">
                         <span className={`text-xs sm:text-sm font-semibold ${isVoided ? 'text-slate-400 line-through' : 'text-teal-600'}`}>{sale.invoice_no}</span>
                       </td>
