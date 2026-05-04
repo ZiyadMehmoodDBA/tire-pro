@@ -273,7 +273,6 @@ export default function Sidebar({
               </span>
             )}
           </button>
-
         </div>
       </aside>
 
@@ -281,7 +280,7 @@ export default function Sidebar({
       <button
         onClick={() => onCollapsedChange(!collapsed)}
         className={cn(
-          'hidden lg:flex fixed top-[60px] z-[60] w-6 h-6 bg-white border border-slate-200 rounded-full shadow-md items-center justify-center text-slate-400 hover:text-teal-600 hover:border-teal-300 transition-all duration-300',
+          'hidden lg:flex fixed top-[60px] z-[60] w-6 h-6 bg-white border border-slate-200 rounded-full shadow-md items-center justify-center text-slate-400 hover:text-teal-600 hover:border-teal-300 transition-all duration-300 ease-in-out',
           collapsed ? 'left-[60px]' : 'left-[244px]'
         )}
       >
